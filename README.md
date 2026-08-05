@@ -26,6 +26,11 @@ holding all application files.
 
 ## Usage
 
+> ⚠️ **Authorized use only.** MailGrit performs bulk create/edit/delete on an
+> iRedAdmin server. Use it **only on systems and accounts you own or are
+> authorized to administer.** Unauthorized use is illegal and is your sole
+> responsibility. See [DISCLAIMER.md](DISCLAIMER.md).
+
 1. Launch `mailgrit-app-desktop`. Enter the iRedAdmin URL
    (e.g. `https://mail.example.com/iredadmin`) and press **Open login form**.
    An application window with the real iRedAdmin form opens.
@@ -178,4 +183,21 @@ and continuous fuzzing (cargo-fuzz) run nightly and are non-blocking.
 ## License
 
 Dual-licensed under **MIT OR Apache-2.0**, at your option. See
-[LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE).
+[LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE). Contributions are
+made under the same dual license (inbound = outbound); see
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Legal & privacy
+
+| Document | Purpose |
+|----------|---------|
+| [DISCLAIMER.md](DISCLAIMER.md) | Authorized-use policy, no-warranty, and limitation of liability |
+| [PRIVACY.md](PRIVACY.md) | Data handling — local-only storage, PII masking, no telemetry |
+| [SECURITY.md](SECURITY.md) | Vulnerability reporting and security posture |
+| [NOTICE.md](NOTICE.md) | Copyright, licensing, and trademark attribution |
+
+**Trademarks:** "iRedAdmin" is a trademark of its respective owners. MailGrit is
+**not affiliated with, endorsed by, or sponsored by** iRedAdmin or its
+developers; the name is used solely to indicate compatibility. See
+[NOTICE.md](NOTICE.md).
+
