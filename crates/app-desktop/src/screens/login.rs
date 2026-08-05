@@ -35,6 +35,7 @@ pub fn login_screen() -> Element {
                     Logo { class: "login-logo".to_string() }
                     h1 { {crate::brand::APP_NAME} }
                     p { class: "login-tagline", {tr!("login.tagline")} }
+                    p { class: "login-notice", {tr!("login.authorized_notice")} }
                 }
 
                 Card { class: "card-accent".to_string(),

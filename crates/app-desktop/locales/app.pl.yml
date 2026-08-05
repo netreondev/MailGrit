@@ -58,6 +58,7 @@ subtitle.dashboard: "Panel operacji"
 
 # ── Ekran logowania ─────────────────────────────────────────────────────────
 login.tagline: "Masowa automatyzacja dla iRedAdmin"
+login.authorized_notice: "Wyłącznie do autoryzowanego administrowania — używaj tylko na serwerach iRedAdmin, których jesteś właścicielem lub które masz uprawnienie administrować."
 login.server_label: "Adres serwera iRedAdmin"
 login.server_hint: "Wprowadź pełny adres URL https panelu administracyjnego"
 login.open_form: "Otwórz formularz logowania"

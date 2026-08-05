@@ -58,6 +58,7 @@ subtitle.dashboard: "Panneau des opérations"
 
 # ── Écran de connexion ──────────────────────────────────────────────────────
 login.tagline: "Automatisation en masse pour iRedAdmin"
+login.authorized_notice: "Administration autorisée uniquement — n'opérez que sur des serveurs iRedAdmin que vous possédez ou administrez."
 login.server_label: "Adresse du serveur iRedAdmin"
 login.server_hint: "Saisir l'URL https complète du panneau d'administration"
 login.open_form: "Ouvrir le formulaire de connexion"

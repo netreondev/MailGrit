@@ -58,6 +58,7 @@ subtitle.dashboard: "Pannello operazioni"
 
 # ── Schermata di accesso ────────────────────────────────────────────────────
 login.tagline: "Automazione di massa per iRedAdmin"
+login.authorized_notice: "Solo per amministrazione autorizzata — operare esclusivamente su server iRedAdmin di vostra proprietà o che siete autorizzati ad amministrare."
 login.server_label: "Indirizzo del server iRedAdmin"
 login.server_hint: "Inserisci l'URL https completo del pannello di amministrazione"
 login.open_form: "Apri modulo di accesso"

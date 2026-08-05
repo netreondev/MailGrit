@@ -58,6 +58,7 @@ subtitle.dashboard: "Bewerkingen"
 
 # ── Aanmeldscherm ───────────────────────────────────────────────────────────
 login.tagline: "Massa-automatisering voor iRedAdmin"
+login.authorized_notice: "Uitsluitend voor geautoriseerd beheer — gebruik MailGrit alleen op iRedAdmin-servers die u bezit of beheert."
 login.server_label: "iRedAdmin-serveradres"
 login.server_hint: "Voer de volledige https-URL van het beheerpaneel in"
 login.open_form: "Aanmeldformulier openen"

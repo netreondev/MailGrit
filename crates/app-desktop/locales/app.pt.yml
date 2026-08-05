@@ -58,6 +58,7 @@ subtitle.dashboard: "Painel de operações"
 
 # ── Ecrã de início de sessão ────────────────────────────────────────────────
 login.tagline: "Automação em massa para o iRedAdmin"
+login.authorized_notice: "Apenas para administração autorizada — opere exclusivamente em servidores iRedAdmin que você possui ou está autorizado a administrar."
 login.server_label: "Endereço do servidor iRedAdmin"
 login.server_hint: "Indique o URL https completo do painel de administração"
 login.open_form: "Abrir formulário de início de sessão"

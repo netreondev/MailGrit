@@ -58,6 +58,7 @@ subtitle.dashboard: "Vorgänge"
 
 # ── Anmeldebildschirm ───────────────────────────────────────────────────────
 login.tagline: "Massenautomatisierung für iRedAdmin"
+login.authorized_notice: "Nur autorisierte Verwaltung — nutzen Sie MailGrit ausschließlich auf iRedAdmin-Servern, die Sie besitzen oder verwalten."
 login.server_label: "iRedAdmin-Serveradresse"
 login.server_hint: "Vollständige https-URL des Admin-Panels eingeben"
 login.open_form: "Anmeldeformular öffnen"

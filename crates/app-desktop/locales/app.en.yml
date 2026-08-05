@@ -64,6 +64,7 @@ subtitle.dashboard: "Operations panel"
 
 # ── Login screen ────────────────────────────────────────────────────────────
 login.tagline: "Mass automation for iRedAdmin"
+login.authorized_notice: "Authorized administration only — operate solely on iRedAdmin servers you own or administer."
 login.server_label: "iRedAdmin server address"
 login.server_hint: "Enter the full https URL of the admin panel"
 login.open_form: "Open sign-in form"

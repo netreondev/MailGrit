@@ -71,6 +71,15 @@
     color: var(--fg-muted);
     font-size: var(--fs-sm);
 }
+/* Authorized-use notice: fine print under the tagline. Smaller and more muted
+   so it reads as a legal disclaimer without disturbing the hero composition. */
+.login-brand .login-notice {
+    color: var(--fg-muted);
+    font-size: var(--fs-xs);
+    opacity: 0.75;
+    max-width: 42ch;
+    margin-top: 0.25rem;
+}
 
 .login-card .card {
     padding: var(--s-6);

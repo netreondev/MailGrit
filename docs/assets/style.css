@@ -193,6 +193,20 @@ a:hover { text-decoration: underline; }
   color: var(--text-muted);
 }
 .hero-meta .dot { opacity: 0.4; }
+.legal-microcopy {
+  margin-top: 18px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  opacity: 0.85;
+  max-width: 60ch;
+}
+.trademark-note {
+  margin-top: 14px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  opacity: 0.75;
+  line-height: 1.5;
+}
 
 /* ---------- Sections ---------- */
 .section { padding: 76px 0; border-bottom: 1px solid var(--surface-border); }
