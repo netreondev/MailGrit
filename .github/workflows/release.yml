@@ -1,0 +1,150 @@
+# Builds native release binaries for Windows / Linux / macOS and publishes
+# them as a GitHub Release. Triggered manually or on version tags (v*).
+name: Release binaries
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. v0.1.0)"
+        required: true
+        default: "v0.1.0"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: Build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: windows-x86_64
+            binary: mailgrit-app-desktop.exe
+            archive: mailgrit-windows-x86_64.zip
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            name: linux-x86_64
+            binary: mailgrit-app-desktop
+            archive: mailgrit-linux-x86_64.tar.gz
+          - os: macos-14
+            target: aarch64-apple-darwin
+            name: macos-arm64
+            binary: mailgrit-app-desktop
+            archive: mailgrit-macos-arm64.tar.gz
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain (pinned 1.97.1)
+        run: rustup toolchain install 1.97.1 --profile minimal
+
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Install Linux system dependencies (Dioxus desktop / webkit2gtk)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            mold
+
+      - name: Build release binary
+        run: cargo build --release -p mailgrit-app-desktop --target ${{ matrix.target }}
+
+      - name: Stage binary + README (Windows)
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p stage
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" stage/
+          cp README.md README.uk.md LICENSE-MIT LICENSE-APACHE stage/
+          7z a "${{ matrix.archive }}" ./stage/*
+          ls -la "${{ matrix.archive }}"
+
+      - name: Stage binary + README (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p stage
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" stage/
+          cp README.md README.uk.md LICENSE-MIT LICENSE-APACHE stage/
+          tar -czf "${{ matrix.archive }}" -C stage .
+          ls -la "${{ matrix.archive }}"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: ${{ matrix.archive }}
+          retention-days: 7
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: List release assets
+        run: ls -la release-assets/
+
+      - name: Determine tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create / update release with all binaries
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: MailGrit ${{ steps.tag.outputs.tag }}
+          body: |
+            ## MailGrit ${{ steps.tag.outputs.tag }}
+
+            Cross-platform desktop client for bulk iRedAdmin automation.
+
+            ### Downloads
+            - **Windows** (x86_64): `mailgrit-windows-x86_64.zip`
+            - **Linux** (x86_64): `mailgrit-linux-x86_64.tar.gz`
+            - **macOS** (Apple Silicon): `mailgrit-macos-arm64.tar.gz`
+
+            ### Requirements
+            - **Windows 10/11**: WebView2 Runtime (preinstalled on Windows 11).
+            - **Linux**: WebKit2GTK 4.1 (`libwebkit2gtk-4.1-0`), GTK 3 — install via your distro (e.g. `sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0`).
+            - **macOS 11+** (Apple Silicon): WebKit is bundled with the OS.
+
+            See the [README](https://github.com/netreondev/MailGrit#readme) for usage and the [website](https://netreondev.github.io/MailGrit/) for an overview.
+
+            Dual-licensed under MIT OR Apache-2.0.
+          files: |
+            release-assets/mailgrit-windows-x86_64.zip
+            release-assets/mailgrit-linux-x86_64.tar.gz
+            release-assets/mailgrit-macos-arm64.tar.gz
+          draft: false
+          prerelease: false
