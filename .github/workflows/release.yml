@@ -61,6 +61,7 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libssl-dev \
+            libxdo-dev \
             mold
 
       - name: Build release binary
