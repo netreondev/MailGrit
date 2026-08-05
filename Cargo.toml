@@ -1,0 +1,84 @@
+# MailGrit — cross-platform desktop client (Windows/Linux/macOS ARM) for bulk
+# iRedAdmin automation. Dioxus desktop (no Node/JS toolchain).
+#
+# Workspace layout, lint discipline, and supply-chain policy.
+# Each crate compiles/tests in isolation (`cargo test -p <crate>`).
+
+[workspace]
+resolver = "2"
+members = [
+    "crates/core-domain",
+    "crates/core-csv",
+    "crates/core-storage",
+    "crates/core-security",
+    "crates/app-desktop",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"          # Rust 2024 Edition — native async fn in traits, etc.
+rust-version = "1.97.1"   # matches rust-toolchain.toml exactly
+license = "MIT OR Apache-2.0"
+authors = ["MailGrit Contributors"]
+description = "Cross-platform desktop client for bulk iRedAdmin automation"
+repository = "https://github.com/netreondev/MailGrit"
+homepage = "https://netreondev.github.io/MailGrit"
+documentation = "https://github.com/netreondev/MailGrit#readme"
+readme = "README.md"
+keywords = ["iredadmin", "email", "automation", "bulk-operations", "desktop"]
+categories = ["gui", "network-programming", "authentication"]
+publish = false           # internal workspace crates, not published to crates.io
+
+# ----------------------------------------------------------------------------
+# Unified workspace lint discipline.
+# These lints must not be silenced without a separate "lint-suppression" review tag.
+# ----------------------------------------------------------------------------
+[workspace.lints.rust]
+unsafe_code = "forbid"   # no exceptions: wry 0.53 returns HttpOnly cookies natively
+# missing_docs to be raised incrementally so it does not block scaffolding.
+
+# Register the custom cfg `kani` (activated by the Kani toolchain via cargo kani).
+# Without registration rustc warns about unexpected_cfgs for #[cfg(kani)] in
+# harness modules. See crates/*/src/kani_harnesses.rs.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+
+[workspace.lints.clippy]
+# Baseline — deny warnings (as in the mandatory clippy command).
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "deny", priority = -1 }
+complexity = { level = "deny", priority = -1 }
+perf = { level = "deny", priority = -1 }
+pedantic = { level = "deny", priority = -1 }
+nursery = { level = "deny", priority = -1 }
+cargo = { level = "deny", priority = -1 }
+
+# Targeted, documented exception: doc_markdown is designed for Latin abbreviations
+# but systematically false-positives on technical terms and acronyms (HttpOnly,
+# XChaCha20-Poly1305, DashMap, OOM, TOCTOU, RCU, etc.), creating noise without
+# improving real quality. Lifting the exception is a separate task (see
+# .github/workflows/ci.yml) once a custom term allowlist is introduced instead of
+# the lint. Revisit when the project glossary of technical terms is filled in.
+doc_markdown = "allow"
+
+# Lints that may not be silenced without exceptions.
+unwrap_used = "deny"
+expect_used = "deny"      # production code; tests override locally
+indexing_slicing = "deny"
+arithmetic_side_effects = "deny"
+panic = "deny"
+todo = "deny"
+unimplemented = "deny"
+unreachable = "deny"
+dbg_macro = "deny"
+print_stdout = "deny"     # logs only via tracing, never println!
+print_stderr = "deny"
+
+# cargo-lints constraints: Cargo.toml must stay clean.
+multiple_crate_versions = "warn"   # warn — allows transitive duplicates (e.g. web-sys)
+wildcard_dependencies = "deny"     # forbid "*" versions — deny.toml rule duplicated here
+
+# ----------------------------------------------------------------------------
+# Workspace dev-dependencies (available to all crates via [dev-dependencies]).
+# Versions are added via cargo add with explicit pinning.
+# ----------------------------------------------------------------------------
+# (dependencies are declared per crate for isolated compilation)

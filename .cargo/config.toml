@@ -1,0 +1,44 @@
+# Build hygiene and faster dev iteration.
+#
+# Per-target fast linker:
+#   - Linux:   mold (if present in the CI image)
+#   - macOS:   system ld64 (reliable; lld is unstable on macOS)
+#   - Windows: default MSVC link.exe (lld-link is not available everywhere)
+#
+# IMPORTANT: the build must NOT silently fall back to the standard linker if the
+# configured one is unavailable — that would mask CI degradation. Therefore only
+# linkers guaranteed to exist in the CI images are forced here
+# (mold on Linux via rustflags). Windows/macOS use proven system linkers without
+# overrides, to avoid spurious local failures.
+
+[target.x86_64-unknown-linux-gnu]
+# mold — significant link-time speedup on Linux. In ubuntu-latest CI images it is
+# installed explicitly (a workflow step). Locally, if absent, cargo will report an error.
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+# Windows (x86_64-pc-windows-msvc) and macOS (aarch64-apple-darwin) — without
+# linker overrides: the system link.exe and ld64 are used respectively.
+# This is a deliberate choice: local-dev reliability outweighs a marginal speedup.
+
+# sccache — required for CI caching of artifacts across runs.
+# In local development it may be absent — cargo works without it
+# (in CI it is enabled via RUSTC_WRAPPER in .github/workflows/ci.yml).
+
+# Profile settings: dev — fast iteration, release — deterministic build.
+[profile.dev]
+debug = 1
+incremental = true
+
+[profile.release]
+debug = 0
+lto = "thin"
+codegen-units = 1   # determinism of the release build
+strip = "symbols"
+panic = "unwind"    # unwind instead of abort: preserves panic diagnostics in the log
+                    # and keeps the option of future task isolation (catch_unwind)
+
+# strict profile — maximum checking: overflow-checks + fat LTO.
+[profile.strict]
+inherits = "release"
+lto = "fat"
+overflow-checks = true  # panic on integer overflow (runtime check)

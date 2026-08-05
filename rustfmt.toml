@@ -1,0 +1,6 @@
+# Deterministic formatting — a single style across the whole workspace (stable-only).
+# Run: `cargo fmt --all` (CI check: `cargo fmt --all -- --check`).
+# Nightly-only options (wrap_comments, etc.) are deferred until after the toolchain migration.
+
+edition = "2024"
+max_width = 100

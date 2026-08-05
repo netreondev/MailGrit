@@ -1,0 +1,101 @@
+# cargo-deny — mandatory CI step (`cargo deny check advisories bans licenses sources`).
+# Fails the build on known vulnerabilities (RUSTSEC), disallowed licenses,
+# and dependencies from unauthorized registries or git sources.
+# See the Supply chain section.
+
+# ============================================================================
+# [licenses] — allowed dependency licenses.
+# ============================================================================
+[licenses]
+# Only permissive and weak-copyleft licenses are allowed (no GPL contagion).
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-DFS-2016",
+    "Unicode-3.0",
+    "Zlib",
+    "CC0-1.0",
+    "MPL-2.0",   # weak copyleft, file-level — acceptable for a desktop application
+    "OpenSSL",
+    # NCSA — permissive (libfuzzer-sys, transitively via the Dioxus image stack).
+    "NCSA",
+    # CDLA-Permissive-2.0 — permissive data license (webpki-roots, rustls root certificates).
+    "CDLA-Permissive-2.0",
+]
+# Any license outside the allow list → build error.
+confidence-threshold = 0.93
+
+# License exceptions are added ONLY with a comment (crate, license, reason).
+# Here — LGPL dependencies of the Linux webview backend (webkit2gtk/gtk), pulled
+# transitively via Dioxus desktop on Linux only. They are absent on Windows/macOS.
+# LGPL is weak copyleft at the library level, acceptable for a linked desktop application.
+[[licenses.exceptions]]
+allow = ["LGPL-3.0", "LGPL-3.0-or-later", "LGPL-2.1", "LGPL-2.1-or-later"]
+name = "webkit2gtk"
+version = "*"
+
+[[licenses.exceptions]]
+allow = ["LGPL-3.0", "LGPL-3.0-or-later", "LGPL-2.1", "LGPL-2.1-or-later"]
+name = "webkit2gtk-sys"
+version = "*"
+
+[[licenses.exceptions]]
+allow = ["LGPL-3.0", "LGPL-3.0-or-later", "LGPL-2.1", "LGPL-2.1-or-later"]
+name = "gtk"
+version = "*"
+
+# ============================================================================
+# [advisories] — RUSTSEC vulnerabilities.
+# ============================================================================
+[advisories]
+# On any advisory — the build fails.
+db-path = "~/.cargo/advisory-dbs"
+db-urls = ["https://github.com/rustsec/advisory-db"]
+# Yanked versions — error (build reproducibility).
+yanked = "deny"
+# Unmaintained crates: warn (non-blocking), because transitive deps of the Dioxus/wry webview
+# (gtk-rs, paste, fxhash) are outside our control. Real vulnerabilities (RUSTSEC) — deny.
+unmaintained = "workspace"
+
+# ============================================================================
+# [bans] — forbid wildcard versions and duplicates.
+# ============================================================================
+[bans]
+# Forbid "*" versions in Cargo.toml — all dependencies are pinned to exact or semver ranges.
+wildcards = "deny"
+# Forbid major-version duplicates (with explicitly allowed exceptions).
+multiple-versions = "warn"
+# Forbid dependencies with known problems.
+deny = [
+    # Forbid DIRECT dependencies on chrono in our code (we use time).
+    # OpenSSL is NOT banned globally, because it is pulled transitively into the Dioxus webview
+    # (native-tls ← tungstenite ← dioxus-desktop). There is no direct dependency on openssl
+    # in our code — this is enforced. See also the multiple-versions warn.
+    { name = "chrono", use-instead = "time", reason = "time has no unsafe and is the recommended time crate." },
+]
+# Allowed duplicates and transitive exceptions.
+skip = []
+# Transitive openssl via proc-macro-error → thiserror-impl (build-time proc-macro).
+# This is NOT a runtime dependency of the application: it is used only when compiling derive macros.
+# Removal condition: when thiserror-impl drops proc-macro-error (or migrates to a modern API).
+skip-tree = [
+    { name = "proc-macro-error", version = "1" },
+]
+
+# ============================================================================
+# [sources] — allowed registries and git sources.
+# ============================================================================
+[sources]
+# Any unknown git source → error. Forks require justification in the PR.
+unknown-registry = "deny"
+unknown-git = "deny"
+# crates.io — primary registry; advisory-db — for cargo-deny.
+allow-registry = [
+    "https://github.com/rust-lang/crates.io-index",
+    "https://github.com/rustsec/advisory-db",
+]
+allow-git = []

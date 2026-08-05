@@ -1,0 +1,19 @@
+[package]
+name = "mailgrit-core-csv"
+description = "Parsing and validation of bulk user-import CSV with strict memory limits."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+mailgrit-core-domain = { version = "0.1.0", path = "../core-domain" }
+thiserror = "2.0.19"
+tracing = "0.1"
+
+[lints]
+workspace = true
+
+[dev-dependencies]
+proptest = "1.11.0"

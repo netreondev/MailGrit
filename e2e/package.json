@@ -1,0 +1,16 @@
+{
+  "name": "mailgrit-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MailGrit E2E — Playwright over WebView2 via Chrome DevTools Protocol. Isolated from the Rust build: it does not touch the workspace and does not introduce Node into the build.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "PWDEBUG=1 playwright test",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "typescript": "^5.7.0"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "MailGrit",
+  "short_name": "MailGrit",
+  "description": "Cross-platform desktop client for bulk iRedAdmin automation.",
+  "start_url": "https://netreondev.github.io/MailGrit/",
+  "scope": "https://netreondev.github.io/MailGrit/",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "https://netreondev.github.io/MailGrit/assets/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://netreondev.github.io/MailGrit/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://netreondev.github.io/MailGrit/assets/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

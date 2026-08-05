@@ -1,0 +1,244 @@
+# MailGrit UI translations — Polski (Polish).
+# Placeholdery: %{name} (rust-i18n 4.x). Struktura 1:1 z app.en.yml.
+_version: 1
+
+# ── Nawigacja / sekcje ──────────────────────────────────────────────────────
+nav.operations: "Operacje"
+nav.audit: "Audyt"
+
+# ── Cele ────────────────────────────────────────────────────────────────────
+target.user: "Użytkownicy"
+target.domain: "Domeny"
+target.admin: "Administratorzy"
+
+# ── Akcje ───────────────────────────────────────────────────────────────────
+action.create: "Utwórz"
+action.edit: "Edytuj"
+action.delete: "Usuń"
+action.cancel: "Anuluj"
+
+# ── Ogólne frazy UI ─────────────────────────────────────────────────────────
+session.active: "Sesja aktywna"
+session.none: "Brak sesji"
+csv.not_loaded: "CSV niezaładowany"
+theme.light: "Jasny motyw"
+theme.dark: "Ciemny motyw"
+theme.toggle: "Przełącz motyw"
+logout: "Wyloguj"
+
+# ── (cel × operacja) — macierz 3×3 ─────────────────────────────────────────
+op_label.user.create: "Tworzenie użytkownika"
+op_label.user.edit: "Edycja użytkownika"
+op_label.user.delete: "Usuwanie użytkownika"
+op_label.domain.create: "Tworzenie domeny"
+op_label.domain.edit: "Edycja domeny"
+op_label.domain.delete: "Usuwanie domeny"
+op_label.admin.create: "Tworzenie administratora"
+op_label.admin.edit: "Edycja administratora"
+op_label.admin.delete: "Usuwanie administratora"
+
+# ── Kody błędów iRedAdmin ───────────────────────────────────────────────────
+err_code.NO_SUCH_ACCOUNT: "Konto nie istnieje"
+err_code.ALREADY_EXISTS: "Konto już istnieje"
+err_code.ACCOUNT_EXISTS: "Konto już istnieje"
+err_code.NO_SUCH_DOMAIN: "Domena nie istnieje"
+err_code.ALREADY_EXISTS_DOMAIN: "Domena już istnieje"
+err_code.NOT_ALLOWED: "Działanie niedozwolone"
+err_code.INVALID: "Nieprawidłowe dane"
+
+# ── Titlebar / okno ─────────────────────────────────────────────────────────
+titlebar.minimize: "Minimalizuj"
+titlebar.maximize: "Maksymalizuj"
+titlebar.close: "Zamknij"
+window.login_title: "MailGrit — logowanie do iRedAdmin"
+
+# ── Podtytuły ───────────────────────────────────────────────────────────────
+subtitle.login: "Logowanie"
+subtitle.dashboard: "Panel operacji"
+
+# ── Ekran logowania ─────────────────────────────────────────────────────────
+login.tagline: "Masowa automatyzacja dla iRedAdmin"
+login.server_label: "Adres serwera iRedAdmin"
+login.server_hint: "Wprowadź pełny adres URL https panelu administracyjnego"
+login.open_form: "Otwórz formularz logowania"
+login.waiting: "Oczekiwanie na logowanie do iRedAdmin…"
+login.waiting_hint: "Zaloguj się w otwartym oknie — aplikacja przełączy się automatycznie"
+login.footer: " Aplikacja nie przechowuje Twojego hasła. Logowanie odbywa się w prawdziwym formularzu iRedAdmin w osobnym oknie; aplikacja odczytuje tylko plik cookie sesji (HttpOnly)."
+
+# ── Karta CSV ───────────────────────────────────────────────────────────────
+csv.card_title: "Wczytywanie i edycja CSV"
+csv.format_hint: "Format: domain, username, password, display_name, quota_mb"
+csv.choose_file: "Wybierz plik"
+csv.file_dialog_title: "Wybierz plik CSV"
+csv.valid_rows: "prawidłowych wierszy"
+csv.rejected: "odrzuconych"
+csv.read_error: "nie udało się odczytać pliku: %{error}"
+csv.parse_io_error: "błąd odczytu: %{error}"
+csv.parse_error: "błąd CSV: %{error}"
+csv.loaded_summary: "Wczytano CSV: %{valid} prawidłowych, %{failed} odrzuconych wierszy"
+csv.utf8_warn: "CSV zawiera nieprawidłowe UTF-8, automatyczne mapowanie kolumn wyłączone"
+
+# ── Odrzucone wiersze CSV ───────────────────────────────────────────────────
+csv.failed_title: "Odrzucone wiersze CSV (%{count})"
+csv.col_line: "Wiersz"
+csv.col_content: "Zawartość"
+csv.col_reason: "Przyczyna"
+csv.more_rejected: "…i %{count} więcej odrzuconych wierszy"
+csv.preview_more: "…i %{count} więcej"
+csv.preview_empty: "CSV niezaładowany"
+
+# ── Diagnostyka ciasteczek ──────────────────────────────────────────────────
+cookies.trigger: "Zaawansowana diagnostyka — odebrane ciasteczka (%{count})"
+cookies.hint: "Sesja docelowa: %{name}. Jeśli brak jej na liście, ustaw poprawną nazwę w config.toml (session_cookie_name) i uruchom ponownie."
+cookies.col_name: "Nazwa"
+cookies.col_domain: "Domena"
+cookies.col_path: "Path"
+cookies.col_httponly: "HttpOnly"
+cookies.col_length: "Długość"
+cookies.yes: "tak"
+cookies.no: "nie"
+
+# ── Wynik operacji ──────────────────────────────────────────────────────────
+result.card_title: "Wynik ostatniej operacji"
+result.none_yet: "Brak operacji"
+result.succeeded: "Udane: %{count}"
+result.failed: "Odrzucone: %{count}"
+result.rejected_title: "Odrzucone wiersze"
+result.col_user: "Użytkownik"
+result.col_domain: "Domena"
+result.col_reason: "Przyczyna"
+result.reason_title: "Szczegóły — w mailgrit.log (ZRZUT OPERACJI)"
+
+# ── Audyt ───────────────────────────────────────────────────────────────────
+audit.unavailable: "Dziennik audytu niedostępny"
+audit.empty: "Brak wpisów"
+audit.verify_btn: "Zweryfikuj integralność"
+audit.col_time: "Czas"
+audit.col_action: "Akcja"
+audit.col_detail: "Szczegóły"
+audit.chain_ok: "Łańcuch audytu jest nienaruszony"
+audit.chain_broken: "Łańcuch audytu ZŁAMANY (dziennik sfałszowany)"
+audit.verify_storage_error: "Nie udało się zweryfikować integralności: błąd odczytu bazy audytu"
+audit.verify_lock_error: "Nie udało się zweryfikować integralności: stan audytu uszkodzony"
+
+# ── Mapowanie ───────────────────────────────────────────────────────────────
+mapping.profile: "Profil: %{label}"
+mapping.auto_detect: "Automatycznie wykryj kolumny"
+mapping.all_detected: "wykryto wszystkie kolumny"
+mapping.partial_detected: "wykryto %{bound} z %{total}: zmień nazwy ręcznie"
+mapping.summary: "Mapowanie: %{info}"
+
+# ── Karta operacji ──────────────────────────────────────────────────────────
+ops.card_title: "Operacje masowe"
+ops.status_running: "Operacja w toku…"
+ops.status_ready: "Gotowy do operacji"
+ops.status_no_session: "Brak aktywnej sesji"
+ops.running_hint: "Wykonywanie operacji przez iRedAdmin…"
+ops.save_csv: "Zapisz CSV"
+ops.diag_forms: "Diagnostyka formularzy"
+ops.diag_file_dialog: "Gdzie zapisać eksport"
+ops.delete_modal_title: "Potwierdź usunięcie"
+ops.delete_modal_body: "Wszystkie rekordy wybranego celu z wczytanego CSV zostaną usunięte. Ta operacja jest nieodwracalna."
+ops.delete_confirm: "Tak, usuń"
+
+# ── Sterowanie hasłami ──────────────────────────────────────────────────────
+pw.card_title: "Generowanie haseł"
+pw.length_label: "Długość: %{n}"
+pw.fill_empty: "Wypełnij puste hasła"
+pw.regenerate_all: "Wygeneruj ponownie wszystkie"
+pw.regenerate_modal_title: "Wygenerować ponownie wszystkie hasła?"
+pw.regenerate_modal_body: "Hasła we WSZYSTKICH wierszach tabeli zostaną zastąpione nowo wygenerowanymi. Bieżące wartości (w tym wczytane z CSV) zostaną utracone. Ta operacja jest nieodwracalna."
+pw.regenerate_confirm: "Tak, generuj ponownie"
+pw.gen_one_title: "Wygeneruj hasło dla tego wiersza"
+pw.need_one_class: "włącz co najmniej jedną klasę znaków"
+pw.none_empty: "brak pustych haseł do wypełnienia"
+pw.filled_count: "wygenerowano %{n} haseł"
+pw.regenerated_count: "wygenerowano ponownie %{n} haseł"
+
+# ── Edytowalna tabela ───────────────────────────────────────────────────────
+table.rows_title: "Wiersze (%{count})"
+table.col_domain: "Domena"
+table.col_username: "Login"
+table.col_password: "Hasło"
+table.col_display: "Nazwa wyświetlana"
+table.col_quota: "Limit (MB)"
+table.add_row: "Dodaj wiersz"
+table.delete_row_title: "Usuń wiersz"
+table.placeholder_password: "hasło"
+table.placeholder_display: "Jan Kowalski"
+
+# ── Komunikaty błędów/statusu operacji ─────────────────────────────────────
+operr.no_session: "brak aktywnej sesji"
+operr.no_rows: "brak wierszy do przetworzenia — wczytaj lub dodaj CSV"
+operr.no_valid_rows: "brak prawidłowych wierszy"
+operr.no_valid_rows_with_errors: "brak prawidłowych wierszy (%{n} odrzuconych w tabeli)"
+operr.already_running: "operacja jest już w toku — poczekaj na zakończenie"
+operr.webview_no_result: "operacja niezakończona: webview nie zwrócił wyniku (limit czasu/błąd). Szczegóły — w mailgrit.log"
+operr.session_expired: "sesja wygasła — zaloguj się ponownie w oknie iRedAdmin"
+operr.cancelled: "operacja anulowana"
+operr.diag_need_csv: "aby uruchomić diagnostykę, wczytaj CSV (domena z 1. wiersza)"
+operr.diag_running: "Diagnostyka formularzy… (zobacz dziennik)"
+operr.diag_cancelled: "diagnostyka anulowana"
+operr.diag_prefix: "🔧 Diagnostyka:\n%{details}"
+operr.diag_parse_error: "Błąd analizy: %{details}"
+operr.diag_summary: "Status: %{status}\nURL: %{url}\nFormularze: %{forms}\n\nPełny dziennik — w mailgrit.log"
+operr.diag_no_forms: "brak formularzy"
+
+# ── Eksport ─────────────────────────────────────────────────────────────────
+export.nothing: "nic do wyeksportowania"
+export.encryption_error: "błąd szyfrowania eksportu: %{error}"
+export.encrypted_ok: "Zaszyfrowano do %{path} (odszyfrowanie hasłem głównym)"
+export.plain_ok: "Zapisano do %{path} (niezaszyfrowane)"
+export.save_error: "nie udało się zapisać: %{error}"
+export.choice_title: "Eksportuj"
+export.choice_body: "Wybierz sposób zapisu eksportu. Zaszyfrowany chroni hasła hasłem głównym (XChaCha20-Poly1305). Zwykły CSV jest odczytywalny w arkuszu kalkulacyjnym, ale przechowuje hasła niezaszyfrowane."
+export.option_encrypted: "Zaszyfrowany (zalecane)"
+export.option_encrypted_desc: "Zaplombowany algorytmem XChaCha20-Poly1305. Do późniejszego odszyfrowania wymagane jest hasło główne."
+export.option_plain: "Zwykły CSV"
+export.option_plain_desc: "Niezaszyfrowany tekst. Hasła są przechowywane jawnie — postępuj ostrożnie."
+export.confirm: "Eksportuj"
+
+# ── Walidacja URL ───────────────────────────────────────────────────────────
+url.invalid: "adres jest nieprawidłowy (wymagany pełny adres URL https)"
+url.not_https: "wymagane https:// (schemat '%{scheme}'; sesja przez HTTP ujawniłaby plik cookie)"
+url.no_host: "adres nie ma domeny"
+
+# ── Wybór języka ────────────────────────────────────────────────────────────
+lang.label: "Język"
+lang.en: "English"
+lang.de: "Deutsch"
+lang.fr: "Français"
+lang.es: "Español"
+lang.it: "Italiano"
+lang.pt: "Português"
+lang.nl: "Nederlands"
+lang.pl: "Polski"
+lang.uk: "Українська"
+
+# ── Błędy core ──────────────────────────────────────────────────────────────
+err.csv.too_many_rows: "CSV przekracza maksymalną liczbę wierszy: %{actual} > %{max}"
+err.csv.line_too_long: "wiersz %{line_no} przekracza %{max} bajtów"
+err.csv.field_too_long: "pole w wierszu %{line_no} przekracza %{max} bajtów"
+err.csv.io: "błąd odczytu CSV: %{error}"
+err.csv.row: "wiersz %{line_no}: %{detail}"
+err.pw.too_short: "hasło za krótkie: %{actual} znaków, wymagane ≥ %{min}"
+err.pw.missing_uppercase: "brak wielkiej litery (A–Z)"
+err.pw.missing_lowercase: "brak małej litery (a–z)"
+err.pw.missing_number: "brak cyfry (0–9)"
+err.pw.missing_special: "brak znaku specjalnego (!@#$%^&*…)"
+err.domain.empty: "domena jest pusta"
+err.domain.too_long: "domena przekracza %{max} znaków: długość %{actual}"
+err.domain.invalid_char: "domena zawiera nieprawidłowy znak '%{char}' na pozycji %{pos}"
+err.domain.email_provided: "domena zawiera '@' (podano e-mail zamiast domeny)"
+err.domain.invalid_label: "etykieta domeny jest nieprawidłowa: %{detail}"
+err.username.empty: "login jest pusty"
+err.username.too_long: "login przekracza %{max} znaków: długość %{actual}"
+err.username.invalid_char: "login zawiera nieprawidłowy znak '%{char}'"
+err.username.bad_edges: "login zaczyna się lub kończy nieprawidłowym znakiem"
+err.password.contains_comma: "hasło zawiera przecinek (niedozwolone w CSV)"
+err.password.too_long: "hasło przekracza %{max} znaków: długość %{actual}"
+err.display_name.too_long: "display_name przekracza %{max} znaków: długość %{actual}"
+err.quota.parse: "nieprawidłowa wartość limitu: %{error}"
+err.quota.out_of_range: "limit poza zakresem: %{value} (oczekiwano 1..=%{max})"
+err.column_count: "błędna liczba kolumn: %{actual} (oczekiwano %{expected})"
+err.missing_field: "brak wymaganego pola: %{field}"

@@ -1,0 +1,42 @@
+# Rust
+/target
+**/target
+Cargo.lock.bak
+
+# IDE
+/.idea
+/.vscode
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Test artifacts
+*.snap.new
+fuzz/artifacts/
+fuzz/corpus/
+
+# Local databases / secrets (never committed)
+*.db
+*.db-journal
+*.sqlite
+secrets/
+.env
+.env.local
+
+# AI / coding-agent artifacts (never committed)
+.zcode/
+.claude/
+.cursor/
+.continue/
+.aider*
+.mcp.json
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+CODEX.md
+.cursorrules
+.cursorignore
+.windsurfrules

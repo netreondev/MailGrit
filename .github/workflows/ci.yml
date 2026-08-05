@@ -1,0 +1,180 @@
+# MailGrit CI — three-platform matrix (Windows/Linux/macOS ARM).
+# Full specification: formatting, lints, nextest, supply-chain.
+#
+# Targets:
+#   - x86_64-pc-windows-msvc    (Windows)
+#   - x86_64-unknown-linux-gnu  (Linux)
+#   - aarch64-apple-darwin      (macOS ARM / Apple Silicon)
+#
+# Fast linker (mold/lld) and sccache are wired per-target (see .cargo/config.toml).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: short
+  # sccache — compilation-artifact caching across runs.
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: sccache
+
+jobs:
+  quality:
+    name: Quality & Tests (${{ matrix.os }} / ${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            name: linux
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: windows
+          - os: macos-14       # Apple Silicon (M1) runner
+            target: aarch64-apple-darwin
+            name: macos-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain (pinned)
+        run: rustup show active-toolchain || rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
+
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+
+      - name: Configure sccache
+        uses: mozilla-actions/sccache-action@v0.0.7
+
+      - name: Install mold linker (Linux only)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y mold
+
+      - name: Install cargo tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-nextest,cargo-deny,cargo-audit,cargo-machete,cargo-semver-checks
+
+      - name: Formatting check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (strict: -D warnings — pedantic/nursery lints in [workspace.lints])
+        # Strictness level is set declaratively in [workspace.lints.clippy] (deny
+        # correctness/suspicious/complexity/perf/pedantic/nursery/cargo). `-D warnings`
+        # here is a safety net: no warning passes CI.
+        # Exception: multiple_crate_versions stays warn — these are transitive duplicates
+        # of the GUI stack (dioxus/wry/windows), outside our control; real vulnerabilities
+        # are blocked by a separate cargo-deny step (advisories).
+        run: cargo clippy --workspace --all-targets --all-features --target ${{ matrix.target }} -- -D warnings -A clippy::multiple_crate_versions
+
+      - name: Supply-chain — cargo-deny (advisories, bans, licenses, sources)
+        run: cargo deny check advisories bans licenses sources
+
+      - name: Supply-chain — cargo-audit (independent advisory check)
+        run: cargo audit
+
+      - name: Unused deps — cargo-machete
+        run: cargo machete --skip-target-dir
+
+      - name: SemVer checks (public API of internal crates)
+        run: cargo semver-checks --workspace
+
+      - name: Tests (nextest, process-isolated)
+        run: cargo nextest run --workspace --profile ci --target ${{ matrix.target }}
+
+      - name: Doc tests
+        run: cargo test --workspace --doc --target ${{ matrix.target }}
+
+      - name: Upload nextest results (degradation metric)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nextest-${{ matrix.name }}
+          path: target/nextest/ci/junit.xml
+
+  build-release:
+    name: Release build (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            name: linux
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            name: windows
+          - os: macos-14
+            target: aarch64-apple-darwin
+            name: macos-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain (pinned)
+        run: rustup toolchain install 1.97.1 --profile minimal
+      - name: Add target
+        run: rustup target add ${{ matrix.target }}
+      - name: Configure sccache
+        uses: mozilla-actions/sccache-action@v0.0.7
+      - name: Build release
+        run: cargo build --release --workspace --target ${{ matrix.target }}
+
+  # ==========================================================================
+  # Formal verification & hardening (nightly-only, non-blocking on PR).
+  # Tools: cargo-mutants, Miri, cargo-fuzz, Kani.
+  # These require a nightly toolchain or separate installation.
+  # ==========================================================================
+  formal-verification:
+    name: Formal verification (nightly)
+    runs-on: ubuntu-latest
+    continue-on-error: true # exploratory tools, do not block the PR
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install nightly Rust
+        run: rustup toolchain install nightly --component miri
+      - name: Install cargo-mutants
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-mutants
+      - name: Mutation testing (unit-test effectiveness)
+        run: cargo +nightly mutants --workspace --in-place
+      - name: Miri (UB detection for unsafe/FFI)
+        env:
+          MIRIFLAGS: "-Zmiri-disable-isolation"
+        run: cargo +nightly miri test -p mailgrit-core-storage
+
+  kani:
+    name: Kani formal verification (core crates)
+    runs-on: ubuntu-latest
+    continue-on-error: true # bounded model-checking; does not block the PR
+    steps:
+      - uses: actions/checkout@v4
+      - name: Kani (formal verification of core-domain parsers and the crypto layer)
+        uses: model-checking/kani-github-action@v1
+        with:
+          args: "-p mailgrit-core-domain"
+      - name: Kani (core-security — hash-chain, EncryptionKey)
+        uses: model-checking/kani-github-action@v1
+        with:
+          args: "-p mailgrit-core-security"
+
+  fuzz:
+    name: Continuous fuzzing
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install nightly Rust
+        run: rustup toolchain install nightly
+      - name: Install cargo-fuzz
+        run: cargo +nightly install cargo-fuzz
+      - name: Run fuzz targets (limited duration in CI)
+        working-directory: fuzz
+        run: |
+          cargo +nightly fuzz run fuzz_parse_csv_bytes -- -max_total_time=60
+          cargo +nightly fuzz run fuzz_parse_domain -- -max_total_time=60

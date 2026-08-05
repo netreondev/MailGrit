@@ -1,0 +1,22 @@
+# cargo-nextest — the mandatory test runner.
+# Isolates each test in its own process: a panic in one test does not corrupt
+# the state of the others. CI measures and publishes run time.
+
+[profile.default]
+# Hard per-test timeout — guards against hung async/mocks.
+slow-timeout = { period = "30s", terminate-after = 2 }
+# Parallelism defaults to the core count; can be overridden.
+# level = "process" — full isolation (nextest default, stated explicitly for clarity).
+test-threads = "num-cpus"
+fail-fast = false           # run all tests even after early failures
+status-level = "all"
+failure-output = "immediate-final"
+
+# CI profile: deterministic, no fail-fast, with a result archive.
+[profile.ci]
+# Reused via `cargo nextest run --profile ci`.
+fail-fast = false
+slow-timeout = { period = "60s", terminate-after = 3 }
+# Archive for publishing degradation metrics.
+[profile.ci.junit]
+path = "junit.xml"

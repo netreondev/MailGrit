@@ -1,0 +1,244 @@
+# MailGrit UI translations — Português (Portuguese).
+# Marcadores: %{name} (rust-i18n 4.x). Estrutura 1:1 com app.en.yml.
+_version: 1
+
+# ── Navegação / secções ─────────────────────────────────────────────────────
+nav.operations: "Operações"
+nav.audit: "Auditoria"
+
+# ── Alvos ───────────────────────────────────────────────────────────────────
+target.user: "Utilizadores"
+target.domain: "Domínios"
+target.admin: "Administradores"
+
+# ── Ações ───────────────────────────────────────────────────────────────────
+action.create: "Criar"
+action.edit: "Editar"
+action.delete: "Eliminar"
+action.cancel: "Cancelar"
+
+# ── Frases UI gerais ────────────────────────────────────────────────────────
+session.active: "Sessão ativa"
+session.none: "Sem sessão"
+csv.not_loaded: "CSV não carregado"
+theme.light: "Tema claro"
+theme.dark: "Tema escuro"
+theme.toggle: "Alternar tema"
+logout: "Terminar sessão"
+
+# ── (alvo × operação) — matriz 3×3 ─────────────────────────────────────────
+op_label.user.create: "A criar utilizador"
+op_label.user.edit: "A editar utilizador"
+op_label.user.delete: "A eliminar utilizador"
+op_label.domain.create: "A criar domínio"
+op_label.domain.edit: "A editar domínio"
+op_label.domain.delete: "A eliminar domínio"
+op_label.admin.create: "A criar administrador"
+op_label.admin.edit: "A editar administrador"
+op_label.admin.delete: "A eliminar administrador"
+
+# ── Códigos de erro do iRedAdmin ────────────────────────────────────────────
+err_code.NO_SUCH_ACCOUNT: "A conta não existe"
+err_code.ALREADY_EXISTS: "A conta já existe"
+err_code.ACCOUNT_EXISTS: "A conta já existe"
+err_code.NO_SUCH_DOMAIN: "O domínio não existe"
+err_code.ALREADY_EXISTS_DOMAIN: "O domínio já existe"
+err_code.NOT_ALLOWED: "Ação não permitida"
+err_code.INVALID: "Dados inválidos"
+
+# ── Titlebar / janela ───────────────────────────────────────────────────────
+titlebar.minimize: "Minimizar"
+titlebar.maximize: "Maximizar"
+titlebar.close: "Fechar"
+window.login_title: "MailGrit — início de sessão no iRedAdmin"
+
+# ── Subtítulos ──────────────────────────────────────────────────────────────
+subtitle.login: "Início de sessão"
+subtitle.dashboard: "Painel de operações"
+
+# ── Ecrã de início de sessão ────────────────────────────────────────────────
+login.tagline: "Automação em massa para o iRedAdmin"
+login.server_label: "Endereço do servidor iRedAdmin"
+login.server_hint: "Indique o URL https completo do painel de administração"
+login.open_form: "Abrir formulário de início de sessão"
+login.waiting: "A aguardar o início de sessão no iRedAdmin…"
+login.waiting_hint: "Inicie sessão na janela que abriu — a aplicação mudará automaticamente"
+login.footer: " A aplicação não armazena a sua palavra-passe. O início de sessão ocorre no verdadeiro formulário iRedAdmin numa janela separada; a aplicação apenas lê o cookie de sessão (HttpOnly)."
+
+# ── Cartão CSV ──────────────────────────────────────────────────────────────
+csv.card_title: "Carregar e editar CSV"
+csv.format_hint: "Formato: domain, username, password, display_name, quota_mb"
+csv.choose_file: "Escolher ficheiro"
+csv.file_dialog_title: "Selecionar um ficheiro CSV"
+csv.valid_rows: "linhas válidas"
+csv.rejected: "rejeitadas"
+csv.read_error: "não foi possível ler o ficheiro: %{error}"
+csv.parse_io_error: "erro de leitura: %{error}"
+csv.parse_error: "erro de CSV: %{error}"
+csv.loaded_summary: "CSV carregado: %{valid} válidas, %{failed} linhas rejeitadas"
+csv.utf8_warn: "O CSV contém UTF-8 inválido, mapeamento automático de colunas desativado"
+
+# ── Linhas CSV rejeitadas ───────────────────────────────────────────────────
+csv.failed_title: "Linhas CSV rejeitadas (%{count})"
+csv.col_line: "Linha"
+csv.col_content: "Conteúdo"
+csv.col_reason: "Motivo"
+csv.more_rejected: "…e mais %{count} linhas rejeitadas"
+csv.preview_more: "…e mais %{count}"
+csv.preview_empty: "CSV não carregado"
+
+# ── Diagnóstico de cookies ──────────────────────────────────────────────────
+cookies.trigger: "Diagnóstico avançado — cookies recebidos (%{count})"
+cookies.hint: "Sessão-alvo: %{name}. Se não estiver na lista, indique o nome correto em config.toml (session_cookie_name) e reinicie."
+cookies.col_name: "Nome"
+cookies.col_domain: "Domínio"
+cookies.col_path: "Path"
+cookies.col_httponly: "HttpOnly"
+cookies.col_length: "Comprimento"
+cookies.yes: "sim"
+cookies.no: "não"
+
+# ── Resultado da operação ───────────────────────────────────────────────────
+result.card_title: "Resultado da última operação"
+result.none_yet: "Ainda sem operações"
+result.succeeded: "Bem-sucedidas: %{count}"
+result.failed: "Rejeitadas: %{count}"
+result.rejected_title: "Linhas rejeitadas"
+result.col_user: "Utilizador"
+result.col_domain: "Domínio"
+result.col_reason: "Motivo"
+result.reason_title: "Detalhes — em mailgrit.log (DUMP DA OPERAÇÃO)"
+
+# ── Auditoria ───────────────────────────────────────────────────────────────
+audit.unavailable: "Registo de auditoria indisponível"
+audit.empty: "Ainda sem entradas"
+audit.verify_btn: "Verificar integridade"
+audit.col_time: "Hora"
+audit.col_action: "Ação"
+audit.col_detail: "Detalhes"
+audit.chain_ok: "A cadeia de auditoria está intacta"
+audit.chain_broken: "A cadeia de auditoria ESTÁ PARTIDA (registo adulterado)"
+audit.verify_storage_error: "Não foi possível verificar a integridade: erro de leitura da BD de auditoria"
+audit.verify_lock_error: "Não foi possível verificar a integridade: estado de auditoria corrompido"
+
+# ── Mapeamento ──────────────────────────────────────────────────────────────
+mapping.profile: "Perfil: %{label}"
+mapping.auto_detect: "Detetar colunas automaticamente"
+mapping.all_detected: "todas as colunas detetadas"
+mapping.partial_detected: "detetadas %{bound} de %{total}: renomeie manualmente"
+mapping.summary: "Mapeamento: %{info}"
+
+# ── Cartão de operações ─────────────────────────────────────────────────────
+ops.card_title: "Operações em massa"
+ops.status_running: "Operação em curso…"
+ops.status_ready: "Pronto para operações"
+ops.status_no_session: "Sem sessão ativa"
+ops.running_hint: "A executar operação através do iRedAdmin…"
+ops.save_csv: "Guardar CSV"
+ops.diag_forms: "Diagnóstico de formulários"
+ops.diag_file_dialog: "Onde guardar a exportação"
+ops.delete_modal_title: "Confirmar eliminação"
+ops.delete_modal_body: "Todos os registos do alvo selecionado do CSV carregado serão eliminados. Esta ação é irreversível."
+ops.delete_confirm: "Sim, eliminar"
+
+# ── Controlos de palavra-passe ──────────────────────────────────────────────
+pw.card_title: "Geração de palavras-passe"
+pw.length_label: "Comprimento: %{n}"
+pw.fill_empty: "Preencher palavras-passe vazias"
+pw.regenerate_all: "Regenerar todas"
+pw.regenerate_modal_title: "Regenerar todas as palavras-passe?"
+pw.regenerate_modal_body: "As palavras-passe em TODAS as linhas da tabela serão substituídas por novas palavras-passe geradas. Os valores atuais (incluindo os carregados do CSV) serão perdidos. Esta ação é irreversível."
+pw.regenerate_confirm: "Sim, regenerar"
+pw.gen_one_title: "Gerar uma palavra-passe para esta linha"
+pw.need_one_class: "ativar pelo menos uma classe de caracteres"
+pw.none_empty: "sem palavras-passe vazias para preencher"
+pw.filled_count: "%{n} palavras-passe geradas"
+pw.regenerated_count: "%{n} palavras-passe regeneradas"
+
+# ── Tabela editável ─────────────────────────────────────────────────────────
+table.rows_title: "Linhas (%{count})"
+table.col_domain: "Domínio"
+table.col_username: "Login"
+table.col_password: "Palavra-passe"
+table.col_display: "Nome a apresentar"
+table.col_quota: "Quota (MB)"
+table.add_row: "Adicionar linha"
+table.delete_row_title: "Eliminar linha"
+table.placeholder_password: "palavra-passe"
+table.placeholder_display: "João Silva"
+
+# ── Mensagens de erro/estado das operações ─────────────────────────────────
+operr.no_session: "sem sessão ativa"
+operr.no_rows: "sem linhas para processar — carregue ou adicione um CSV"
+operr.no_valid_rows: "sem linhas válidas"
+operr.no_valid_rows_with_errors: "sem linhas válidas (%{n} rejeitadas na tabela)"
+operr.already_running: "já há uma operação em curso — aguarde pelo fim"
+operr.webview_no_result: "operação não concluída: a webview não devolveu resultado (tempo excedido/erro). Detalhes — em mailgrit.log"
+operr.session_expired: "a sessão expirou — inicie sessão novamente na janela do iRedAdmin"
+operr.cancelled: "operação cancelada"
+operr.diag_need_csv: "para o diagnóstico, carregue um CSV (domínio da 1.ª linha)"
+operr.diag_running: "Diagnóstico de formulários… (veja o registo)"
+operr.diag_cancelled: "diagnóstico cancelado"
+operr.diag_prefix: "🔧 Diagnóstico:\n%{details}"
+operr.diag_parse_error: "Erro de análise: %{details}"
+operr.diag_summary: "Estado: %{status}\nURL: %{url}\nFormulários: %{forms}\n\nRegisto completo — em mailgrit.log"
+operr.diag_no_forms: "sem formulários"
+
+# ── Exportação ──────────────────────────────────────────────────────────────
+export.nothing: "nada para exportar"
+export.encryption_error: "erro de encriptação na exportação: %{error}"
+export.encrypted_ok: "Encriptado em %{path} (desencriptar com a palavra-passe mestra)"
+export.plain_ok: "Guardado em %{path} (não encriptado)"
+export.save_error: "falha ao guardar: %{error}"
+export.choice_title: "Exportar"
+export.choice_body: "Escolha como guardar a exportação. Encriptado protege as palavras-passe com a palavra-passe mestra (XChaCha20-Poly1305). CSV simples é legível em qualquer folha de cálculo, mas armazena as palavras-passe não encriptadas."
+export.option_encrypted: "Encriptado (recomendado)"
+export.option_encrypted_desc: "Selado com XChaCha20-Poly1305. Requer a palavra-passe mestra para desencriptar mais tarde."
+export.option_plain: "CSV simples"
+export.option_plain_desc: "Texto não encriptado. As palavras-passe são armazenadas em claro — manuseie com cuidado."
+export.confirm: "Exportar"
+
+# ── Validação de URL ────────────────────────────────────────────────────────
+url.invalid: "o endereço é inválido (é requerido um URL https completo)"
+url.not_https: "https:// é requerido (esquema '%{scheme}'; uma sessão por HTTP vazaria o cookie)"
+url.no_host: "o endereço não tem domínio"
+
+# ── Seletor de idioma ───────────────────────────────────────────────────────
+lang.label: "Idioma"
+lang.en: "English"
+lang.de: "Deutsch"
+lang.fr: "Français"
+lang.es: "Español"
+lang.it: "Italiano"
+lang.pt: "Português"
+lang.nl: "Nederlands"
+lang.pl: "Polski"
+lang.uk: "Українська"
+
+# ── Erros core ──────────────────────────────────────────────────────────────
+err.csv.too_many_rows: "o CSV excede o número máximo de linhas: %{actual} > %{max}"
+err.csv.line_too_long: "a linha %{line_no} excede %{max} bytes"
+err.csv.field_too_long: "o campo na linha %{line_no} excede %{max} bytes"
+err.csv.io: "erro de leitura de CSV: %{error}"
+err.csv.row: "linha %{line_no}: %{detail}"
+err.pw.too_short: "palavra-passe demasiado curta: %{actual} caracteres, necessário ≥ %{min}"
+err.pw.missing_uppercase: "sem maiúscula (A–Z)"
+err.pw.missing_lowercase: "sem minúscula (a–z)"
+err.pw.missing_number: "sem dígito (0–9)"
+err.pw.missing_special: "sem caráter especial (!@#$%^&*…)"
+err.domain.empty: "o domínio está vazio"
+err.domain.too_long: "o domínio excede %{max} caracteres: comprimento %{actual}"
+err.domain.invalid_char: "o domínio contém um caráter inválido '%{char}' na posição %{pos}"
+err.domain.email_provided: "o domínio contém '@' (foi indicado um email em vez de um domínio)"
+err.domain.invalid_label: "a etiqueta do domínio é inválida: %{detail}"
+err.username.empty: "o login está vazio"
+err.username.too_long: "o login excede %{max} caracteres: comprimento %{actual}"
+err.username.invalid_char: "o login contém um caráter inválido '%{char}'"
+err.username.bad_edges: "o login começa ou termina com um caráter inválido"
+err.password.contains_comma: "a palavra-passe contém uma vírgula (não permitido em CSV)"
+err.password.too_long: "a palavra-passe excede %{max} caracteres: comprimento %{actual}"
+err.display_name.too_long: "display_name excede %{max} caracteres: comprimento %{actual}"
+err.quota.parse: "valor de quota inválido: %{error}"
+err.quota.out_of_range: "quota fora do intervalo: %{value} (esperado 1..=%{max})"
+err.column_count: "número de colunas incorreto: %{actual} (esperado %{expected})"
+err.missing_field: "campo obrigatório em falta: %{field}"

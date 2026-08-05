@@ -1,0 +1,661 @@
+/* ============================================================================
+   MailGrit — styles for reusable design-system components.
+   All components are built on the design tokens from tokens.css.
+   ============================================================================ */
+
+/* ============================================================================
+   Icons
+   ============================================================================ */
+.icon {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 1.75;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex: none;
+    display: inline-block;
+    vertical-align: middle;
+}
+.icon-lg { width: 20px; height: 20px; }
+.icon-sm { width: 14px; height: 14px; stroke-width: 2; }
+
+/* Brand logo (fill SVG, not a line icon). The base size prevents it from
+   falling back to the browser default of ~300x150 when no size class is set. */
+.logo {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* ============================================================================
+   Buttons
+   ============================================================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--s-2);
+    padding: 0 var(--s-4);
+    height: 36px;
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    font-size: var(--fs-base);
+    font-weight: var(--fw-medium);
+    color: var(--fg);
+    background: transparent;
+    white-space: nowrap;
+    user-select: none;
+    transition: background var(--dur-base) var(--ease-out),
+        border-color var(--dur-base) var(--ease-out),
+        color var(--dur-base) var(--ease-out),
+        transform var(--dur-fast) var(--ease-out),
+        box-shadow var(--dur-base) var(--ease-out),
+        opacity var(--dur-base) var(--ease-out);
+}
+.btn:active:not(:disabled) {
+    transform: translateY(0.5px);
+}
+.btn:disabled {
+    opacity: 0.45;
+}
+.btn .icon {
+    opacity: 0.9;
+}
+
+/* Sizes */
+.btn-sm { height: 30px; padding: 0 var(--s-3); font-size: var(--fs-sm); }
+.btn-lg { height: 44px; padding: 0 var(--s-5); font-size: var(--fs-md); }
+
+/* Variant: Primary (gradient accent) */
+.btn-primary {
+    background: var(--accent-grad);
+    color: var(--accent-fg);
+    font-weight: var(--fw-semi);
+    box-shadow: var(--shadow-sm), 0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+        0 6px 18px -6px rgba(37, 99, 235, 0.45);
+}
+.btn-primary:hover:not(:disabled) {
+    box-shadow: var(--shadow-md), 0 0 0 1px rgba(255, 255, 255, 0.12) inset,
+        0 10px 26px -6px rgba(37, 99, 235, 0.55);
+    filter: brightness(1.07);
+}
+
+/* Variant: Secondary (surface + border) */
+.btn-secondary {
+    background: var(--bg-surface-2);
+    color: var(--fg-secondary);
+    border-color: var(--border);
+}
+.btn-secondary:hover:not(:disabled) {
+    background: var(--bg-surface);
+    color: var(--fg);
+    border-color: var(--border-strong);
+}
+
+/* Variant: Ghost (transparent) */
+.btn-ghost {
+    background: transparent;
+    color: var(--fg-muted);
+}
+.btn-ghost:hover:not(:disabled) {
+    background: var(--bg-surface-2);
+    color: var(--fg);
+}
+
+/* Variant: Danger */
+.btn-danger {
+    background: var(--danger);
+    color: #fff;
+    font-weight: var(--fw-medium);
+}
+.btn-danger:hover:not(:disabled) {
+    background: var(--danger-hover);
+}
+
+/* Icon button (square) */
+.btn-icon {
+    width: 36px;
+    padding: 0;
+}
+.btn-icon.btn-sm { width: 30px; }
+
+/* ============================================================================
+   Cards
+   ============================================================================ */
+.card {
+    position: relative;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--s-5);
+    box-shadow: var(--shadow-sm);
+    transition: border-color var(--dur-base) var(--ease-out),
+        box-shadow var(--dur-base) var(--ease-out),
+        transform var(--dur-base) var(--ease-out);
+}
+/* Premium top hairline-glow on all cards: a thin accent line at the top
+   creates a "raised" effect (Linear style) without adding visual weight. */
+.card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, var(--border-strong) 0%, transparent 30%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.5;
+    pointer-events: none;
+}
+/* Subtle hover on all cards — a premium, responsive feel. */
+.card:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+}
+/* Explicit card-hover — a more pronounced lift (for clickable cards). */
+.card-hover:hover {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+}
+.card h2 {
+    font-size: var(--fs-md);
+    font-weight: var(--fw-semi);
+    margin-bottom: var(--s-3);
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+.card-pad-tight { padding: var(--s-4); }
+
+/* Card with an accent top border (for hero blocks) */
+.card-accent {
+    position: relative;
+    overflow: hidden;
+}
+.card-accent::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 50%, transparent 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* ============================================================================
+   Badges / pills
+   ============================================================================ */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-1);
+    padding: 2px var(--s-2);
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-medium);
+    color: var(--fg-muted);
+    background: var(--bg-surface-2);
+    border: 1px solid var(--border);
+    border-radius: var(--r-full);
+    line-height: 1.6;
+}
+.badge-success { color: var(--success-fg); background: var(--success-soft); border-color: transparent; }
+.badge-warning { color: var(--warning-fg); background: var(--warning-soft); border-color: transparent; }
+.badge-danger  { color: var(--danger-fg);  background: var(--danger-soft);  border-color: transparent; }
+
+/* Status dot */
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: var(--r-full);
+    background: var(--fg-muted);
+    flex: none;
+}
+.dot-success { background: var(--success); box-shadow: 0 0 0 3px var(--success-soft); }
+.dot-warning { background: var(--warning); box-shadow: 0 0 0 3px var(--warning-soft); }
+.dot-danger  { background: var(--danger);  box-shadow: 0 0 0 3px var(--danger-soft); }
+
+/* ============================================================================
+   Input fields
+   ============================================================================ */
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+}
+.field-label {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--fg-secondary);
+}
+.field-hint {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+}
+.field-error {
+    font-size: var(--fs-xs);
+    color: var(--danger-fg);
+}
+
+.input {
+    width: 100%;
+    height: 40px;
+    padding: 0 var(--s-3);
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    color: var(--fg);
+    font-size: var(--fs-md);
+    transition: border-color var(--dur-base) var(--ease-out),
+        box-shadow var(--dur-base) var(--ease-out),
+        background var(--dur-base) var(--ease-out);
+}
+.input::placeholder {
+    color: var(--fg-subtle);
+}
+.input:hover:not(:disabled):not(:focus) {
+    border-color: var(--border-strong);
+}
+.input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.input:disabled {
+    opacity: 0.5;
+}
+
+/* Field with a left icon */
+.input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+.input-wrap .icon {
+    position: absolute;
+    left: var(--s-3);
+    color: var(--fg-muted);
+    pointer-events: none;
+}
+.input-wrap .input {
+    padding-left: calc(var(--s-3) * 2 + 16px);
+}
+
+/* ============================================================================
+   Segmented control (OSE/Pro toggle, etc.)
+   ============================================================================ */
+.segmented {
+    display: inline-flex;
+    padding: 3px;
+    gap: 2px;
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+}
+.segmented-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--s-2);
+    padding: 6px var(--s-3);
+    border: none;
+    background: transparent;
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    border-radius: calc(var(--r-md) - 3px);
+    transition: background var(--dur-base) var(--ease-out),
+        color var(--dur-base) var(--ease-out);
+}
+.segmented-btn:hover:not(:disabled):not(.segmented-active) {
+    color: var(--fg-secondary);
+}
+.segmented-btn:disabled {
+    opacity: 0.5;
+}
+.segmented-active {
+    background: var(--bg-surface);
+    color: var(--fg);
+    box-shadow: var(--shadow-sm), 0 0 0 1px var(--border-subtle),
+        0 0 0 3px var(--accent-soft);
+}
+
+/* ============================================================================
+   Spinner
+   ============================================================================ */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--accent);
+    border-radius: var(--r-full);
+    animation: spin 0.7s linear infinite;
+}
+.spinner-lg { width: 24px; height: 24px; border-width: 2.5px; }
+.spinner-on-accent {
+    border-color: rgba(255, 255, 255, 0.35);
+    border-top-color: #fff;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   Progress bar
+   ============================================================================ */
+.progress {
+    width: 100%;
+    height: 6px;
+    background: var(--bg-input);
+    border-radius: var(--r-full);
+    overflow: hidden;
+}
+.progress-bar {
+    height: 100%;
+    background: var(--accent-grad);
+    border-radius: var(--r-full);
+    transition: width var(--dur-slow) var(--ease-out);
+}
+.progress-bar.indeterminate {
+    width: 35% !important;
+    animation: indeterminate 1.2s var(--ease-in-out) infinite;
+}
+@keyframes indeterminate {
+    0%   { margin-left: -35%; }
+    100% { margin-left: 100%; }
+}
+
+/* ============================================================================
+   Toasts (notifications)
+   ============================================================================ */
+.toast-stack {
+    position: fixed;
+    bottom: var(--s-5);
+    right: var(--s-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    z-index: var(--z-toast);
+    pointer-events: none;
+}
+.toast {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--s-3);
+    min-width: 300px;
+    max-width: 420px;
+    padding: var(--s-3) var(--s-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-lg);
+    pointer-events: auto;
+    animation: toast-in var(--dur-slow) var(--ease-spring);
+}
+.toast-success { border-left: 3px solid var(--success); }
+.toast-error   { border-left: 3px solid var(--danger); }
+.toast-info    { border-left: 3px solid var(--accent); }
+.toast-warning { border-left: 3px solid var(--warning); }
+.toast-icon { margin-top: 1px; flex: none; }
+.toast-success .toast-icon { color: var(--success); }
+.toast-error .toast-icon { color: var(--danger); }
+.toast-info .toast-icon { color: var(--accent); }
+.toast-warning .toast-icon { color: var(--warning); }
+.toast-body { flex: 1; min-width: 0; }
+.toast-title { font-size: var(--fs-sm); font-weight: var(--fw-semi); color: var(--fg); }
+.toast-msg { font-size: var(--fs-xs); color: var(--fg-muted); margin-top: 2px; }
+.toast-close {
+    background: none;
+    border: none;
+    color: var(--fg-subtle);
+    padding: 2px;
+    border-radius: var(--r-xs);
+    display: flex;
+}
+.toast-close:hover { color: var(--fg); }
+@keyframes toast-in {
+    from { opacity: 0; transform: translateX(24px) scale(0.96); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+/* ============================================================================
+   Modal / dialog
+   ============================================================================ */
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: var(--z-modal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--s-5);
+    animation: fade-in var(--dur-base) var(--ease-out);
+}
+.modal {
+    width: 100%;
+    max-width: 460px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-xl);
+    overflow: hidden;
+    animation: modal-in var(--dur-slow) var(--ease-spring);
+}
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    padding: var(--s-4) var(--s-5);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.modal-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+}
+.modal-icon-danger { background: var(--danger-soft); color: var(--danger); }
+.modal-icon-info { background: var(--accent-soft); color: var(--accent); }
+.modal-title { font-size: var(--fs-md); font-weight: var(--fw-semi); color: var(--fg); }
+.modal-body { padding: var(--s-5); color: var(--fg-secondary); font-size: var(--fs-sm); }
+.modal-body p + p { margin-top: var(--s-2); }
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--s-2);
+    padding: var(--s-4) var(--s-5);
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-elevated);
+}
+@keyframes modal-in {
+    from { opacity: 0; transform: scale(0.95) translateY(8px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ============================================================================
+   Export format selection cards (encrypted / plain)
+   ============================================================================ */
+.export-option {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--r-md);
+    padding: var(--s-3) var(--s-4);
+    margin-top: var(--s-3);
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease;
+    color: var(--fg);
+    font: inherit;
+}
+.export-option:hover { border-color: var(--border-strong); }
+.export-option-active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+}
+.export-option-head {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    color: var(--fg);
+}
+.export-option p { margin-top: var(--s-1); }
+
+/* ============================================================================
+   Tables (audit, rejected CSV rows, cookies)
+   ============================================================================ */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+}
+.table th,
+.table td {
+    text-align: left;
+    padding: var(--s-2) var(--s-3);
+    border-bottom: 1px solid var(--border-subtle);
+}
+.table thead th {
+    font-size: var(--fs-xs);
+    font-weight: var(--fw-semi);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-muted);
+    background: var(--bg-input);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.table tbody tr {
+    transition: background var(--dur-fast) var(--ease-out);
+}
+.table tbody tr:hover {
+    background: var(--bg-surface-2);
+}
+/* Subtle zebra striping for readability in dense tables (audit/results). */
+.table.striped tbody tr:nth-child(even) {
+    background: var(--bg-elevated);
+}
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+.table td.mono {
+    color: var(--fg-secondary);
+}
+
+/* Fixed column layout — predictable widths (symmetry). */
+.table-fixed {
+    table-layout: fixed;
+    word-break: break-word;
+}
+/* Highlight for a conflicting row in the dry run (danger token). */
+.row-conflict {
+    background: var(--danger-soft);
+}
+.row-conflict-cell {
+    font-weight: var(--fw-semi);
+}
+
+/* ============================================================================
+   Titlebar (frameless window)
+   ============================================================================ */
+.titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 38px;
+    padding: 0 var(--s-2) 0 var(--s-4);
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-subtle);
+    -webkit-app-region: drag;
+    user-select: none;
+    flex: none;
+}
+.titlebar-brand {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+}
+.titlebar-logo {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    /* A subtle accent glow around the brand mark in the titlebar. */
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.38));
+}
+.titlebar-name {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semi);
+    color: var(--fg);
+    letter-spacing: -0.01em;
+}
+.titlebar-sub {
+    font-size: var(--fs-xs);
+    color: var(--fg-muted);
+    margin-left: var(--s-1);
+}
+.titlebar-controls {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    -webkit-app-region: no-drag;
+}
+.win-btn {
+    width: 38px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: transparent;
+    color: var(--fg-muted);
+    border-radius: var(--r-sm);
+    transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+}
+.win-btn:hover {
+    background: var(--bg-surface-2);
+    color: var(--fg);
+}
+.win-btn-close:hover {
+    background: var(--danger);
+    color: #fff;
+}
+
+/* ============================================================================
+   Disclosure (collapsible section)
+   ============================================================================ */
+.disclosure-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    background: none;
+    border: none;
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+    padding: var(--s-2) 0;
+}
+.disclosure-trigger:hover { color: var(--fg); }
+.disclosure-chevron {
+    transition: transform var(--dur-base) var(--ease-out);
+}
+.disclosure-chevron.open { transform: rotate(90deg); }

@@ -1,0 +1,244 @@
+# MailGrit UI translations — Nederlands (Dutch).
+# Placeholders: %{name} (rust-i18n 4.x). Structuur 1:1 met app.en.yml.
+_version: 1
+
+# ── Navigatie / secties ─────────────────────────────────────────────────────
+nav.operations: "Bewerkingen"
+nav.audit: "Audit"
+
+# ── Doelen ──────────────────────────────────────────────────────────────────
+target.user: "Gebruikers"
+target.domain: "Domeinen"
+target.admin: "Beheerders"
+
+# ── Acties ──────────────────────────────────────────────────────────────────
+action.create: "Aanmaken"
+action.edit: "Bewerken"
+action.delete: "Verwijderen"
+action.cancel: "Annuleren"
+
+# ── Algemene UI-zinnen ──────────────────────────────────────────────────────
+session.active: "Sessie actief"
+session.none: "Geen sessie"
+csv.not_loaded: "CSV niet geladen"
+theme.light: "Licht thema"
+theme.dark: "Donker thema"
+theme.toggle: "Thema wisselen"
+logout: "Afmelden"
+
+# ── (doel × bewerking) — 3×3 matrix ────────────────────────────────────────
+op_label.user.create: "Gebruiker aanmaken"
+op_label.user.edit: "Gebruiker bewerken"
+op_label.user.delete: "Gebruiker verwijderen"
+op_label.domain.create: "Domein aanmaken"
+op_label.domain.edit: "Domein bewerken"
+op_label.domain.delete: "Domein verwijderen"
+op_label.admin.create: "Beheerder aanmaken"
+op_label.admin.edit: "Beheerder bewerken"
+op_label.admin.delete: "Beheerder verwijderen"
+
+# ── iRedAdmin-foutcodes ─────────────────────────────────────────────────────
+err_code.NO_SUCH_ACCOUNT: "Account bestaat niet"
+err_code.ALREADY_EXISTS: "Account bestaat al"
+err_code.ACCOUNT_EXISTS: "Account bestaat al"
+err_code.NO_SUCH_DOMAIN: "Domein bestaat niet"
+err_code.ALREADY_EXISTS_DOMAIN: "Domein bestaat al"
+err_code.NOT_ALLOWED: "Actie niet toegestaan"
+err_code.INVALID: "Ongeldige gegevens"
+
+# ── Titlebar / venster ──────────────────────────────────────────────────────
+titlebar.minimize: "Minimaliseren"
+titlebar.maximize: "Maximaliseren"
+titlebar.close: "Sluiten"
+window.login_title: "MailGrit — iRedAdmin-aanmelding"
+
+# ── Ondertitels ─────────────────────────────────────────────────────────────
+subtitle.login: "Aanmelding"
+subtitle.dashboard: "Bewerkingen"
+
+# ── Aanmeldscherm ───────────────────────────────────────────────────────────
+login.tagline: "Massa-automatisering voor iRedAdmin"
+login.server_label: "iRedAdmin-serveradres"
+login.server_hint: "Voer de volledige https-URL van het beheerpaneel in"
+login.open_form: "Aanmeldformulier openen"
+login.waiting: "Wachten op iRedAdmin-aanmelding…"
+login.waiting_hint: "Meld u aan in het geopende venster — de app schakelt automatisch over"
+login.footer: " De app slaat uw wachtwoord niet op. Aanmelden gebeurt in het echte iRedAdmin-formulier in een apart venster; de app leest alleen het sessiecookie (HttpOnly)."
+
+# ── CSV-kaart ───────────────────────────────────────────────────────────────
+csv.card_title: "CSV laden en bewerken"
+csv.format_hint: "Formaat: domain, username, password, display_name, quota_mb"
+csv.choose_file: "Bestand kiezen"
+csv.file_dialog_title: "Selecteer een CSV-bestand"
+csv.valid_rows: "geldige rijen"
+csv.rejected: "afgewezen"
+csv.read_error: "kan bestand niet lezen: %{error}"
+csv.parse_io_error: "leesfout: %{error}"
+csv.parse_error: "CSV-fout: %{error}"
+csv.loaded_summary: "CSV geladen: %{valid} geldige, %{failed} afgewezen rijen"
+csv.utf8_warn: "CSV bevat ongeldige UTF-8, automatische kolomkoppeling uitgeschakeld"
+
+# ── Afgewezen CSV-rijen ─────────────────────────────────────────────────────
+csv.failed_title: "Afgewezen CSV-rijen (%{count})"
+csv.col_line: "Regel"
+csv.col_content: "Inhoud"
+csv.col_reason: "Reden"
+csv.more_rejected: "…en %{count} meer afgewezen rijen"
+csv.preview_more: "…en %{count} meer"
+csv.preview_empty: "CSV niet geladen"
+
+# ── Cookie-diagnose ─────────────────────────────────────────────────────────
+cookies.trigger: "Uitgebreide diagnose — ontvangen cookies (%{count})"
+cookies.hint: "Doelsessie: %{name}. Als deze niet in de lijst staat, stel dan de juiste naam in config.toml (session_cookie_name) in en herstart."
+cookies.col_name: "Naam"
+cookies.col_domain: "Domein"
+cookies.col_path: "Path"
+cookies.col_httponly: "HttpOnly"
+cookies.col_length: "Lengte"
+cookies.yes: "ja"
+cookies.no: "nee"
+
+# ── Resultaat van bewerking ─────────────────────────────────────────────────
+result.card_title: "Resultaat van laatste bewerking"
+result.none_yet: "Nog geen bewerkingen"
+result.succeeded: "Geslaagd: %{count}"
+result.failed: "Afgewezen: %{count}"
+result.rejected_title: "Afgewezen rijen"
+result.col_user: "Gebruiker"
+result.col_domain: "Domein"
+result.col_reason: "Reden"
+result.reason_title: "Details — in mailgrit.log (BEWERKING-DUMP)"
+
+# ── Audit ───────────────────────────────────────────────────────────────────
+audit.unavailable: "Auditlogboek niet beschikbaar"
+audit.empty: "Nog geen vermeldingen"
+audit.verify_btn: "Integriteit verifiëren"
+audit.col_time: "Tijd"
+audit.col_action: "Actie"
+audit.col_detail: "Details"
+audit.chain_ok: "De auditketen is intact"
+audit.chain_broken: "De auditketen IS VERBROKEN (logboek gemanipuleerd)"
+audit.verify_storage_error: "Kon integriteit niet verifiëren: leesfout van audit-DB"
+audit.verify_lock_error: "Kon integriteit niet verifiëren: audit-status beschadigd"
+
+# ── Koppeling ───────────────────────────────────────────────────────────────
+mapping.profile: "Profiel: %{label}"
+mapping.auto_detect: "Kolommen automatisch detecteren"
+mapping.all_detected: "alle kolommen gedetecteerd"
+mapping.partial_detected: "%{bound} van %{total} gedetecteerd: handmatig hernoemen"
+mapping.summary: "Koppeling: %{info}"
+
+# ── Bewerkingen-kaart ───────────────────────────────────────────────────────
+ops.card_title: "Bulkbewerkingen"
+ops.status_running: "Bewerking loopt…"
+ops.status_ready: "Klaar voor bewerkingen"
+ops.status_no_session: "Geen actieve sessie"
+ops.running_hint: "Bewerking wordt uitgevoerd via iRedAdmin…"
+ops.save_csv: "CSV opslaan"
+ops.diag_forms: "Formulierdiagnose"
+ops.diag_file_dialog: "Waar de export opslaan"
+ops.delete_modal_title: "Verwijderen bevestigen"
+ops.delete_modal_body: "Alle records van het geselecteerde doel uit de geladen CSV worden verwijderd. Deze actie is onomkeerbaar."
+ops.delete_confirm: "Ja, verwijderen"
+
+# ── Wachtwoordbediening ─────────────────────────────────────────────────────
+pw.card_title: "Wachtwoordgeneratie"
+pw.length_label: "Lengte: %{n}"
+pw.fill_empty: "Lege wachtwoorden invullen"
+pw.regenerate_all: "Alle regenereren"
+pw.regenerate_modal_title: "Alle wachtwoorden regenereren?"
+pw.regenerate_modal_body: "Wachtwoorden in ALLE tabelrijen worden vervangen door nieuw gegenereerde. Huidige waarden (inclusief die uit CSV) gaan verloren. Deze actie is onomkeerbaar."
+pw.regenerate_confirm: "Ja, regenereren"
+pw.gen_one_title: "Wachtwoord voor deze rij genereren"
+pw.need_one_class: "minstens één tekenklasse inschakelen"
+pw.none_empty: "geen lege wachtwoorden om in te vullen"
+pw.filled_count: "%{n} wachtwoorden gegenereerd"
+pw.regenerated_count: "%{n} wachtwoorden geregenereerd"
+
+# ── Bewerkbare tabel ────────────────────────────────────────────────────────
+table.rows_title: "Rijen (%{count})"
+table.col_domain: "Domein"
+table.col_username: "Aanmeldnaam"
+table.col_password: "Wachtwoord"
+table.col_display: "Weergavenaam"
+table.col_quota: "Quota (MB)"
+table.add_row: "Rij toevoegen"
+table.delete_row_title: "Rij verwijderen"
+table.placeholder_password: "wachtwoord"
+table.placeholder_display: "Jan Jansen"
+
+# ── Fout-/statusberichten van bewerkingen ──────────────────────────────────
+operr.no_session: "geen actieve sessie"
+operr.no_rows: "geen rijen om te verwerken — laad of voeg een CSV toe"
+operr.no_valid_rows: "geen geldige rijen"
+operr.no_valid_rows_with_errors: "geen geldige rijen (%{n} afgewezen in de tabel)"
+operr.already_running: "er loopt al een bewerking — wacht tot deze klaar is"
+operr.webview_no_result: "bewerking niet voltooid: de webview gaf geen resultaat (time-out/fout). Details — in mailgrit.log"
+operr.session_expired: "de sessie is verlopen — meld opnieuw aan in het iRedAdmin-venster"
+operr.cancelled: "bewerking geannuleerd"
+operr.diag_need_csv: "voor de diagnose een CSV laden (domein uit de 1e rij)"
+operr.diag_running: "Formulierdiagnose… (zie het logboek)"
+operr.diag_cancelled: "diagnose geannuleerd"
+operr.diag_prefix: "🔧 Diagnose:\n%{details}"
+operr.diag_parse_error: "Parseerfout: %{details}"
+operr.diag_summary: "Status: %{status}\nURL: %{url}\nFormulieren: %{forms}\n\nVolledig logboek — in mailgrit.log"
+operr.diag_no_forms: "geen formulieren"
+
+# ── Export ──────────────────────────────────────────────────────────────────
+export.nothing: "niets te exporteren"
+export.encryption_error: "versleutelingsfout bij export: %{error}"
+export.encrypted_ok: "Versleuteld naar %{path} (ontsleutelen met het hoofdwachtwoord)"
+export.plain_ok: "Opgeslagen naar %{path} (onversleuteld)"
+export.save_error: "opslaan mislukt: %{error}"
+export.choice_title: "Exporteren"
+export.choice_body: "Kies hoe de export wordt opgeslagen. Versleuteld beschermt wachtwoorden met het hoofdwachtwoord (XChaCha20-Poly1305). Leesbare CSV is in elk werkblad te openen, maar slaat wachtwoorden onversleuteld op."
+export.option_encrypted: "Versleuteld (aanbevolen)"
+export.option_encrypted_desc: "Verzegeld met XChaCha20-Poly1305. Voor latere ontsleuteling is het hoofdwachtwoord vereist."
+export.option_plain: "Leesbare CSV"
+export.option_plain_desc: "Onversleutelde tekst. Wachtwoorden worden in leesbare vorm opgeslagen — wees voorzichtig."
+export.confirm: "Exporteren"
+
+# ── URL-validatie ───────────────────────────────────────────────────────────
+url.invalid: "het adres is ongeldig (een volledige https-URL is vereist)"
+url.not_https: "https:// is vereist (schema '%{scheme}'; een sessie via HTTP zou het cookie lekken)"
+url.no_host: "het adres heeft geen domein"
+
+# ── Taalselector ────────────────────────────────────────────────────────────
+lang.label: "Taal"
+lang.en: "English"
+lang.de: "Deutsch"
+lang.fr: "Français"
+lang.es: "Español"
+lang.it: "Italiano"
+lang.pt: "Português"
+lang.nl: "Nederlands"
+lang.pl: "Polski"
+lang.uk: "Українська"
+
+# ── Core-fouten ─────────────────────────────────────────────────────────────
+err.csv.too_many_rows: "CSV overschrijdt het maximum aantal rijen: %{actual} > %{max}"
+err.csv.line_too_long: "regel %{line_no} overschrijdt %{max} bytes"
+err.csv.field_too_long: "veld op regel %{line_no} overschrijdt %{max} bytes"
+err.csv.io: "CSV-leesfout: %{error}"
+err.csv.row: "regel %{line_no}: %{detail}"
+err.pw.too_short: "wachtwoord te kort: %{actual} tekens, nodig ≥ %{min}"
+err.pw.missing_uppercase: "geen hoofdletter (A–Z)"
+err.pw.missing_lowercase: "geen kleine letter (a–z)"
+err.pw.missing_number: "geen cijfer (0–9)"
+err.pw.missing_special: "geen speciaal teken (!@#$%^&*…)"
+err.domain.empty: "domein is leeg"
+err.domain.too_long: "domein overschrijdt %{max} tekens: lengte %{actual}"
+err.domain.invalid_char: "domein bevat een ongeldig teken '%{char}' op positie %{pos}"
+err.domain.email_provided: "domein bevat '@' (een e-mail opgegeven in plaats van een domein)"
+err.domain.invalid_label: "domeinlabel is ongeldig: %{detail}"
+err.username.empty: "aanmeldnaam is leeg"
+err.username.too_long: "aanmeldnaam overschrijdt %{max} tekens: lengte %{actual}"
+err.username.invalid_char: "aanmeldnaam bevat een ongeldig teken '%{char}'"
+err.username.bad_edges: "aanmeldnaam begint of eindigt met een ongeldig teken"
+err.password.contains_comma: "wachtwoord bevat een komma (niet toegestaan in CSV)"
+err.password.too_long: "wachtwoord overschrijdt %{max} tekens: lengte %{actual}"
+err.display_name.too_long: "display_name overschrijdt %{max} tekens: lengte %{actual}"
+err.quota.parse: "ongeldige quotawaarde: %{error}"
+err.quota.out_of_range: "quota buiten bereik: %{value} (verwacht 1..=%{max})"
+err.column_count: "verkeerd aantal kolommen: %{actual} (verwacht %{expected})"
+err.missing_field: "verplicht veld ontbreekt: %{field}"

@@ -1,0 +1,147 @@
+/* ============================================================================
+   MailGrit — base styles (reset, typography, background, scrollbars).
+   ============================================================================ */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+}
+
+html,
+body,
+#main {
+    height: 100%;
+}
+
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    font-weight: var(--fw-regular);
+    overflow: hidden;
+    /* Smooth theme transition */
+    transition: background-color var(--dur-slow) var(--ease-out),
+        color var(--dur-slow) var(--ease-out);
+}
+
+#main {
+    /* Desktop: prevent the page from scrolling as a whole —
+       each screen manages its own overflow. */
+    overflow: hidden;
+}
+
+/* ---------- Headings ---------- */
+/* Inter with tighter tracking for a premium display look (2026). */
+h1, h2, h3, h4 {
+    line-height: var(--lh-tight);
+    font-weight: var(--fw-semi);
+    letter-spacing: -0.02em;
+    color: var(--fg);
+}
+h1 {
+    font-weight: var(--fw-bold);
+    letter-spacing: -0.03em;
+}
+
+/* ---------- Links ---------- */
+a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+}
+a:hover {
+    color: var(--accent-hover);
+}
+
+/* ---------- Focus ring (visible, accessible) ---------- */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: var(--r-xs);
+}
+
+/* ---------- Selection ---------- */
+::selection {
+    background: var(--accent-soft);
+    color: var(--fg);
+}
+
+/* ---------- Scrollbars (thin, themed) ---------- */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+}
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--border-strong);
+    border-radius: var(--r-full);
+    border: 3px solid transparent;
+    background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--fg-subtle);
+    background-clip: content-box;
+    border: 3px solid transparent;
+}
+
+/* ---------- Base input text ---------- */
+input,
+button,
+select,
+textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+}
+
+button {
+    cursor: pointer;
+}
+button:disabled {
+    cursor: not-allowed;
+}
+
+/* ---------- Utility classes ---------- */
+.muted {
+    color: var(--fg-muted);
+    font-size: var(--fs-sm);
+}
+.subtle {
+    color: var(--fg-subtle);
+    font-size: var(--fs-xs);
+}
+.mono {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+/* ---------- Respect the reduced-motion preference ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

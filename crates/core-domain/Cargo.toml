@@ -1,0 +1,23 @@
+[package]
+name = "mailgrit-core-domain"
+description = "Domain types (Newtype/Typestate), domain errors, single source of limit constants."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+thiserror = "2.0.19"
+rand = "0.10.2"
+
+# Kani note: formal verification is wired in through `cargo kani`, which sets
+# cfg(kani) and provides the `kani` crate from its own sysroot.
+# The git dependency is deliberately not declared here: the Kani git repository
+# pulls in the s2n-quic submodule with long paths, which breaks the build on
+# Windows. Instead the harnesses (src/kani_harnesses.rs, under #[cfg(kani)])
+# resolve `kani` from the sysroot when `cargo kani` runs. See ci.yml (job
+# formal-verification). Usage: `cargo kani -p mailgrit-core-domain`.

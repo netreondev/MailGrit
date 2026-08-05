@@ -1,0 +1,44 @@
+# MailGrit fuzz targets (cargo-fuzz, libFuzzer).
+#
+# Requires the nightly toolchain: `rustup toolchain install nightly`.
+# Run: `cargo +nightly fuzz run fuzz_parse_csv_bytes` and
+# `cargo +nightly fuzz run fuzz_parse_domain`.
+#
+# Fuzzing complements proptest: where proptest checks structured invariants,
+# libFuzzer explores execution paths with pathological inputs (coverage-guided),
+# finding crashes/panics that property-based strategies do not generate.
+
+[package]
+name = "mailgrit-fuzz"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish.workspace = true
+description = "MailGrit fuzz targets (cargo-fuzz)."
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+mailgrit-core-csv = { path = "../crates/core-csv" }
+mailgrit-core-domain = { path = "../crates/core-domain" }
+libfuzzer-sys = "0.4"
+
+[[bin]]
+name = "fuzz_parse_csv_bytes"
+path = "fuzz_targets/parse_csv_bytes.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_parse_domain"
+path = "fuzz_targets/parse_domain.rs"
+test = false
+doc = false
+
+# The fuzz crate compiles under nightly with libfuzzer-sys (no_main, coverage
+# instrumentation). The workspace lints (forbid unsafe and strict denies) are NOT
+# inherited here — the fuzz environment inherently uses unsafe (libfuzzer FFI) and
+# relaxed rules. The quality of the code under test (crates/*) is protected by the
+# main workspace lints.

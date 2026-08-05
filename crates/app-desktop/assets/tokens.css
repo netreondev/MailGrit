@@ -1,0 +1,173 @@
+/* ============================================================================
+   MailGrit — design tokens.
+   A multi-layer system: primitives -> semantics -> components.
+   Themes are switched via [data-theme="dark"|"light"] on <html>.
+   Direction: a deep dark theme (Linear/Vercel); accent runs from deep blue to
+   electric (trust/power for a sysadmin tool). Current as of August 2026.
+   ============================================================================ */
+
+:root {
+    color-scheme: dark;
+
+    /* ---------- Primitives: neutral scale (dark) ---------- */
+    --gray-50:  #FAFAFA;
+    --gray-100: #F4F4F5;
+    --gray-200: #E4E4E7;
+    --gray-300: #C8C8CE;
+    --gray-400: #9A9AA6;
+    --gray-500: #6E6E7A;
+    --gray-600: #4A4A55;
+    --gray-700: #2C2C35;
+    --gray-800: #1A1A22;
+    --gray-900: #0F0F15;
+    --gray-950: #08080C;
+
+    /* ---------- Primitives: accents (deep blue -> electric) ----------
+       A trust/power palette for a sysadmin tool: royal blue into a saturated
+       sky electric. Matches the Spark Mail logo (logo-master.svg). */
+    --blue-700: #1E40AF;
+    --blue-600: #1D4ED8;
+    --blue-500: #2563EB;  /* primary accent (dark) */
+    --blue-400: #3B82F6;
+    --cyan-500: #0EA5E9;
+    --cyan-400: #38BDF8;  /* electric — end of the gradient */
+    --cyan-300: #7DD3FC;
+
+    /* ---------- Semantics: dark theme (default) ---------- */
+    --bg:            var(--gray-950);  /* #08080C — the deepest background */
+    --bg-elevated:   var(--gray-900);  /* #0F0F15 — titlebar, raised layers */
+    --bg-surface:    var(--gray-800);  /* #1A1A22 — cards */
+    --bg-surface-2:  #20202B;          /* nested/hover surfaces */
+    --bg-input:      #14141C;
+
+    --fg:            #EDEDF0;
+    --fg-secondary:  #B8B8C4;
+    --fg-muted:      #8A8A99;
+    --fg-subtle:     #5E5E6B;
+
+    /* Borders: very thin, low alpha — a signature "premium" technique */
+    --border-subtle: rgba(255, 255, 255, 0.05);
+    --border:        rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.14);
+
+    /* Accents + gradient (blue -> electric, as in the logo) */
+    --accent:     var(--blue-500);
+    --accent-2:   var(--cyan-400);
+    --accent-soft: rgba(37, 99, 235, 0.16);
+    --accent-hover: var(--blue-400);
+    --accent-fg:  #FFFFFF;
+    --accent-grad: linear-gradient(135deg, #1D4ED8 0%, #38BDF8 100%);
+
+    /* Semantic colors */
+    --danger:        #E5484D;
+    --danger-hover:  #F1555A;
+    --danger-soft:   rgba(229, 72, 77, 0.12);
+    --danger-fg:     #FF9498;
+    --success:       #3DD68C;
+    --success-soft:  rgba(61, 214, 140, 0.12);
+    --success-fg:    #6FE0AC;
+    --warning:       #FFB224;
+    --warning-soft:  rgba(255, 178, 36, 0.14);
+    --warning-fg:    #FFC95C;
+
+    /* Shadows: layered, low alpha — depth without feeling "heavy" */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.30);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.32), 0 1px 3px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.38), 0 4px 8px rgba(0, 0, 0, 0.24);
+    --shadow-xl: 0 24px 56px rgba(0, 0, 0, 0.48), 0 8px 16px rgba(0, 0, 0, 0.30);
+    --shadow-glow: 0 0 0 1px var(--border), 0 8px 24px rgba(37, 99, 235, 0.30);
+
+    /* Radii */
+    --r-xs:   4px;
+    --r-sm:   6px;
+    --r-md:   10px;
+    --r-lg:   16px;
+    --r-xl:   22px;
+    --r-full: 999px;
+
+    /* Spacing scale */
+    --s-1: 4px;
+    --s-2: 8px;
+    --s-3: 12px;
+    --s-4: 16px;
+    --s-5: 24px;
+    --s-6: 32px;
+    --s-7: 48px;
+    --s-8: 64px;
+
+    /* Typography */
+    --font-sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue",
+        Arial, sans-serif;
+    --font-mono: "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
+    --fs-xs:   0.72rem;
+    --fs-sm:   0.82rem;
+    --fs-base: 0.875rem;
+    --fs-md:   1rem;
+    --fs-lg:   1.15rem;
+    --fs-xl:   1.45rem;
+    --fs-2xl:  1.9rem;
+    --lh-tight: 1.25;
+    --lh-base:  1.5;
+    --fw-regular: 400;
+    --fw-medium:  500;
+    --fw-semi:    600;
+    --fw-bold:    700;
+
+    /* Motion */
+    --ease-out:   cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --dur-fast: 120ms;
+    --dur-base: 200ms;
+    --dur-slow: 320ms;
+
+    /* z-index scale */
+    --z-base:    1;
+    --z-sticky:  100;
+    --z-overlay: 800;
+    --z-modal:   900;
+    --z-toast:   1000;
+}
+
+/* ---------- Semantics: light theme ---------- */
+[data-theme="light"] {
+    color-scheme: light;
+
+    --bg:            var(--gray-50);   /* #FAFAFA */
+    --bg-elevated:   #FFFFFF;
+    --bg-surface:    #FFFFFF;
+    --bg-surface-2:  var(--gray-100);
+    --bg-input:      #FFFFFF;
+
+    --fg:            var(--gray-900);
+    --fg-secondary:  #3A3A44;
+    --fg-muted:      var(--gray-500);
+    --fg-subtle:     var(--gray-400);
+
+    --border-subtle: rgba(0, 0, 0, 0.05);
+    --border:        rgba(0, 0, 0, 0.08);
+    --border-strong: rgba(0, 0, 0, 0.14);
+
+    --accent:     var(--blue-600);
+    --accent-2:   var(--cyan-500);
+    --accent-soft: rgba(29, 78, 216, 0.10);
+    --accent-hover: var(--blue-500);
+    --accent-grad: linear-gradient(135deg, #1D4ED8 0%, #0EA5E9 100%);
+
+    --danger:        #CE2C31;
+    --danger-hover:  #E5484D;
+    --danger-soft:   rgba(206, 44, 49, 0.08);
+    --danger-fg:     #B91C1C;
+    --success:       #16A34A;
+    --success-soft:  rgba(22, 163, 74, 0.10);
+    --success-fg:    #15803D;
+    --warning:       #D97706;
+    --warning-soft:  rgba(217, 119, 6, 0.10);
+    --warning-fg:    #B45309;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 24px 56px rgba(0, 0, 0, 0.10), 0 8px 16px rgba(0, 0, 0, 0.06);
+    --shadow-glow: 0 0 0 1px var(--border), 0 8px 24px rgba(29, 78, 216, 0.20);
+}

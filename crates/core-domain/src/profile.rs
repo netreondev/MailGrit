@@ -1,0 +1,220 @@
+//! Declarative operation profile: the set of fields for a
+//! ([`OperationTarget`], [`BulkOperationKind`]) pair.
+//!
+//! A pure description of the field schema (canonical name, requiredness, default,
+//! length limit) — with no value logic or validation. Provides `core-csv` with the
+//! data to auto-detect column mapping.
+
+use crate::limits::{
+    DEFAULT_QUOTA_MB_STR, MAX_DISPLAY_NAME_LEN, MAX_DOMAIN_LEN, MAX_PASSWORD_LEN, MAX_USERNAME_LEN,
+};
+use crate::operation::{BulkOperationKind, OperationTarget};
+
+/// Canonical names of the classic 5 CSV fields (in `RawCsvRow` order).
+const FIELD_DOMAIN: &str = "domain";
+const FIELD_USERNAME: &str = "username";
+const FIELD_PASSWORD: &str = "password";
+const FIELD_DISPLAY_NAME: &str = "display_name";
+const FIELD_QUOTA_MB: &str = "quota_mb";
+
+/// Description of a single operation field.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct FieldSpec {
+    /// Canonical field name (matches a CSV column or a REST parameter key).
+    pub name: &'static str,
+    /// Whether the field is required (has no default and cannot be empty).
+    pub required: bool,
+    /// Default value when the column is absent or empty.
+    pub default: Option<&'static str>,
+    /// Optional value length limit (in characters).
+    pub max_len: Option<usize>,
+}
+
+impl FieldSpec {
+    /// Creates a required field with no default value.
+    #[must_use]
+    pub const fn required(name: &'static str, max_len: usize) -> Self {
+        Self {
+            name,
+            required: true,
+            default: None,
+            max_len: Some(max_len),
+        }
+    }
+
+    /// Creates an optional field with a default value and a length limit.
+    #[must_use]
+    pub const fn optional(name: &'static str, default: &'static str, max_len: usize) -> Self {
+        Self {
+            name,
+            required: false,
+            default: Some(default),
+            max_len: Some(max_len),
+        }
+    }
+}
+
+/// Declarative operation profile: a list of [`FieldSpec`] for a (target, kind) pair.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct OperationProfile {
+    /// Operation target (User, Domain, ...).
+    pub target: OperationTarget,
+    /// Operation kind (Create, Edit, Delete, ...).
+    pub kind: BulkOperationKind,
+    /// Fields in canonical order (important to match `RawCsvRow::fields`).
+    pub fields: Vec<FieldSpec>,
+}
+
+impl OperationProfile {
+    /// User creation profile: the classic 5-column CSV schema.
+    /// Field order matches [`RawCsvRow`](crate::RawCsvRow).
+    #[must_use]
+    pub fn for_user_create() -> Self {
+        Self {
+            target: OperationTarget::User,
+            kind: BulkOperationKind::Create,
+            fields: vec![
+                FieldSpec::required(FIELD_DOMAIN, MAX_DOMAIN_LEN),
+                FieldSpec::required(FIELD_USERNAME, MAX_USERNAME_LEN),
+                FieldSpec::required(FIELD_PASSWORD, MAX_PASSWORD_LEN),
+                FieldSpec::optional(FIELD_DISPLAY_NAME, "", MAX_DISPLAY_NAME_LEN),
+                FieldSpec::optional(FIELD_QUOTA_MB, DEFAULT_QUOTA_MB_STR, 16),
+            ],
+        }
+    }
+
+    // `SanitizedUserRow` is reused as the universal row carrier for both
+    // Domain and Admin: the typestate validates all 5 classic fields, so the
+    // domain quota flows through the classic `quota_mb` field.
+
+    const MAX_TRANSPORT_LEN: usize = 64;
+    const MAX_BACKUPMX_LEN: usize = 1;
+
+    /// Domain creation profile (OSE).
+    #[must_use]
+    pub fn for_domain_create() -> Self {
+        Self {
+            target: OperationTarget::Domain,
+            kind: BulkOperationKind::Create,
+            fields: vec![
+                FieldSpec::required(FIELD_DOMAIN, MAX_DOMAIN_LEN),
+                FieldSpec::optional(FIELD_QUOTA_MB, DEFAULT_QUOTA_MB_STR, 16),
+                FieldSpec::optional("transport", "dovecot", Self::MAX_TRANSPORT_LEN),
+                FieldSpec::optional("is_backupmx", "0", Self::MAX_BACKUPMX_LEN),
+            ],
+        }
+    }
+
+    /// Administrator creation profile (OSE). Email = `username@domain`.
+    #[must_use]
+    pub fn for_admin_create() -> Self {
+        Self {
+            target: OperationTarget::Admin,
+            kind: BulkOperationKind::Create,
+            fields: vec![
+                FieldSpec::required(FIELD_DOMAIN, MAX_DOMAIN_LEN),
+                FieldSpec::required(FIELD_USERNAME, MAX_USERNAME_LEN),
+                FieldSpec::required(FIELD_PASSWORD, MAX_PASSWORD_LEN),
+                FieldSpec::optional(FIELD_DISPLAY_NAME, "", MAX_DISPLAY_NAME_LEN),
+            ],
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::indexing_slicing)]
+    use super::*;
+
+    #[test]
+    fn user_create_has_exactly_five_fields_in_canonical_order() {
+        let p = OperationProfile::for_user_create();
+        assert_eq!(p.target, OperationTarget::User);
+        assert_eq!(p.kind, BulkOperationKind::Create);
+        assert_eq!(p.fields.len(), 5, "create profile = exactly 5 fields");
+        let names: Vec<&str> = p.fields.iter().map(|f| f.name).collect();
+        assert_eq!(
+            names,
+            vec!["domain", "username", "password", "display_name", "quota_mb"]
+        );
+    }
+
+    #[test]
+    fn user_create_required_flags_are_correct() {
+        let p = OperationProfile::for_user_create();
+        assert!(p.fields[0].required, "domain is required");
+        assert!(p.fields[1].required, "username is required");
+        assert!(p.fields[2].required, "password is required");
+        assert!(!p.fields[3].required, "display_name is optional");
+        assert!(!p.fields[4].required, "quota_mb is optional");
+    }
+
+    #[test]
+    fn user_create_defaults_are_sane() {
+        let p = OperationProfile::for_user_create();
+        assert_eq!(p.fields[0].default, None, "domain has no default");
+        assert_eq!(p.fields[1].default, None, "username has no default");
+        assert_eq!(p.fields[2].default, None, "password has no default");
+        assert_eq!(p.fields[3].default, Some(""), "display_name default = ''");
+        assert_eq!(
+            p.fields[4].default,
+            Some(DEFAULT_QUOTA_MB_STR),
+            "quota_mb default = DEFAULT_QUOTA_MB_STR"
+        );
+    }
+
+    #[test]
+    fn user_create_max_lens_match_limits_module() {
+        let p = OperationProfile::for_user_create();
+        assert_eq!(p.fields[0].max_len, Some(MAX_DOMAIN_LEN));
+        assert_eq!(p.fields[1].max_len, Some(MAX_USERNAME_LEN));
+        assert_eq!(p.fields[2].max_len, Some(MAX_PASSWORD_LEN));
+        assert_eq!(p.fields[3].max_len, Some(MAX_DISPLAY_NAME_LEN));
+        assert!(p.fields[4].max_len.is_some());
+    }
+
+    #[test]
+    fn fieldspec_constructors_set_attributes() {
+        let r = FieldSpec::required("x", 10);
+        assert!(r.required);
+        assert_eq!(r.default, None);
+        assert_eq!(r.max_len, Some(10));
+        let o = FieldSpec::optional("y", "def", 20);
+        assert!(!o.required);
+        assert_eq!(o.default, Some("def"));
+        assert_eq!(o.max_len, Some(20));
+    }
+
+    fn names_of(p: &OperationProfile) -> Vec<&str> {
+        p.fields.iter().map(|f| f.name).collect()
+    }
+
+    #[test]
+    fn domain_create_has_correct_fields_and_defaults() {
+        let p = OperationProfile::for_domain_create();
+        assert_eq!(p.target, OperationTarget::Domain);
+        assert_eq!(p.kind, BulkOperationKind::Create);
+        assert_eq!(
+            names_of(&p),
+            vec!["domain", "quota_mb", "transport", "is_backupmx"]
+        );
+        assert!(p.fields[0].required, "domain is required");
+        assert_eq!(p.fields[1].default, Some(DEFAULT_QUOTA_MB_STR));
+        assert_eq!(p.fields[2].default, Some("dovecot"));
+        assert_eq!(p.fields[3].default, Some("0"));
+    }
+
+    #[test]
+    fn admin_create_has_correct_fields() {
+        let p = OperationProfile::for_admin_create();
+        assert_eq!(p.target, OperationTarget::Admin);
+        assert_eq!(p.kind, BulkOperationKind::Create);
+        assert_eq!(
+            names_of(&p),
+            vec!["domain", "username", "password", "display_name"]
+        );
+        assert!(p.fields[0].required && p.fields[1].required && p.fields[2].required);
+        assert!(!p.fields[3].required);
+        assert_eq!(p.fields[3].default, Some(""));
+    }
+}

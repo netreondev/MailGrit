@@ -1,0 +1,244 @@
+# MailGrit UI translations — Deutsch (German).
+# Platzhalter: %{name} (rust-i18n 4.x). Struktur 1:1 mit app.en.yml.
+_version: 1
+
+# ── Navigation / Bereiche ───────────────────────────────────────────────────
+nav.operations: "Vorgänge"
+nav.audit: "Audit"
+
+# ── Ziele ───────────────────────────────────────────────────────────────────
+target.user: "Benutzer"
+target.domain: "Domains"
+target.admin: "Administratoren"
+
+# ── Aktionen ────────────────────────────────────────────────────────────────
+action.create: "Anlegen"
+action.edit: "Bearbeiten"
+action.delete: "Löschen"
+action.cancel: "Abbrechen"
+
+# ── Allgemeine UI-Phrasen ───────────────────────────────────────────────────
+session.active: "Sitzung aktiv"
+session.none: "Keine Sitzung"
+csv.not_loaded: "CSV nicht geladen"
+theme.light: "Helles Design"
+theme.dark: "Dunkles Design"
+theme.toggle: "Design umschalten"
+logout: "Abmelden"
+
+# ── (Ziel × Vorgang) — 3×3 Matrix ──────────────────────────────────────────
+op_label.user.create: "Benutzer anlegen"
+op_label.user.edit: "Benutzer bearbeiten"
+op_label.user.delete: "Benutzer löschen"
+op_label.domain.create: "Domain anlegen"
+op_label.domain.edit: "Domain bearbeiten"
+op_label.domain.delete: "Domain löschen"
+op_label.admin.create: "Administrator anlegen"
+op_label.admin.edit: "Administrator bearbeiten"
+op_label.admin.delete: "Administrator löschen"
+
+# ── iRedAdmin-Fehlercodes ───────────────────────────────────────────────────
+err_code.NO_SUCH_ACCOUNT: "Konto existiert nicht"
+err_code.ALREADY_EXISTS: "Konto existiert bereits"
+err_code.ACCOUNT_EXISTS: "Konto existiert bereits"
+err_code.NO_SUCH_DOMAIN: "Domain existiert nicht"
+err_code.ALREADY_EXISTS_DOMAIN: "Domain existiert bereits"
+err_code.NOT_ALLOWED: "Aktion nicht erlaubt"
+err_code.INVALID: "Ungültige Daten"
+
+# ── Titlebar / Fenster ──────────────────────────────────────────────────────
+titlebar.minimize: "Minimieren"
+titlebar.maximize: "Maximieren"
+titlebar.close: "Schließen"
+window.login_title: "MailGrit — iRedAdmin-Anmeldung"
+
+# ── Untertitel ──────────────────────────────────────────────────────────────
+subtitle.login: "Anmeldung"
+subtitle.dashboard: "Vorgänge"
+
+# ── Anmeldebildschirm ───────────────────────────────────────────────────────
+login.tagline: "Massenautomatisierung für iRedAdmin"
+login.server_label: "iRedAdmin-Serveradresse"
+login.server_hint: "Vollständige https-URL des Admin-Panels eingeben"
+login.open_form: "Anmeldeformular öffnen"
+login.waiting: "Warten auf iRedAdmin-Anmeldung…"
+login.waiting_hint: "Melden Sie sich im geöffneten Fenster an — die App wechselt automatisch"
+login.footer: " Die App speichert Ihr Passwort nicht. Die Anmeldung erfolgt im echten iRedAdmin-Formular in einem separaten Fenster; die App liest nur das Sitzungscookie (HttpOnly)."
+
+# ── CSV-Karte ───────────────────────────────────────────────────────────────
+csv.card_title: "CSV laden & bearbeiten"
+csv.format_hint: "Format: domain, username, password, display_name, quota_mb"
+csv.choose_file: "Datei auswählen"
+csv.file_dialog_title: "CSV-Datei auswählen"
+csv.valid_rows: "gültige Zeilen"
+csv.rejected: "abgelehnt"
+csv.read_error: "Datei konnte nicht gelesen werden: %{error}"
+csv.parse_io_error: "Lesefehler: %{error}"
+csv.parse_error: "CSV-Fehler: %{error}"
+csv.loaded_summary: "CSV geladen: %{valid} gültige, %{failed} abgelehnte Zeilen"
+csv.utf8_warn: "CSV enthält ungültiges UTF-8, automatische Spaltenzuordnung deaktiviert"
+
+# ── Abgelehnte CSV-Zeilen ───────────────────────────────────────────────────
+csv.failed_title: "Abgelehnte CSV-Zeilen (%{count})"
+csv.col_line: "Zeile"
+csv.col_content: "Inhalt"
+csv.col_reason: "Grund"
+csv.more_rejected: "…und %{count} weitere abgelehnte Zeilen"
+csv.preview_more: "…und %{count} weitere"
+csv.preview_empty: "CSV nicht geladen"
+
+# ── Cookie-Diagnose ─────────────────────────────────────────────────────────
+cookies.trigger: "Erweiterte Diagnose — empfangene Cookies (%{count})"
+cookies.hint: "Zielsitzung: %{name}. Falls nicht in der Liste, korrekten Namen in config.toml (session_cookie_name) setzen und neu starten."
+cookies.col_name: "Name"
+cookies.col_domain: "Domain"
+cookies.col_path: "Path"
+cookies.col_httponly: "HttpOnly"
+cookies.col_length: "Länge"
+cookies.yes: "ja"
+cookies.no: "nein"
+
+# ── Vorgangsergebnis ────────────────────────────────────────────────────────
+result.card_title: "Ergebnis des letzten Vorgangs"
+result.none_yet: "Noch keine Vorgänge"
+result.succeeded: "Erfolgreich: %{count}"
+result.failed: "Abgelehnt: %{count}"
+result.rejected_title: "Abgelehnte Zeilen"
+result.col_user: "Benutzer"
+result.col_domain: "Domain"
+result.col_reason: "Grund"
+result.reason_title: "Details — in mailgrit.log (VORGANGS-DUMP)"
+
+# ── Audit ───────────────────────────────────────────────────────────────────
+audit.unavailable: "Audit-Protokoll nicht verfügbar"
+audit.empty: "Noch keine Einträge"
+audit.verify_btn: "Integrität prüfen"
+audit.col_time: "Zeit"
+audit.col_action: "Aktion"
+audit.col_detail: "Details"
+audit.chain_ok: "Audit-Kette ist intakt"
+audit.chain_broken: "Audit-Kette VERLETZT (Protokoll manipuliert)"
+audit.verify_storage_error: "Integrität konnte nicht geprüft werden: Lesefehler der Audit-DB"
+audit.verify_lock_error: "Integrität konnte nicht geprüft werden: Audit-Zustand beschädigt"
+
+# ── Zuordnung ───────────────────────────────────────────────────────────────
+mapping.profile: "Profil: %{label}"
+mapping.auto_detect: "Spalten automatisch erkennen"
+mapping.all_detected: "alle Spalten erkannt"
+mapping.partial_detected: "%{bound} von %{total} erkannt: manuell umbenennen"
+mapping.summary: "Zuordnung: %{info}"
+
+# ── Vorgänge-Karte ──────────────────────────────────────────────────────────
+ops.card_title: "Massenvorgänge"
+ops.status_running: "Vorgang läuft…"
+ops.status_ready: "Bereit für Vorgänge"
+ops.status_no_session: "Keine aktive Sitzung"
+ops.running_hint: "Vorgang wird über iRedAdmin ausgeführt…"
+ops.save_csv: "CSV speichern"
+ops.diag_forms: "Formular-Diagnose"
+ops.diag_file_dialog: "Export speichern unter"
+ops.delete_modal_title: "Löschen bestätigen"
+ops.delete_modal_body: "Alle Einträge des ausgewählten Ziels aus der geladenen CSV werden gelöscht. Diese Aktion ist unwiderruflich."
+ops.delete_confirm: "Ja, löschen"
+
+# ── Passwort-Steuerung ──────────────────────────────────────────────────────
+pw.card_title: "Passwortgenerierung"
+pw.length_label: "Länge: %{n}"
+pw.fill_empty: "Leere Passwörter füllen"
+pw.regenerate_all: "Alle neu generieren"
+pw.regenerate_modal_title: "Alle Passwörter neu generieren?"
+pw.regenerate_modal_body: "Passwörter in ALLEN Tabellenzeilen werden durch neu generierte ersetzt. Aktuelle Werte (einschließlich der aus CSV geladenen) gehen verloren. Diese Aktion ist unwiderruflich."
+pw.regenerate_confirm: "Ja, neu generieren"
+pw.gen_one_title: "Passwort für diese Zeile generieren"
+pw.need_one_class: "mindestens eine Zeichenklasse aktivieren"
+pw.none_empty: "keine leeren Passwörter zum Füllen"
+pw.filled_count: "%{n} Passwörter generiert"
+pw.regenerated_count: "%{n} Passwörter neu generiert"
+
+# ── Bearbeitbare Tabelle ────────────────────────────────────────────────────
+table.rows_title: "Zeilen (%{count})"
+table.col_domain: "Domain"
+table.col_username: "Anmeldename"
+table.col_password: "Passwort"
+table.col_display: "Anzeigename"
+table.col_quota: "Kontingent (MB)"
+table.add_row: "Zeile hinzufügen"
+table.delete_row_title: "Zeile löschen"
+table.placeholder_password: "passwort"
+table.placeholder_display: "Max Mustermann"
+
+# ── Vorgangs-Fehler/Status ──────────────────────────────────────────────────
+operr.no_session: "keine aktive Sitzung"
+operr.no_rows: "keine Zeilen zum Verarbeiten — CSV laden oder hinzufügen"
+operr.no_valid_rows: "keine gültigen Zeilen"
+operr.no_valid_rows_with_errors: "keine gültigen Zeilen (%{n} in der Tabelle abgelehnt)"
+operr.already_running: "ein Vorgang läuft bereits — auf Abschluss warten"
+operr.webview_no_result: "Vorgang nicht abgeschlossen: Webview lieferte kein Ergebnis (Zeitüberschreitung/Fehler). Details — in mailgrit.log"
+operr.session_expired: "die Sitzung ist abgelaufen — erneut im iRedAdmin-Fenster anmelden"
+operr.cancelled: "Vorgang abgebrochen"
+operr.diag_need_csv: "für die Diagnose eine CSV laden (Domain aus der 1. Zeile)"
+operr.diag_running: "Formular-Diagnose… (siehe Protokoll)"
+operr.diag_cancelled: "Diagnose abgebrochen"
+operr.diag_prefix: "🔧 Diagnose:\n%{details}"
+operr.diag_parse_error: "Analysefehler: %{details}"
+operr.diag_summary: "Status: %{status}\nURL: %{url}\nFormulare: %{forms}\n\nVollständiges Protokoll — in mailgrit.log"
+operr.diag_no_forms: "keine Formulare"
+
+# ── Export ──────────────────────────────────────────────────────────────────
+export.nothing: "nichts zu exportieren"
+export.encryption_error: "Verschlüsselungsfehler beim Export: %{error}"
+export.encrypted_ok: "Verschlüsselt nach %{path} (Entschlüsselung mit dem Master-Passwort)"
+export.plain_ok: "Gespeichert nach %{path} (unverschlüsselt)"
+export.save_error: "Speichern fehlgeschlagen: %{error}"
+export.choice_title: "Export"
+export.choice_body: "Wählen Sie, wie der Export gespeichert wird. Verschlüsselt schützt Passwörter mit dem Master-Passwort (XChaCha20-Poly1305). Unverschlüsseltes CSV ist in jeder Tabellenkalkulation lesbar, speichert Passwörter aber unverschlüsselt."
+export.option_encrypted: "Verschlüsselt (empfohlen)"
+export.option_encrypted_desc: "Versiegelt mit XChaCha20-Poly1305. Zum späteren Entschlüsseln ist das Master-Passwort erforderlich."
+export.option_plain: "Unverschlüsseltes CSV"
+export.option_plain_desc: "Unverschlüsselter Text. Passwörter werden im Klartext gespeichert — mit Vorsicht behandeln."
+export.confirm: "Exportieren"
+
+# ── URL-Validierung ─────────────────────────────────────────────────────────
+url.invalid: "die Adresse ist ungültig (eine vollständige https-URL ist erforderlich)"
+url.not_https: "https:// ist erforderlich (Schema '%{scheme}'; eine Sitzung über HTTP würde das Cookie verraten)"
+url.no_host: "die Adresse hat keine Domain"
+
+# ── Sprachauswahl ───────────────────────────────────────────────────────────
+lang.label: "Sprache"
+lang.en: "English"
+lang.de: "Deutsch"
+lang.fr: "Français"
+lang.es: "Español"
+lang.it: "Italiano"
+lang.pt: "Português"
+lang.nl: "Nederlands"
+lang.pl: "Polski"
+lang.uk: "Українська"
+
+# ── Core-Fehler ─────────────────────────────────────────────────────────────
+err.csv.too_many_rows: "CSV überschreitet die maximale Zeilenzahl: %{actual} > %{max}"
+err.csv.line_too_long: "Zeile %{line_no} überschreitet %{max} Bytes"
+err.csv.field_too_long: "Feld in Zeile %{line_no} überschreitet %{max} Bytes"
+err.csv.io: "CSV-Lesefehler: %{error}"
+err.csv.row: "Zeile %{line_no}: %{detail}"
+err.pw.too_short: "Passwort zu kurz: %{actual} Zeichen, benötigt ≥ %{min}"
+err.pw.missing_uppercase: "kein Großbuchstabe (A–Z)"
+err.pw.missing_lowercase: "kein Kleinbuchstabe (a–z)"
+err.pw.missing_number: "keine Ziffer (0–9)"
+err.pw.missing_special: "kein Sonderzeichen (!@#$%^&*…)"
+err.domain.empty: "Domain ist leer"
+err.domain.too_long: "Domain überschreitet %{max} Zeichen: Länge %{actual}"
+err.domain.invalid_char: "Domain enthält ein ungültiges Zeichen '%{char}' an Position %{pos}"
+err.domain.email_provided: "Domain enthält '@' (eine E-Mail statt einer Domain angegeben)"
+err.domain.invalid_label: "Domain-Label ist ungültig: %{detail}"
+err.username.empty: "Anmeldename ist leer"
+err.username.too_long: "Anmeldename überschreitet %{max} Zeichen: Länge %{actual}"
+err.username.invalid_char: "Anmeldename enthält ein ungültiges Zeichen '%{char}'"
+err.username.bad_edges: "Anmeldename beginnt oder endet mit einem ungültigen Zeichen"
+err.password.contains_comma: "Passwort enthält ein Komma (in CSV nicht erlaubt)"
+err.password.too_long: "Passwort überschreitet %{max} Zeichen: Länge %{actual}"
+err.display_name.too_long: "display_name überschreitet %{max} Zeichen: Länge %{actual}"
+err.quota.parse: "ungültiger Kontingentwert: %{error}"
+err.quota.out_of_range: "Kontingent außerhalb des Bereichs: %{value} (erwartet 1..=%{max})"
+err.column_count: "falsche Spaltenzahl: %{actual} (erwartet %{expected})"
+err.missing_field: "Pflichtfeld fehlt: %{field}"

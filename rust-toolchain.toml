@@ -1,0 +1,7 @@
+# Pinned toolchain version (not stable) — guarantees a reproducible build
+# across all three target platforms (Windows/Linux/macOS).
+# Bumping the version is a separate, documented change.
+[toolchain]
+channel = "1.97.1"
+components = ["rustfmt", "clippy", "rust-src"]
+profile = "minimal"

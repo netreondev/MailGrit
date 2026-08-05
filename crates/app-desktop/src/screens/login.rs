@@ -1,0 +1,161 @@
+//! Premium login screen: a hero composition with auth auto-polling.
+
+use crate::components::button::{Button, ButtonKind, ButtonSize};
+use crate::components::card::Card;
+use crate::components::icon::{Icon, IconSize, IconView, Logo};
+use crate::components::input::{Field, TextField};
+use crate::components::language_menu::LanguageMenu;
+use crate::components::spinner::Spinner;
+use crate::language::Language;
+use crate::state::{AppState, AuthStatus};
+use crate::theme::Theme;
+use crate::util::validate_base_url;
+use crate::views::cookies_disclosure;
+use crate::{auth_bridge, login_window, settings};
+use dioxus::prelude::*;
+
+/// Premium login screen: a hero composition with auth auto-polling.
+#[component]
+pub fn login_screen() -> Element {
+    let mut state = use_context::<Signal<AppState>>();
+    // Arc clone for the login-window open closure (thread_local — shared).
+    let login_state_for_open = login_window::login_state();
+    let url = state.read().url_input.clone();
+    let auth_status = state.read().auth_status;
+    let error_msg = state.read().error_msg.clone();
+    let theme = state.read().theme;
+    // Read the language — to re-render localized strings when the language changes.
+    let language = state.read().language;
+
+    rsx! {
+        div { class: "login-screen",
+            div { class: "login-card",
+                // Branding (symmetric, centered).
+                div { class: "login-brand",
+                    Logo { class: "login-logo".to_string() }
+                    h1 { {crate::brand::APP_NAME} }
+                    p { class: "login-tagline", {tr!("login.tagline")} }
+                }
+
+                Card { class: "card-accent".to_string(),
+                    // Server URL field.
+                    Field {
+                        label: tr!("login.server_label"),
+                        hint: tr!("login.server_hint"),
+                        TextField {
+                            value: url,
+                            r#type: "url".to_string(),
+                            placeholder: "https://mail.example.com/iredadmin".to_string(),
+                            icon: Some(Icon::Link),
+                            disabled: auth_status == AuthStatus::AwaitingLogin,
+                            oninput: move |e: FormEvent| state.write().url_input = e.value(),
+                        }
+                    }
+
+                    // Button to open the login form → opens the iRedAdmin window.
+                    // Auth is detected data-driven: via the webview navigation
+                    // event (navigation_handler), not by timer-based polling.
+                    div { class: "login-actions",
+                        Button {
+                            kind: ButtonKind::Primary,
+                            size: ButtonSize::Large,
+                            icon_right: Some(Icon::ChevronRight),
+                            disabled: auth_status == AuthStatus::AwaitingLogin,
+                            onclick: move |_| {
+                                let base = state.read().url_input.clone();
+                                match validate_base_url(&base) {
+                                    Ok(()) => {
+                                        tracing::info!("URL validation passed: {base}");
+                                        // Open the login window and switch to waiting.
+                                        // The transition to the dashboard happens
+                                        // automatically on the iRedAdmin navigation
+                                        // event after login.
+                                        {
+                                            let mut s = state.write();
+                                            s.base_url.clone_from(&base);
+                                            s.error_msg = None;
+                                            s.auth_status = AuthStatus::AwaitingLogin;
+                                        }
+                                        auth_bridge::request_login_window(&login_state_for_open, &base);
+                                    }
+                                    Err(msg) => {
+                                        tracing::warn!("URL validation failed: {msg}");
+                                        state.write().error_msg = Some(msg);
+                                    }
+                                }
+                            },
+                            {tr!("login.open_form")}
+                        }
+                    }
+
+                    // Waiting-for-login state: the iRedAdmin window is open, waiting for navigation.
+                    {match auth_status {
+                        AuthStatus::AwaitingLogin => rsx! {
+                            div { class: "poll-banner",
+                                Spinner {}
+                                div { class: "poll-banner-text",
+                                    {tr!("login.waiting")}
+                                    div { class: "muted",
+                                        {tr!("login.waiting_hint")}
+                                    }
+                                }
+                            }
+                        },
+                        AuthStatus::None | AuthStatus::Connected => rsx! {},
+                    }}
+
+                    // Error (if any).
+                    {if let Some(err) = &error_msg {
+                        rsx! {
+                            div { class: "poll-banner error-banner",
+                                IconView { icon: Icon::Alert, class: "toast-icon".to_string() }
+                                div { class: "poll-banner-text", "{err}" }
+                            }
+                        }
+                    } else {
+                        rsx! {}
+                    }}
+
+                    // Cookie diagnostics — collapsible (hidden by default).
+                    {cookies_disclosure(&state)}
+                }
+
+                // Privacy.
+                p { class: "login-footer",
+                    IconView { icon: Icon::Lock, size: IconSize::Small }
+                    {tr!("login.footer")}
+                }
+            }
+            // Language selector + theme toggle — tucked into the top-right corner.
+            {login_language_selector(state, language)}
+            button {
+                class: "theme-toggle",
+                title: if theme == Theme::Dark { tr!("theme.light") } else { tr!("theme.dark") },
+                "aria-label": tr!("theme.toggle"),
+                onclick: move |_| {
+                    let new_theme = theme.toggle();
+                    state.write().theme = new_theme;
+                    crate::theme::apply_theme(new_theme);
+                    settings::save_theme(new_theme.as_str());
+                },
+                IconView { icon: if theme == Theme::Dark { Icon::Sun } else { Icon::Moon } }
+            }
+        }
+    }
+}
+
+/// Language selector on the login screen. Mirrors `dashboard.rs::language_selector`,
+/// but with the `login-lang-menu` class (pinned to the corner of the login screen).
+fn login_language_selector(mut state: Signal<AppState>, current: Language) -> Element {
+    rsx! {
+        LanguageMenu {
+            current: current,
+            extra_class: "login-lang-menu".to_string(),
+            onchange: move |lang: Language| {
+                state.write().language = lang;
+                rust_i18n::set_locale(lang.as_str());
+                settings::save_language(lang.as_str());
+            },
+        }
+    }
+}

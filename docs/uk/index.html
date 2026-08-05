@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+
+  <title>MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin</title>
+  <meta name="description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.">
+  <meta name="keywords" content="iRedAdmin, пакетна автоматизація пошти, десктоп-додаток, Rust, Dioxus, FortiWeb, WAF, адміністрування поштового сервера, створення поштових акаунтів, зашифрований журнал аудиту">
+  <meta name="author" content="Учасники MailGrit">
+  <meta name="robots" content="index, follow">
+
+  <link rel="canonical" href="https://netreondev.github.io/MailGrit/uk/">
+  <link rel="alternate" hreflang="en" href="https://netreondev.github.io/MailGrit/">
+  <link rel="alternate" hreflang="uk" href="https://netreondev.github.io/MailGrit/uk/">
+  <link rel="alternate" hreflang="x-default" href="https://netreondev.github.io/MailGrit/">
+
+  <link rel="manifest" href="https://netreondev.github.io/MailGrit/site.webmanifest">
+  <link rel="icon" type="image/png" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+  <link rel="apple-touch-icon" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+  <link rel="stylesheet" href="../assets/style.css">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="MailGrit">
+  <meta property="og:title" content="MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin">
+  <meta property="og:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.">
+  <meta property="og:url" content="https://netreondev.github.io/MailGrit/uk/">
+  <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
+  <meta property="og:image:alt" content="MailGrit — десктоп-додаток для пакетної автоматизації iRedAdmin">
+  <meta property="og:locale" content="uk_UA">
+  <meta property="og:locale:alternate" content="en_US">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin">
+  <meta name="twitter:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.">
+  <meta name="twitter:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
+  <meta name="twitter:image:alt" content="MailGrit — десктоп-додаток для пакетної автоматизації iRedAdmin">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "MailGrit",
+    "applicationCategory": "DesktopApplication",
+    "operatingSystem": "Windows, Linux, macOS",
+    "description": "Cross-platform desktop client for bulk iRedAdmin automation. Built with Dioxus desktop, with an embedded browser for authentication and a native panel for bulk operations.",
+    "url": "https://netreondev.github.io/MailGrit/uk/",
+    "downloadUrl": "https://github.com/netreondev/MailGrit/releases",
+    "softwareVersion": "0.1.0",
+    "programmingLanguage": "Rust",
+    "runtimePlatform": "Dioxus 0.7 desktop",
+    "inLanguage": ["uk", "en", "de", "fr", "es", "it", "pt", "nl", "pl"],
+    "license": "https://github.com/netreondev/MailGrit/blob/main/LICENSE-MIT",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "MailGrit",
+      "url": "https://netreondev.github.io/MailGrit/"
+    }
+  }
+  </script>
+
+  <!-- JSON-LD: Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "MailGrit",
+    "url": "https://netreondev.github.io/MailGrit/",
+    "logo": "https://netreondev.github.io/MailGrit/assets/icon-512.png",
+    "sameAs": ["https://github.com/netreondev/MailGrit"]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Перейти до змісту</a>
+
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="https://netreondev.github.io/MailGrit/uk/" aria-label="MailGrit — головна">
+        <span class="brand-mark" aria-hidden="true">M</span>
+        MailGrit
+      </a>
+      <div class="nav-actions">
+        <nav class="lang-switch" aria-label="Мова">
+          <a href="https://netreondev.github.io/MailGrit/" hreflang="en" lang="en">EN</a>
+          <span class="sep" aria-hidden="true">|</span>
+          <span class="cur">УК</span>
+        </nav>
+        <a class="nav-cta" href="https://github.com/netreondev/MailGrit" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <span class="eyebrow">Відкритий код &middot; Rust &middot; MIT / Apache-2.0</span>
+        <h1>Пакетна автоматизація <span class="grad">iRedAdmin</span> — прямо з робочого стола.</h1>
+        <p class="lead">
+          MailGrit — крос-платформний десктоп-додаток для пакетного створення, редагування та
+          видалення облікових записів користувачів пошти на серверах iRedAdmin &mdash; навіть за
+          FortiWeb / WAF &mdash; через вбудований браузер, який виконує легітимний <code>fetch</code>
+          у справжній сесії. Без інструментарію Node/JS: нативний WebView2/wry через Dioxus 0.7.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="https://github.com/netreondev/MailGrit/releases" rel="noopener">Завантажити</a>
+          <a class="btn btn-ghost" href="#quick-start">Швидкий старт</a>
+          <a class="btn btn-ghost" href="https://github.com/netreondev/MailGrit" rel="noopener">Переглянути вихідний код</a>
+        </div>
+        <div class="hero-meta" aria-label="Коротко">
+          <span>Windows</span><span class="dot">&bull;</span>
+          <span>Linux</span><span class="dot">&bull;</span>
+          <span>macOS ARM</span><span class="dot">&bull;</span>
+          <span>Dioxus 0.7</span><span class="dot">&bull;</span>
+          <span>Rust 1.97.1, edition 2024</span><span class="dot">&bull;</span>
+          <span>9 мов</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section" aria-label="Цифрами">
+      <div class="container">
+        <div class="stats">
+          <div class="stat"><div class="num">5</div><div class="label">Ізольованих крейтів воркспейсу</div></div>
+          <div class="stat"><div class="num">9</div><div class="label">мов інтерфейсу, вбудованих під час компіляції</div></div>
+          <div class="stat"><div class="num">0</div><div class="label">байт <code>unsafe</code> (forbid у всьому воркспейсі)</div></div>
+          <div class="stat"><div class="num">3</div><div class="label">платформи у CI: Windows, Linux, macOS ARM</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">01 / Можливості</span>
+          <h2>Усе для керування поштовими акаунтами у масштабі.</h2>
+          <p>Нативна панель поверх справжньої сесії iRedAdmin &mdash; без крихкого відтворення куків і без окремого HTTP-клієнта, що ламається за WAF.</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#9881;</div>
+            <h3>Пакетні операції на основі CSV</h3>
+            <p>Керуйте масовим створенням / редагуванням / видаленням із CSV. BOM видаляється автоматично, заголовки зіставляються гнучко (нечутливі до регістру), а жорсткі обмеження на кількість рядків і довжину захищають від випадкових великих вхідних даних.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#128274;</div>
+            <h3>Зашифрований ланцюговий журнал аудиту</h3>
+            <p>Кожна операція додається до ланцюга, стійкого до втручання (HMAC-SHA256), і шифрується в спокої потоковим AEAD (XChaCha20-Poly1305). Ніщо не змінюється непомітно.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#128737;</div>
+            <h3>Захист ключем головного пароля</h3>
+            <p>Виводить ключ журналу аудиту та ключ експорту через Argon2id (KDF, стійкий до атак по пам'яті). Пароль ніколи не зберігається: втративши його, ви не розблокуєте журнал аудиту та зашифровані експорти.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#127760;</div>
+            <h3>Працює за FortiWeb / WAF</h3>
+            <p>Запити виконуються як <code>fetch</code> у тому самому вебв'ю, що утримує легітимну сесію, тож серверну автентифікацію, яку тримає проксі, не потрібно відтворювати &mdash; без вгадування куків.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#127468;</div>
+            <h3>9 мов, скомпільовано всередину</h3>
+            <p>Англійська, німецька, французька, іспанська, італійська, португальська, нідерландська, польська та українська. Переклади вбудовуються в бінарник; ваш вибір зберігається в <code>config.toml</code>.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#9728;</div>
+            <h3>Безрамковий інтерфейс з темами</h3>
+            <p>Власна дизайн-система на CSS-токенах: користувацький тайтлбар, темна та світла теми з перемикачем, симетрична сітка карток, модальне підтвердження для руйнівних операцій та індикатори прогресу.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security -->
+    <section class="section" id="security">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">02 / Модель безпеки</span>
+          <h2>Безпека за замовчуванням, контрольована під час компіляції.</h2>
+          <p>Безпека &mdash; це політика всього воркспейсу, а не «найкраще зусилля»: <code>unsafe_code = "forbid"</code>, суворий clippy та перевірки ланцюга постачання виконуються на кожній підтримуваній платформі у CI.</p>
+        </div>
+        <div class="split">
+          <div class="panel">
+            <h3>Політика, що не може «попливти»</h3>
+            <ul class="checklist">
+              <li><strong><code>unsafe_code = "forbid"</code></strong> у всьому воркспейсі &mdash; жодного <code>unsafe</code> в жодному крейті додатку.</li>
+              <li>Групи clippy <code>correctness</code>, <code>suspicious</code>, <code>complexity</code>, <code>perf</code>, <code>pedantic</code>, <code>nursery</code> та <code>cargo</code> &mdash; усі <code>deny</code>.</li>
+              <li><code>panic</code>, <code>unwrap_used</code>, <code>expect_used</code>, <code>indexing_slicing</code>, <code>arithmetic_side_effects</code> &mdash; усі <code>deny</code>.</li>
+              <li>Ланцюг постачання: <code>cargo-deny</code> (advisories, bans, licenses, sources) плюс <code>cargo-audit</code>.</li>
+              <li>Журнал аудиту у спокої: потоковий AEAD XChaCha20-Poly1305; хеш-ланцюг HMAC-SHA256 для цілісності.</li>
+              <li>Головний пароль: Argon2id — KDF, стійкий до атак по пам'яті; ніколи не зберігається і не логується.</li>
+            </ul>
+          </div>
+          <div class="code-window" aria-label="Уривок політики лінтів воркспейсу">
+            <div class="bar"><i></i><i></i><i></i><span class="title">Cargo.toml</span></div>
+<pre><span class="c"># Без винятків: wry 0.53 повертає HttpOnly cookies нативно.</span>
+<span class="c"># Кожен крейт додатку перевіряється за цією політикою.</span>
+[workspace.lints.rust]
+<span class="k">unsafe_code</span> = <span class="p">"forbid"</span>
+
+[workspace.lints.clippy]
+<span class="k">correctness</span>      = { level = <span class="p">"deny"</span>, priority = -1 }
+<span class="k">suspicious</span>       = { level = <span class="p">"deny"</span>, priority = -1 }
+<span class="k">pedantic</span>         = { level = <span class="p">"deny"</span>, priority = -1 }
+<span class="k">unwrap_used</span>      = <span class="p">"deny"</span>
+<span class="k">indexing_slicing</span> = <span class="p">"deny"</span>
+<span class="k">arithmetic_side_effects</span> = <span class="p">"deny"</span>
+<span class="k">panic</span>            = <span class="p">"deny"</span></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- i18n -->
+    <section class="section" id="languages">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">03 / Інтернаціоналізація</span>
+          <h2>Дев'ять мов, у бінарнику.</h2>
+          <p>Переклади вбудовуються під час компіляції через <code>rust-i18n</code> &mdash; файлів ресурсів ганяти під час виконання не треба. Ваш вибір зберігається в <code>config.toml</code>.</p>
+        </div>
+        <div class="langs">
+          <span class="lang-chip"><code>en</code> Англійська <span class="end" lang="en">English</span></span>
+          <span class="lang-chip"><code>de</code> Німецька <span class="end" lang="de">Deutsch</span></span>
+          <span class="lang-chip"><code>fr</code> Французька <span class="end" lang="fr">Fran&ccedil;ais</span></span>
+          <span class="lang-chip"><code>es</code> Іспанська <span class="end" lang="es">Espa&ntilde;ol</span></span>
+          <span class="lang-chip"><code>it</code> Італійська <span class="end" lang="it">Italiano</span></span>
+          <span class="lang-chip"><code>pt</code> Португальська <span class="end" lang="pt">Portugu&ecirc;s</span></span>
+          <span class="lang-chip"><code>nl</code> Нідерландська <span class="end" lang="nl">Nederlands</span></span>
+          <span class="lang-chip"><code>pl</code> Польська <span class="end" lang="pl">Polski</span></span>
+          <span class="lang-chip"><code>uk</code> Українська <span class="end">Українська</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick start -->
+    <section class="section" id="quick-start">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">04 / Швидкий старт</span>
+          <h2>Одна команда до release-збірки.</h2>
+          <p>MailGrit &mdash; це воркспейс Cargo; зберіть десктоп-додаток для своєї платформи й запускайте його безпосередньо.</p>
+        </div>
+        <div class="code-window" aria-label="Збірка десктоп-додатку">
+          <div class="bar"><i></i><i></i><i></i><span class="title">bash</span></div>
+<pre><span class="c"># Потребує Rust 1.97.1 (закріплений через rust-toolchain.toml, edition 2024)</span>
+<span class="p">$</span> <span class="k">cargo build</span> --release -p mailgrit-app-desktop
+
+<span class="c"># Windows</span>
+<span class="p">&gt;</span> .\target\release\mailgrit-app-desktop.exe
+
+<span class="c"># Linux / macOS</span>
+<span class="p">$</span> ./target/release/mailgrit-app-desktop</pre>
+        </div>
+        <p style="margin-top:18px;color:var(--text-muted);font-size:0.95rem;max-width:62ch;">
+          Під час першого запуску поряд із бінарником створюється тека <code>mailgrit-data/</code>, де
+          зберігаються усі файли додатку. Вкажіть URL вашого iRedAdmin, увійдіть один раз у вбудованому
+          браузері &mdash; і панель операцій відкриється автоматично.
+        </p>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section" id="architecture">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">05 / Архітектура</span>
+          <h2>П'ять крейтів, кожен можна тестувати окремо.</h2>
+          <p>Воркспейс Cargo, де шари домену, парсингу, сховища, безпеки та інтерфейсу розділені &mdash; <code>cargo test -p &lt;crate&gt;</code> запускає кожен окремо.</p>
+        </div>
+        <div class="split">
+          <div class="panel">
+            <h3>Структура воркспейсу</h3>
+            <ul class="checklist">
+              <li><strong>core-domain</strong> &mdash; доменні типи (Newtype/Typestate), помилки, константи обмежень, політика паролів.</li>
+              <li><strong>core-csv</strong> &mdash; парсинг та валідація CSV із видаленням BOM і жорсткими обмеженнями пам'яті.</li>
+              <li><strong>core-storage</strong> &mdash; локальне сховище SQLite: журнал операцій і ланцюговий журнал аудиту.</li>
+              <li><strong>core-security</strong> &mdash; криптографія у спокої: потоковий AEAD, HMAC-хеш-ланцюг, Argon2id KDF.</li>
+              <li><strong>app-desktop</strong> &mdash; десктоп-додаток Dioxus 0.7: вікно входу, обробка куків, нативна RSX-панель.</li>
+            </ul>
+          </div>
+          <div class="code-window" aria-label="Граф залежностей воркспейсу">
+            <div class="bar"><i></i><i></i><i></i><span class="title">graph</span></div>
+<pre><span class="c"># кожен крейт компілюється / тестується окремо</span>
+core-domain ─┬─ core-csv ────┐
+             ├─ core-storage ─┤
+             └─ core-security ┴─ app-desktop</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="brand" href="https://netreondev.github.io/MailGrit/uk/" aria-label="MailGrit — головна">
+            <span class="brand-mark" aria-hidden="true">M</span>
+            MailGrit
+          </a>
+          <p>Десктоп-клієнт з відкритим кодом для пакетної автоматизації iRedAdmin. Побудований на Dioxus 0.7 desktop &mdash; без інструментарію Node/JS.</p>
+        </div>
+        <div>
+          <h4>Проєкт</h4>
+          <ul>
+            <li><a href="https://github.com/netreondev/MailGrit" rel="noopener">Вихідний код</a></li>
+            <li><a href="https://github.com/netreondev/MailGrit/releases" rel="noopener">Релізи</a></li>
+            <li><a href="https://github.com/netreondev/MailGrit/blob/main/README.md" rel="noopener">Документація</a></li>
+            <li><a href="https://github.com/netreondev/MailGrit/issues" rel="noopener">Питання</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Мова</h4>
+          <ul>
+            <li><a href="https://netreondev.github.io/MailGrit/" hreflang="en" lang="en">English</a></li>
+            <li><a href="https://netreondev.github.io/MailGrit/uk/" hreflang="uk" lang="uk">Українська</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Ліцензовано <a href="https://github.com/netreondev/MailGrit/blob/main/LICENSE-MIT">MIT</a> OR <a href="https://github.com/netreondev/MailGrit/blob/main/LICENSE-APACHE">Apache-2.0</a>.</span>
+        <span>&copy; 2026 Учасники MailGrit.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

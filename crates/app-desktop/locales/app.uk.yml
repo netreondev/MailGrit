@@ -1,0 +1,244 @@
+# MailGrit UI translations — Українська (Ukrainian).
+# Плейсхолдери: %{name} (rust-i18n 4.x). Структура 1:1 з app.en.yml.
+_version: 1
+
+# ── Навігація / розділи ─────────────────────────────────────────────────────
+nav.operations: "Операції"
+nav.audit: "Аудит"
+
+# ── Цілі ────────────────────────────────────────────────────────────────────
+target.user: "Користувачі"
+target.domain: "Домени"
+target.admin: "Адміністратори"
+
+# ── Дії ─────────────────────────────────────────────────────────────────────
+action.create: "Створити"
+action.edit: "Редагувати"
+action.delete: "Видалити"
+action.cancel: "Скасувати"
+
+# ── Загальні UI-фрази ───────────────────────────────────────────────────────
+session.active: "Сесію активовано"
+session.none: "Немає сесії"
+csv.not_loaded: "CSV не завантажено"
+theme.light: "Світла тема"
+theme.dark: "Темна тема"
+theme.toggle: "Перемкнути тему"
+logout: "Вийти"
+
+# ── (ціль × операція) — матриця 3×3 ────────────────────────────────────────
+op_label.user.create: "Створення користувача"
+op_label.user.edit: "Редагування користувача"
+op_label.user.delete: "Видалення користувача"
+op_label.domain.create: "Створення домену"
+op_label.domain.edit: "Редагування домену"
+op_label.domain.delete: "Видалення домену"
+op_label.admin.create: "Створення адміністратора"
+op_label.admin.edit: "Редагування адміністратора"
+op_label.admin.delete: "Видалення адміністратора"
+
+# ── Коди помилок iRedAdmin ──────────────────────────────────────────────────
+err_code.NO_SUCH_ACCOUNT: "Обліковий запис не існує"
+err_code.ALREADY_EXISTS: "Обліковий запис уже існує"
+err_code.ACCOUNT_EXISTS: "Обліковий запис уже існує"
+err_code.NO_SUCH_DOMAIN: "Домен не існує"
+err_code.ALREADY_EXISTS_DOMAIN: "Домен уже існує"
+err_code.NOT_ALLOWED: "Дію не дозволено"
+err_code.INVALID: "Некоректні дані"
+
+# ── Titlebar / вікно ────────────────────────────────────────────────────────
+titlebar.minimize: "Згорнути"
+titlebar.maximize: "Розгорнути"
+titlebar.close: "Закрити"
+window.login_title: "MailGrit — вхід до iRedAdmin"
+
+# ── Підзаголовки ────────────────────────────────────────────────────────────
+subtitle.login: "Авторизація"
+subtitle.dashboard: "Панель операцій"
+
+# ── Екран входу ─────────────────────────────────────────────────────────────
+login.tagline: "Масова автоматизація для iRedAdmin"
+login.server_label: "Адреса сервера iRedAdmin"
+login.server_hint: "Вкажіть повну https-URL панелі адміністрування"
+login.open_form: "Відкрити форму входу"
+login.waiting: "Очікування входу в iRedAdmin…"
+login.waiting_hint: "Увійдіть у вікні, що відкрилося — додаток перемкнеться автоматично"
+login.footer: " Додаток не зберігає ваш пароль. Вхід виконується у справжній формі iRedAdmin в окремому вікні; додаток лише читає сесійний cookie (HttpOnly)."
+
+# ── Картка CSV ──────────────────────────────────────────────────────────────
+csv.card_title: "Завантаження та редагування CSV"
+csv.format_hint: "Формат: domain, username, password, display_name, quota_mb"
+csv.choose_file: "Обрати файл"
+csv.file_dialog_title: "Оберіть файл CSV"
+csv.valid_rows: "валідних рядків"
+csv.rejected: "відкинутих"
+csv.read_error: "не вдалося прочитати файл: %{error}"
+csv.parse_io_error: "помилка читання: %{error}"
+csv.parse_error: "помилка CSV: %{error}"
+csv.loaded_summary: "CSV завантажено: %{valid} валідних, %{failed} відкинутих рядків"
+csv.utf8_warn: "CSV містить некоректний UTF-8, автоматичне зіставлення стовпців вимкнено"
+
+# ── Відкинуті рядки CSV ─────────────────────────────────────────────────────
+csv.failed_title: "Відкинуті рядки CSV (%{count})"
+csv.col_line: "Рядок"
+csv.col_content: "Вміст"
+csv.col_reason: "Причина"
+csv.more_rejected: "…і ще %{count} відкинутих рядків"
+csv.preview_more: "…і ще %{count}"
+csv.preview_empty: "CSV не завантажено"
+
+# ── Діагностика cookie ──────────────────────────────────────────────────────
+cookies.trigger: "Розширена діагностика — отримані cookie (%{count})"
+cookies.hint: "Шукана сесія: %{name}. Якщо її немає в списку, вкажіть правильне ім'я в config.toml (session_cookie_name) і перезапустіть."
+cookies.col_name: "Ім'я"
+cookies.col_domain: "Домен"
+cookies.col_path: "Path"
+cookies.col_httponly: "HttpOnly"
+cookies.col_length: "Довжина"
+cookies.yes: "так"
+cookies.no: "ні"
+
+# ── Результат операції ──────────────────────────────────────────────────────
+result.card_title: "Результат останньої операції"
+result.none_yet: "Операцій ще не було"
+result.succeeded: "Успішно: %{count}"
+result.failed: "Відхилено: %{count}"
+result.rejected_title: "Відкинуті рядки"
+result.col_user: "Користувач"
+result.col_domain: "Домен"
+result.col_reason: "Причина"
+result.reason_title: "Подробиці — в mailgrit.log (ДАМП ОПЕРАЦІЇ)"
+
+# ── Аудит ───────────────────────────────────────────────────────────────────
+audit.unavailable: "Журнал аудиту недоступний"
+audit.empty: "Записів ще немає"
+audit.verify_btn: "Перевірити цілісність"
+audit.col_time: "Час"
+audit.col_action: "Дія"
+audit.col_detail: "Подробиці"
+audit.chain_ok: "Ланцюг аудиту цілий"
+audit.chain_broken: "Ланцюг аудиту ПОРУШЕНО (журнал підмінено)"
+audit.verify_storage_error: "Не вдалося перевірити цілісність: помилка читання БД аудиту"
+audit.verify_lock_error: "Не вдалося перевірити цілісність: стан аудиту пошкоджено"
+
+# ── Зіставлення ─────────────────────────────────────────────────────────────
+mapping.profile: "Профіль: %{label}"
+mapping.auto_detect: "Автовизначити стовпці"
+mapping.all_detected: "усі стовпці визначено"
+mapping.partial_detected: "визначено %{bound} з %{total}: перейменуйте вручну"
+mapping.summary: "Зіставлення: %{info}"
+
+# ── Картка операцій ─────────────────────────────────────────────────────────
+ops.card_title: "Масові операції"
+ops.status_running: "Операція виконується…"
+ops.status_ready: "Готово до операцій"
+ops.status_no_session: "Немає активної сесії"
+ops.running_hint: "Виконується операція через iRedAdmin…"
+ops.save_csv: "Зберегти CSV"
+ops.diag_forms: "Діагностика форм"
+ops.diag_file_dialog: "Куди зберегти експорт"
+ops.delete_modal_title: "Підтвердьте видалення"
+ops.delete_modal_body: "Усі записи обраної цілі із завантаженого CSV будуть видалені. Ця дія необоротна."
+ops.delete_confirm: "Так, видалити"
+
+# ── Керування паролями ──────────────────────────────────────────────────────
+pw.card_title: "Генерація паролів"
+pw.length_label: "Довжина: %{n}"
+pw.fill_empty: "Заповнити порожні паролі"
+pw.regenerate_all: "Перегенерувати всі"
+pw.regenerate_modal_title: "Перегенерувати всі паролі?"
+pw.regenerate_modal_body: "Паролі у ВСІХ рядках таблиці будуть замінені новими згенерованими. Поточні значення (включно із завантаженими з CSV) будуть втрачені. Ця дія необоротна."
+pw.regenerate_confirm: "Так, перегенерувати"
+pw.gen_one_title: "Згенерувати пароль для цього рядка"
+pw.need_one_class: "увімкніть хоча б один клас символів"
+pw.none_empty: "немає порожніх паролів для заповнення"
+pw.filled_count: "згенеровано %{n} паролів"
+pw.regenerated_count: "перегенеровано %{n} паролів"
+
+# ── Редагована таблиця ──────────────────────────────────────────────────────
+table.rows_title: "Рядки (%{count})"
+table.col_domain: "Домен"
+table.col_username: "Логін"
+table.col_password: "Пароль"
+table.col_display: "Відображуване ім'я"
+table.col_quota: "Квота (МБ)"
+table.add_row: "Додати рядок"
+table.delete_row_title: "Видалити рядок"
+table.placeholder_password: "пароль"
+table.placeholder_display: "Іван Петренко"
+
+# ── Повідомлення про помилки/статус операцій ───────────────────────────────
+operr.no_session: "немає активної сесії"
+operr.no_rows: "немає рядків для обробки — завантажте або додайте CSV"
+operr.no_valid_rows: "немає валідних рядків"
+operr.no_valid_rows_with_errors: "немає валідних рядків (%{n} відкинуто в таблиці)"
+operr.already_running: "операція вже виконується — дочекайтеся завершення"
+operr.webview_no_result: "операцію не завершено: webview не повернув результат (тайм-аут/помилка). Подробиці — в mailgrit.log"
+operr.session_expired: "сесія завершилась — увійдіть знову у вікні iRedAdmin"
+operr.cancelled: "операцію скасовано"
+operr.diag_need_csv: "для діагностики завантажте CSV (домен із 1-го рядка)"
+operr.diag_running: "Діагностика форм… (дивіться журнал)"
+operr.diag_cancelled: "діагностику скасовано"
+operr.diag_prefix: "🔧 Діагностика:\n%{details}"
+operr.diag_parse_error: "Помилка розбору: %{details}"
+operr.diag_summary: "Статус: %{status}\nURL: %{url}\nФорми: %{forms}\n\nПовний журнал — у mailgrit.log"
+operr.diag_no_forms: "немає форм"
+
+# ── Експорт ─────────────────────────────────────────────────────────────────
+export.nothing: "немає чого експортувати"
+export.encryption_error: "помилка шифрування експорту: %{error}"
+export.encrypted_ok: "Зашифровано до %{path} (розшифрування — майстер-паролем)"
+export.plain_ok: "Збережено до %{path} (без шифрування)"
+export.save_error: "не вдалося зберегти: %{error}"
+export.choice_title: "Експорт"
+export.choice_body: "Оберіть формат експорту. Зашифрований захищає паролі майстер-паролем (XChaCha20-Poly1305). Відкритий CSV читається в будь-якій таблиці, але зберігає паролі у відкритому вигляді."
+export.option_encrypted: "Зашифрований (рекомендовано)"
+export.option_encrypted_desc: "Запечатано XChaCha20-Poly1305. Для розшифрування потрібен майстер-пароль."
+export.option_plain: "Відкритий CSV"
+export.option_plain_desc: "Незашифрований текст. Паролі зберігаються у відкритому вигляді — звертайтеся обережно."
+export.confirm: "Експортувати"
+
+# ── Валідація URL ───────────────────────────────────────────────────────────
+url.invalid: "адреса некоректна (потрібна повна https-URL)"
+url.not_https: "потрібен https:// (схема '%{scheme}'; сесія через HTTP витікала б cookie)"
+url.no_host: "в адресі відсутній домен"
+
+# ── Вибір мови ──────────────────────────────────────────────────────────────
+lang.label: "Мова"
+lang.en: "English"
+lang.de: "Deutsch"
+lang.fr: "Français"
+lang.es: "Español"
+lang.it: "Italiano"
+lang.pt: "Português"
+lang.nl: "Nederlands"
+lang.pl: "Polski"
+lang.uk: "Українська"
+
+# ── Помилки core ────────────────────────────────────────────────────────────
+err.csv.too_many_rows: "CSV перевищує максимальну кількість рядків: %{actual} > %{max}"
+err.csv.line_too_long: "рядок %{line_no} перевищує %{max} байт"
+err.csv.field_too_long: "поле в рядку %{line_no} перевищує %{max} байт"
+err.csv.io: "помилка читання CSV: %{error}"
+err.csv.row: "рядок %{line_no}: %{detail}"
+err.pw.too_short: "пароль занадто короткий: %{actual} символів, потрібно ≥ %{min}"
+err.pw.missing_uppercase: "немає великої літери (A–Z)"
+err.pw.missing_lowercase: "немає малої літери (a–z)"
+err.pw.missing_number: "немає цифри (0–9)"
+err.pw.missing_special: "немає спеціального символу (!@#$%^&*…)"
+err.domain.empty: "домен порожній"
+err.domain.too_long: "домен перевищує %{max} символів: довжина %{actual}"
+err.domain.invalid_char: "домен містить недопустимий символ '%{char}' на позиції %{pos}"
+err.domain.email_provided: "домен містить '@' (передано email замість домену)"
+err.domain.invalid_label: "мітка домену недопустима: %{detail}"
+err.username.empty: "логін порожній"
+err.username.too_long: "логін перевищує %{max} символів: довжина %{actual}"
+err.username.invalid_char: "логін містить недопустимий символ '%{char}'"
+err.username.bad_edges: "логін починається або закінчується недопустимим символом"
+err.password.contains_comma: "пароль містить кому (недопустимо в CSV)"
+err.password.too_long: "пароль перевищує %{max} символів: довжина %{actual}"
+err.display_name.too_long: "display_name перевищує %{max} символів: довжина %{actual}"
+err.quota.parse: "некоректне значення квоти: %{error}"
+err.quota.out_of_range: "квота поза діапазоном: %{value} (очікується 1..=%{max})"
+err.column_count: "хибна кількість стовпців: %{actual} (очікується %{expected})"
+err.missing_field: "обов'язкове поле відсутнє: %{field}"

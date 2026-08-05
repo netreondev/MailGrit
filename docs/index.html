@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1020">
+
+  <title>MailGrit — Bulk iRedAdmin Automation Desktop App</title>
+  <meta name="description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.">
+  <meta name="keywords" content="iRedAdmin, bulk mail automation, desktop app, Rust, Dioxus, FortiWeb, WAF, mail server admin, mail account creation, encrypted audit log">
+  <meta name="author" content="MailGrit Contributors">
+  <meta name="robots" content="index, follow">
+
+  <link rel="canonical" href="https://netreondev.github.io/MailGrit/">
+  <link rel="alternate" hreflang="en" href="https://netreondev.github.io/MailGrit/">
+  <link rel="alternate" hreflang="uk" href="https://netreondev.github.io/MailGrit/uk/">
+  <link rel="alternate" hreflang="x-default" href="https://netreondev.github.io/MailGrit/">
+
+  <link rel="manifest" href="https://netreondev.github.io/MailGrit/site.webmanifest">
+  <link rel="icon" type="image/png" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+  <link rel="apple-touch-icon" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+  <link rel="stylesheet" href="assets/style.css">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="MailGrit">
+  <meta property="og:title" content="MailGrit — Bulk iRedAdmin Automation Desktop App">
+  <meta property="og:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.">
+  <meta property="og:url" content="https://netreondev.github.io/MailGrit/">
+  <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
+  <meta property="og:image:alt" content="MailGrit — bulk iRedAdmin automation desktop app">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="uk_UA">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="MailGrit — Bulk iRedAdmin Automation Desktop App">
+  <meta name="twitter:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.">
+  <meta name="twitter:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
+  <meta name="twitter:image:alt" content="MailGrit — bulk iRedAdmin automation desktop app">
+
+  <!-- JSON-LD: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "MailGrit",
+    "applicationCategory": "DesktopApplication",
+    "operatingSystem": "Windows, Linux, macOS",
+    "description": "Cross-platform desktop client for bulk iRedAdmin automation. Built with Dioxus desktop, with an embedded browser for authentication and a native panel for bulk operations.",
+    "url": "https://netreondev.github.io/MailGrit/",
+    "downloadUrl": "https://github.com/netreondev/MailGrit/releases",
+    "softwareVersion": "0.1.0",
+    "programmingLanguage": "Rust",
+    "runtimePlatform": "Dioxus 0.7 desktop",
+    "inLanguage": ["en", "de", "fr", "es", "it", "pt", "nl", "pl", "uk"],
+    "license": "https://github.com/netreondev/MailGrit/blob/main/LICENSE-MIT",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "MailGrit",
+      "url": "https://netreondev.github.io/MailGrit/"
+    }
+  }
+  </script>
+
+  <!-- JSON-LD: Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "MailGrit",
+    "url": "https://netreondev.github.io/MailGrit/",
+    "logo": "https://netreondev.github.io/MailGrit/assets/icon-512.png",
+    "sameAs": ["https://github.com/netreondev/MailGrit"]
+  }
+  </script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container">
+      <a class="brand" href="https://netreondev.github.io/MailGrit/" aria-label="MailGrit home">
+        <span class="brand-mark" aria-hidden="true">M</span>
+        MailGrit
+      </a>
+      <div class="nav-actions">
+        <nav class="lang-switch" aria-label="Language">
+          <span class="cur">EN</span>
+          <span class="sep" aria-hidden="true">|</span>
+          <a href="https://netreondev.github.io/MailGrit/uk/" hreflang="uk" lang="uk">УК</a>
+        </nav>
+        <a class="nav-cta" href="https://github.com/netreondev/MailGrit" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="container">
+        <span class="eyebrow">Open source &middot; Rust &middot; MIT / Apache-2.0</span>
+        <h1>Bulk <span class="grad">iRedAdmin</span> automation, from the desktop.</h1>
+        <p class="lead">
+          MailGrit is a cross-platform desktop app for creating, editing and deleting mail user accounts
+          on iRedAdmin servers in bulk &mdash; even behind FortiWeb / WAF &mdash; through an embedded
+          browser that performs a legitimate <code>fetch</code> inside the real session. No Node/JS
+          toolchain: native WebView2/wry via Dioxus 0.7.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="https://github.com/netreondev/MailGrit/releases" rel="noopener">Download</a>
+          <a class="btn btn-ghost" href="#quick-start">Quick start</a>
+          <a class="btn btn-ghost" href="https://github.com/netreondev/MailGrit" rel="noopener">View source</a>
+        </div>
+        <div class="hero-meta" aria-label="At a glance">
+          <span>Windows</span><span class="dot">&bull;</span>
+          <span>Linux</span><span class="dot">&bull;</span>
+          <span>macOS ARM</span><span class="dot">&bull;</span>
+          <span>Dioxus 0.7</span><span class="dot">&bull;</span>
+          <span>Rust 1.97.1, edition 2024</span><span class="dot">&bull;</span>
+          <span>9 languages</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="section" aria-label="By the numbers">
+      <div class="container">
+        <div class="stats">
+          <div class="stat"><div class="num">5</div><div class="label">Isolated workspace crates</div></div>
+          <div class="stat"><div class="num">9</div><div class="label">UI languages, embedded at compile time</div></div>
+          <div class="stat"><div class="num">0</div><div class="label">Bytes of <code>unsafe</code> (workspace forbid)</div></div>
+          <div class="stat"><div class="num">3</div><div class="label">Platforms in CI: Windows, Linux, macOS ARM</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">01 / Features</span>
+          <h2>Everything you need to manage mail accounts at scale.</h2>
+          <p>A native panel on top of a real iRedAdmin session &mdash; no brittle cookie replay, no separate HTTP client that breaks behind a WAF.</p>
+        </div>
+        <div class="grid">
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#9881;</div>
+            <h3>CSV-driven bulk operations</h3>
+            <p>Drive mass create / edit / delete from a CSV. BOM is stripped automatically, headers map flexibly case-insensitively, and hard row and length limits guard against accidental huge inputs.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#128274;</div>
+            <h3>Encrypted hash-chained audit log</h3>
+            <p>Every operation is appended to a tamper-evident HMAC-SHA256 chain, encrypted at rest with streaming AEAD (XChaCha20-Poly1305). Nothing is silently altered.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#128737;</div>
+            <h3>Master-password key protection</h3>
+            <p>Derives the audit-log key and export key via Argon2id (memory-hard KDF). The password is never stored; lose it and the audit log and encrypted exports stay locked.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#127760;</div>
+            <h3>Works behind FortiWeb / WAF</h3>
+            <p>Requests run as a <code>fetch</code> inside the same webview that holds the legitimate session, so backend authentication held by the proxy just works &mdash; no cookie guessing.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#127468;</div>
+            <h3>9 languages, compiled in</h3>
+            <p>English, Deutsch, Fran&ccedil;ais, Espa&ntilde;ol, Italiano, Portugu&ecirc;s, Nederlands, Polski and &Ucy;&kcy;&rcy;&acy;&yicy;&ncy;&scy;&softcy;&kcy;&acy;. Translations are embedded into the binary; your choice persists in <code>config.toml</code>.</p>
+          </article>
+          <article class="card">
+            <div class="icon" aria-hidden="true">&#9728;</div>
+            <h3>Frameless, themed UI</h3>
+            <p>A home-grown design system on CSS tokens: custom titlebar, dark/light themes with a toggle, symmetric card grid, modal confirmation for destructive ops and live progress.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security -->
+    <section class="section" id="security">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">02 / Security model</span>
+          <h2>Built safe by default, enforced at compile time.</h2>
+          <p>Security is a workspace policy, not a best effort: <code>unsafe_code = "forbid"</code>, strict clippy, and supply-chain checks run on every supported platform in CI.</p>
+        </div>
+        <div class="split">
+          <div class="panel">
+            <h3>Policy that cannot drift</h3>
+            <ul class="checklist">
+              <li><strong><code>unsafe_code = "forbid"</code></strong> workspace-wide &mdash; no <code>unsafe</code> anywhere in the application crates.</li>
+              <li>Clippy <code>correctness</code>, <code>suspicious</code>, <code>complexity</code>, <code>perf</code>, <code>pedantic</code>, <code>nursery</code> and <code>cargo</code> groups all <code>deny</code>.</li>
+              <li><code>panic</code>, <code>unwrap_used</code>, <code>expect_used</code>, <code>indexing_slicing</code>, <code>arithmetic_side_effects</code> all <code>deny</code>.</li>
+              <li>Supply chain: <code>cargo-deny</code> (advisories, bans, licenses, sources) plus <code>cargo-audit</code>.</li>
+              <li>Audit log at rest: streaming XChaCha20-Poly1305 AEAD; HMAC-SHA256 hash chain for integrity.</li>
+              <li>Master password: Argon2id memory-hard KDF; never stored, never logged.</li>
+            </ul>
+          </div>
+          <div class="code-window" aria-label="Workspace lint policy excerpt">
+            <div class="bar"><i></i><i></i><i></i><span class="title">Cargo.toml</span></div>
+<pre><span class="c"># No exceptions: wry 0.53 returns HttpOnly cookies natively.</span>
+<span class="c"># Every application crate is audited under this policy.</span>
+[workspace.lints.rust]
+<span class="k">unsafe_code</span> = <span class="p">"forbid"</span>
+
+[workspace.lints.clippy]
+<span class="k">correctness</span>      = { level = <span class="p">"deny"</span>, priority = -1 }
+<span class="k">suspicious</span>       = { level = <span class="p">"deny"</span>, priority = -1 }
+<span class="k">pedantic</span>         = { level = <span class="p">"deny"</span>, priority = -1 }
+<span class="k">unwrap_used</span>      = <span class="p">"deny"</span>
+<span class="k">indexing_slicing</span> = <span class="p">"deny"</span>
+<span class="k">arithmetic_side_effects</span> = <span class="p">"deny"</span>
+<span class="k">panic</span>            = <span class="p">"deny"</span></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- i18n -->
+    <section class="section" id="languages">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">03 / Internationalization</span>
+          <h2>Nine languages, shipped in the binary.</h2>
+          <p>Translations are embedded at compile time with <code>rust-i18n</code> &mdash; no resource files to chase at runtime. Your selection is saved to <code>config.toml</code>.</p>
+        </div>
+        <div class="langs">
+          <span class="lang-chip"><code>en</code> English <span class="end">English</span></span>
+          <span class="lang-chip"><code>de</code> German <span class="end">Deutsch</span></span>
+          <span class="lang-chip"><code>fr</code> French <span class="end">Fran&ccedil;ais</span></span>
+          <span class="lang-chip"><code>es</code> Spanish <span class="end">Espa&ntilde;ol</span></span>
+          <span class="lang-chip"><code>it</code> Italian <span class="end">Italiano</span></span>
+          <span class="lang-chip"><code>pt</code> Portuguese <span class="end">Portugu&ecirc;s</span></span>
+          <span class="lang-chip"><code>nl</code> Dutch <span class="end">Nederlands</span></span>
+          <span class="lang-chip"><code>pl</code> Polish <span class="end">Polski</span></span>
+          <span class="lang-chip"><code>uk</code> Ukrainian <span class="end" lang="uk">&Ucy;&kcy;&rcy;&acy;&yucy;&ncy;&scy;&softcy;&kcy;&acy;</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick start -->
+    <section class="section" id="quick-start">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">04 / Quick start</span>
+          <h2>One command to a release build.</h2>
+          <p>MailGrit is a Cargo workspace; build the desktop app for your platform and run it directly.</p>
+        </div>
+        <div class="code-window" aria-label="Build the desktop app">
+          <div class="bar"><i></i><i></i><i></i><span class="title">bash</span></div>
+<pre><span class="c"># Requires Rust 1.97.1 (pinned via rust-toolchain.toml, edition 2024)</span>
+<span class="p">$</span> <span class="k">cargo build</span> --release -p mailgrit-app-desktop
+
+<span class="c"># Windows</span>
+<span class="p">&gt;</span> .\target\release\mailgrit-app-desktop.exe
+
+<span class="c"># Linux / macOS</span>
+<span class="p">$</span> ./target/release/mailgrit-app-desktop</pre>
+        </div>
+        <p style="margin-top:18px;color:var(--text-muted);font-size:0.95rem;max-width:62ch;">
+          On first launch a <code>mailgrit-data/</code> folder is created next to the binary, holding all
+          application files. Point it at your iRedAdmin URL, sign in once in the embedded browser, and the
+          operations panel opens automatically.
+        </p>
+      </div>
+    </section>
+
+    <!-- Architecture -->
+    <section class="section" id="architecture">
+      <div class="container">
+        <div class="section-head">
+          <span class="section-num">05 / Architecture</span>
+          <h2>Five crates, each testable in isolation.</h2>
+          <p>A Cargo workspace where the domain, parsing, storage, security and UI layers are separated &mdash; <code>cargo test -p &lt;crate&gt;</code> runs each in isolation.</p>
+        </div>
+        <div class="split">
+          <div class="panel">
+            <h3>Workspace layout</h3>
+            <ul class="checklist">
+              <li><strong>core-domain</strong> &mdash; domain types (Newtype/Typestate), errors, limit constants, password policy.</li>
+              <li><strong>core-csv</strong> &mdash; CSV parsing and validation with BOM stripping and hard memory limits.</li>
+              <li><strong>core-storage</strong> &mdash; local SQLite: operation log and hash-chained audit log.</li>
+              <li><strong>core-security</strong> &mdash; at-rest crypto: streaming AEAD, HMAC hash-chain, Argon2id KDF.</li>
+              <li><strong>app-desktop</strong> &mdash; Dioxus 0.7 desktop app: login window, cookie handling, native RSX panel.</li>
+            </ul>
+          </div>
+          <div class="code-window" aria-label="Workspace dependency graph">
+            <div class="bar"><i></i><i></i><i></i><span class="title">graph</span></div>
+<pre><span class="c"># each crate compiles / tests in isolation</span>
+core-domain ─┬─ core-csv ────┐
+             ├─ core-storage ─┤
+             └─ core-security ┴─ app-desktop</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a class="brand" href="https://netreondev.github.io/MailGrit/" aria-label="MailGrit home">
+            <span class="brand-mark" aria-hidden="true">M</span>
+            MailGrit
+          </a>
+          <p>An open-source, cross-platform desktop client for bulk iRedAdmin automation. Built with Dioxus 0.7 desktop &mdash; no Node/JS toolchain.</p>
+        </div>
+        <div>
+          <h4>Project</h4>
+          <ul>
+            <li><a href="https://github.com/netreondev/MailGrit" rel="noopener">Source code</a></li>
+            <li><a href="https://github.com/netreondev/MailGrit/releases" rel="noopener">Releases</a></li>
+            <li><a href="https://github.com/netreondev/MailGrit/blob/main/README.md" rel="noopener">Documentation</a></li>
+            <li><a href="https://github.com/netreondev/MailGrit/issues" rel="noopener">Issues</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Language</h4>
+          <ul>
+            <li><a href="https://netreondev.github.io/MailGrit/" hreflang="en" lang="en">English</a></li>
+            <li><a href="https://netreondev.github.io/MailGrit/uk/" hreflang="uk" lang="uk">&Ucy;&kcy;&rcy;&acy;&yucy;&ncy;&scy;&softcy;&kcy;&acy;</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>Licensed under <a href="https://github.com/netreondev/MailGrit/blob/main/LICENSE-MIT">MIT</a> OR <a href="https://github.com/netreondev/MailGrit/blob/main/LICENSE-APACHE">Apache-2.0</a>.</span>
+        <span>&copy; 2026 MailGrit Contributors.</span>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
