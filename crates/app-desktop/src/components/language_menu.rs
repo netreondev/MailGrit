@@ -4,6 +4,12 @@
 //! code + chevron) opens a dropdown menu of items (flag + endonym + checkmark
 //! for the current one). Closes on click outside the menu or on Escape.
 //!
+//! Flags are rendered as **inline SVG** via the `.flag flag-<country_code>` CSS
+//! class family (see `assets/app.css`), keyed by [`Language::country_code`]. This
+//! is platform-independent: the regional-indicator emoji used previously do not
+//! render as flag glyphs on Windows/WebView2 (Segoe UI Emoji lacks them), so the
+//! SVG approach guarantees identical flags on Windows, Linux, and macOS.
+//!
 //! Context: used in the dashboard context-bar and on the login screen.
 //!
 //! DOM structure (critical for positioning): the overlay and dropdown are
@@ -46,7 +52,10 @@ pub fn LanguageMenu(
                     let new_open = !*open.read();
                     open.set(new_open);
                 },
-                span { class: "lang-flag", "{current.flag()}" }
+                span {
+                    class: "lang-flag flag flag-{current.country_code()}",
+                    "aria-hidden": "true",
+                }
                 span { class: "lang-code", "{current.as_str().to_uppercase()}" }
                 IconView {
                     icon: Icon::ChevronRight,
@@ -97,7 +106,10 @@ pub fn LanguageMenu(
                                         onchange.call(lang);
                                         open.set(false);
                                     },
-                                    span { class: "lang-flag", "{lang.flag()}" }
+                                    span {
+                                        class: "lang-flag flag flag-{lang.country_code()}",
+                                        "aria-hidden": "true",
+                                    }
                                     span { class: "lang-name", "{lang.label()}" }
                                     if is_current {
                                         IconView {

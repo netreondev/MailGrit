@@ -86,9 +86,12 @@ impl Language {
         ]
     }
 
-    /// Emoji flag of the language (for the UI selector). Regional indicator
-    /// symbols are stable Unicode and render as a flag in all modern
-    /// WebView2/WKWebView builds.
+    /// Emoji flag of the language (regional-indicator symbols). Kept as a stable
+    /// Unicode label; note that on Windows/WebView2 these emoji do not render as
+    /// flag glyphs (Segoe UI Emoji lacks them) and fall back to letters. For the
+    /// visual flag in the UI selector use [`country_code`](Self::country_code)
+    /// with the `.flag` CSS class family, which renders an inline SVG flag that
+    /// is identical on every platform.
     /// English uses the GB flag (distinct from neutral codes); português uses
     /// PT (European Portuguese, not BR).
     #[must_use]
@@ -103,6 +106,27 @@ impl Language {
             Self::Nl => "🇳🇱",
             Self::Pl => "🇵🇱",
             Self::Uk => "🇺🇦",
+        }
+    }
+
+    /// ISO-3166-1 alpha-2 country code used to render the language's flag in the
+    /// UI selector. The code becomes the CSS modifier `flag-<country_code>`
+    /// (e.g. `flag-gb`, `flag-ua`), which the stylesheet maps to an inline SVG
+    /// flag. Unlike the emoji [`flag`](Self::flag), the SVG renders identically
+    /// on Windows, Linux, and macOS (WebView2 has no flag-glyph font support).
+    /// English → gb; português → pt (European, not BR).
+    #[must_use]
+    pub const fn country_code(self) -> &'static str {
+        match self {
+            Self::En => "gb",
+            Self::De => "de",
+            Self::Fr => "fr",
+            Self::Es => "es",
+            Self::It => "it",
+            Self::Pt => "pt",
+            Self::Nl => "nl",
+            Self::Pl => "pl",
+            Self::Uk => "ua",
         }
     }
 
@@ -202,5 +226,27 @@ mod tests {
         }
         assert_eq!(Language::En.flag(), "🇬🇧");
         assert_eq!(Language::Uk.flag(), "🇺🇦");
+    }
+
+    /// country_code() returns a non-empty, distinct, lowercase ISO-2 code for
+    /// every language (the CSS modifier for the inline SVG flag).
+    #[test]
+    fn country_code_nonempty_distinct_lowercase() {
+        let codes: Vec<&str> = Language::all().iter().map(|l| l.country_code()).collect();
+        for c in &codes {
+            assert!(!c.is_empty(), "empty country code");
+            assert!(
+                c.chars().all(|ch| ch.is_ascii_lowercase()),
+                "country code not lowercase ascii: {c}"
+            );
+        }
+        let mut sorted = codes.clone();
+        sorted.sort_unstable();
+        sorted.dedup();
+        assert_eq!(sorted.len(), codes.len(), "duplicate country code");
+        // Spot-check.
+        assert_eq!(Language::En.country_code(), "gb");
+        assert_eq!(Language::Uk.country_code(), "ua");
+        assert_eq!(Language::Pt.country_code(), "pt");
     }
 }

@@ -15,7 +15,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"          # Rust 2024 Edition — native async fn in traits, etc.
 rust-version = "1.97.1"   # matches rust-toolchain.toml exactly
 license = "MIT OR Apache-2.0"

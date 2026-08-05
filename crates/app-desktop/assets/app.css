@@ -310,7 +310,27 @@
     outline: 2px solid var(--accent);
     outline-offset: 1px;
 }
-.lang-flag { font-size: 16px; line-height: 1; }
+/* Inline SVG flags — render identically on Windows/Linux/macOS. Regional-indicator
+   emoji do not render as flags on Windows/WebView2 (Segoe UI Emoji lacks glyphs),
+   so flags are SVG data-URIs keyed by the language's ISO country code
+   (flag-gb, flag-de, ...). Width/height in em → scale with surrounding font. */
+.lang-flag { width: 1.3em; height: 0.95em; border-radius: 2px; line-height: 1; flex-shrink: 0; }
+.flag {
+    display: inline-block;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 0 0 1px rgb(0 0 0 / 20%);
+}
+.flag-gb { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 30'%3E%3CclipPath id='a'%3E%3Cpath d='M0 0v30h60V0z'/%3E%3C/clipPath%3E%3CclipPath id='b'%3E%3Cpath d='M30 15h30v15zv15H0zH0V0zV0h30z'/%3E%3C/clipPath%3E%3Cg clip-path='url(%23a)'%3E%3Cpath d='M0 0v30h60V0z' fill='%23012a8a'/%3E%3Cpath d='M0 0l60 30m0-30L0 30' stroke='%23fff' stroke-width='6'/%3E%3Cpath d='M0 0l60 30m0-30L0 30' clip-path='url(%23b)' stroke='%23d40000' stroke-width='4'/%3E%3Cpath d='M30 0v30M0 15h60' stroke='%23fff' stroke-width='10'/%3E%3Cpath d='M30 0v30M0 15h60' stroke='%23d40000' stroke-width='6'/%3E%3C/g%3E%3C/svg%3E"); }
+.flag-de { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 3'%3E%3Cpath d='M0 0h5v3H0z'/%3E%3Cpath fill='%23d00' d='M0 1h5v2H0z'/%3E%3Cpath fill='%23ffce00' d='M0 2h5v1H0z'/%3E%3C/svg%3E"); }
+.flag-fr { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3E%3Cpath fill='%23ec1920' d='M0 0h3v2H0z'/%3E%3Cpath fill='%23fff' d='M1 0h1v2H1z'/%3E%3Cpath fill='%23005da8' d='M0 0h1v2H0z'/%3E%3C/svg%3E"); }
+.flag-es { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 4'%3E%3Cpath fill='%23c60b1e' d='M0 0h6v4H0z'/%3E%3Cpath fill='%23ffc400' d='M0 1h6v2H0z'/%3E%3C/svg%3E"); }
+.flag-it { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 2'%3E%3Cpath fill='%23009246' d='M0 0h1v2H0z'/%3E%3Cpath fill='%23fff' d='M1 0h1v2H1z'/%3E%3Cpath fill='%23cd212a' d='M2 0h1v2H2z'/%3E%3C/svg%3E"); }
+.flag-pt { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 4'%3E%3Cpath fill='%23ff0000' d='M0 0h2.4v4H0z'/%3E%3Cpath fill='%23ffe600' d='M2.4 0H6v4H2.4z'/%3E%3Ccircle cx='2.4' cy='2' r='.7' fill='%23ff0000'/%3E%3Ccircle cx='2.4' cy='2' r='.45' fill='%23fff'/%3E%3Cpath d='M2.4 1.55l.13.27.3.04-.22.2.05.3-.26-.14-.26.14.05-.3-.22-.2.3-.04z' fill='%23ffe600'/%3E%3C/svg%3E"); }
+.flag-nl { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 4'%3E%3Cpath fill='%23ae1c28' d='M0 0h6v4H0z'/%3E%3Cpath fill='%23fff' d='M0 1.33h6v1.34H0z'/%3E%3Cpath fill='%2321468b' d='M0 2.67h6V4H0z'/%3E%3C/svg%3E"); }
+.flag-pl { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 5'%3E%3Cpath fill='%23fff' d='M0 0h8v2.5H0z'/%3E%3Cpath fill='%23dc143c' d='M0 2.5h8V5H0z'/%3E%3C/svg%3E"); }
+.flag-ua { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 5'%3E%3Cpath fill='%23005bbb' d='M0 0h8v2.5H0z'/%3E%3Cpath fill='%23ffd500' d='M0 2.5h8V5H0z'/%3E%3C/svg%3E"); }
 .lang-code { font-size: var(--fs-sm); }
 /* The chevron rotates 90deg when open (:has-expanded is unavailable, so the
    downward arrow is achieved by rotating the base ChevronRight icon). */
