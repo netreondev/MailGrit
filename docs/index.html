@@ -17,7 +17,9 @@
   <link rel="alternate" hreflang="x-default" href="https://netreondev.github.io/MailGrit/">
 
   <link rel="manifest" href="https://netreondev.github.io/MailGrit/site.webmanifest">
-  <link rel="icon" type="image/png" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+  <link rel="icon" type="image/svg+xml" href="https://netreondev.github.io/MailGrit/assets/favicon.svg">
+  <link rel="icon" type="image/png" sizes="512x512" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://netreondev.github.io/MailGrit/assets/icon-192.png">
   <link rel="apple-touch-icon" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
   <link rel="stylesheet" href="assets/style.css">
 
@@ -28,6 +30,10 @@
   <meta property="og:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.">
   <meta property="og:url" content="https://netreondev.github.io/MailGrit/">
   <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
+  <meta property="og:image:secure_url" content="https://netreondev.github.io/MailGrit/assets/og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="MailGrit — bulk iRedAdmin automation desktop app">
   <meta property="og:locale" content="en_US">
   <meta property="og:locale:alternate" content="uk_UA">
@@ -50,7 +56,7 @@
     "description": "Cross-platform desktop client for bulk iRedAdmin automation. Built with Dioxus desktop, with an embedded browser for authentication and a native panel for bulk operations.",
     "url": "https://netreondev.github.io/MailGrit/",
     "downloadUrl": "https://github.com/netreondev/MailGrit/releases",
-    "softwareVersion": "0.1.0",
+    "softwareVersion": "0.1.2",
     "programmingLanguage": "Rust",
     "runtimePlatform": "Dioxus 0.7 desktop",
     "inLanguage": ["en", "de", "fr", "es", "it", "pt", "nl", "pl", "uk"],
@@ -77,6 +83,86 @@
     "url": "https://netreondev.github.io/MailGrit/",
     "logo": "https://netreondev.github.io/MailGrit/assets/icon-512.png",
     "sameAs": ["https://github.com/netreondev/MailGrit"]
+  }
+  </script>
+
+  <!-- JSON-LD: WebPage (with SpeakableSpecification for voice/LLM surfaces) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "MailGrit — Bulk iRedAdmin Automation Desktop App",
+    "description": "Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.",
+    "url": "https://netreondev.github.io/MailGrit/",
+    "inLanguage": "en",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "MailGrit",
+      "url": "https://netreondev.github.io/MailGrit/"
+    },
+    "primaryImageOfPage": "https://netreondev.github.io/MailGrit/assets/og.png",
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": [".hero", "h1"]
+    }
+  }
+  </script>
+
+  <!-- JSON-LD: FAQPage (rich results + LLM-citable answers) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is MailGrit?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "MailGrit is a free, open-source cross-platform desktop application written in Rust that performs bulk create, edit and delete of mail user accounts on iRedAdmin mail servers. It is an administration tool, not a mail reader."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which operating systems does MailGrit support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "MailGrit runs on Windows, Linux (x86_64) and macOS on Apple Silicon (aarch64). It is built with the Dioxus desktop framework and uses the native system WebView, so there is no Node or JavaScript toolchain."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does MailGrit work behind FortiWeb or a WAF?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Bulk operations run as a JavaScript fetch POST of the real iRedAdmin create/edit HTML form (with a CSRF token) inside the same embedded webview that holds the legitimate session. Because the request originates from the authenticated browser session, it works even when the server is behind FortiWeb or another web application firewall."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does MailGrit authenticate against iRedAdmin?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You sign in through the embedded browser using your real iRedAdmin credentials. The app detects a successful login data-driven, by the login webview navigating to /dashboard, rather than by guessing cookie names. It then executes operations as a fetch inside that same authenticated webview."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is MailGrit secure? How is the audit log protected?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Every operation is appended to a tamper-evident hash chain (HMAC-SHA256) and encrypted at rest with streaming authenticated encryption (XChaCha20-Poly1305). The encryption keys are derived from a master password via Argon2id; the master password is never stored. The workspace enforces unsafe_code = forbid, so there is no unsafe code in the application crates."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is MailGrit free and what is its license?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "MailGrit is free and open source, dual-licensed under the MIT License or the Apache License 2.0 at your option. The source code and prebuilt binaries are available on GitHub. iRedAdmin is a trademark of its respective owners; MailGrit is independent and not affiliated with or endorsed by iRedAdmin."
+        }
+      }
+    ]
   }
   </script>
 </head>

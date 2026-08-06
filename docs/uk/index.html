@@ -17,7 +17,9 @@
   <link rel="alternate" hreflang="x-default" href="https://netreondev.github.io/MailGrit/">
 
   <link rel="manifest" href="https://netreondev.github.io/MailGrit/site.webmanifest">
-  <link rel="icon" type="image/png" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+  <link rel="icon" type="image/svg+xml" href="https://netreondev.github.io/MailGrit/assets/favicon.svg">
+  <link rel="icon" type="image/png" sizes="512x512" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="https://netreondev.github.io/MailGrit/assets/icon-192.png">
   <link rel="apple-touch-icon" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
   <link rel="stylesheet" href="../assets/style.css">
 
@@ -28,6 +30,10 @@
   <meta property="og:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.">
   <meta property="og:url" content="https://netreondev.github.io/MailGrit/uk/">
   <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
+  <meta property="og:image:secure_url" content="https://netreondev.github.io/MailGrit/assets/og.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content="MailGrit — десктоп-додаток для пакетної автоматизації iRedAdmin">
   <meta property="og:locale" content="uk_UA">
   <meta property="og:locale:alternate" content="en_US">
@@ -47,10 +53,10 @@
     "name": "MailGrit",
     "applicationCategory": "DesktopApplication",
     "operatingSystem": "Windows, Linux, macOS",
-    "description": "Cross-platform desktop client for bulk iRedAdmin automation. Built with Dioxus desktop, with an embedded browser for authentication and a native panel for bulk operations.",
+    "description": "Крос-платформний десктоп-клієнт для пакетної автоматизації iRedAdmin. Створений на Dioxus desktop, із вбудованим браузером для автентифікації та нативною панеллю для пакетних операцій.",
     "url": "https://netreondev.github.io/MailGrit/uk/",
     "downloadUrl": "https://github.com/netreondev/MailGrit/releases",
-    "softwareVersion": "0.1.0",
+    "softwareVersion": "0.1.2",
     "programmingLanguage": "Rust",
     "runtimePlatform": "Dioxus 0.7 desktop",
     "inLanguage": ["uk", "en", "de", "fr", "es", "it", "pt", "nl", "pl"],
@@ -77,6 +83,86 @@
     "url": "https://netreondev.github.io/MailGrit/",
     "logo": "https://netreondev.github.io/MailGrit/assets/icon-512.png",
     "sameAs": ["https://github.com/netreondev/MailGrit"]
+  }
+  </script>
+
+  <!-- JSON-LD: WebPage (із SpeakableSpecification для голосових/LLM-платформ) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "name": "MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin",
+    "description": "Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.",
+    "url": "https://netreondev.github.io/MailGrit/uk/",
+    "inLanguage": "uk",
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "MailGrit",
+      "url": "https://netreondev.github.io/MailGrit/"
+    },
+    "primaryImageOfPage": "https://netreondev.github.io/MailGrit/assets/og.png",
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": [".hero", "h1"]
+    }
+  }
+  </script>
+
+  <!-- JSON-LD: FAQPage (розширені результати + відповіді для LLM) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Що таке MailGrit?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "MailGrit — це безкоштовний крос-платформний десктоп-додаток із відкритим кодом, написаний на Rust, який виконує пакетне створення, редагування та видалення поштових акаунтів користувачів на поштових серверах iRedAdmin. Це інструмент адміністрування, а не поштовий клієнт для читання листів."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Які операційні системи підтримує MailGrit?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "MailGrit працює на Windows, Linux (x86_64) та macOS на Apple Silicon (aarch64). Додаток створено на базі десктоп-фреймворку Dioxus і використовує системний WebView, тому немає потреби у Node чи JavaScript-інструментарії."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Чи працює MailGrit за FortiWeb або WAF?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Так. Пакетні операції виконуються як JavaScript fetch POST справжньої HTML-форми створення/редагування iRedAdmin (із CSRF-токеном) усередині того ж вбудованого webview, що тримає легітимну сесію. Оскільки запит походить із автентифікованого браузерного сеансу, він працює навіть тоді, коли сервер знаходиться за FortiWeb або іншим веб-фаєрволом (WAF)."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Як MailGrit автентифікується на iRedAdmin?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ви входите через вбудований браузер, використовуючи свої справжні облікові дані iRedAdmin. Додаток визначає успішний вхід орієнтованим на дані способом — за переходом webview входу на /dashboard, а не вгадуванням імен cookie. Потім він виконує операції як fetch у межах того ж автентифікованого webview."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Чи безпечний MailGrit? Як захищений журнал аудиту?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Кожна операція додається до ланцюга, стійкого до втручання (HMAC-SHA256), і шифрується у спокої потоковим автентифікованим шифруванням (XChaCha20-Poly1305). Ключі шифрування походять від майстер-пароля через Argon2id; майстер-пароль ніколи не зберігається. Робочий простір застосовує unsafe_code = forbid, тож у додатку немає unsafe-коду."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Чи безкоштовний MailGrit і яка у нього ліцензія?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "MailGrit безкоштовний і має відкритий код, подвійно ліцензований за ліцензією MIT або Apache License 2.0 на ваш вибір. Вихідний код і готові бінарні файли доступні на GitHub. iRedAdmin є торговою маркою відповідних власників; MailGrit незалежний і не пов'язаний із iRedAdmin та не схвалений ним."
+        }
+      }
+    ]
   }
   </script>
 </head>

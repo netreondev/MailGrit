@@ -1,0 +1,32 @@
+# MailGrit
+
+> Cross-platform desktop client (Windows / Linux / macOS ARM) for bulk automation of iRedAdmin mail servers. Built in Rust with Dioxus desktop — no Node/JS toolchain. Performs bulk create, edit and delete of mail user accounts through an embedded authenticated browser (works behind FortiWeb / WAF). Ships a tamper-evident, encrypted audit log and 9 UI languages. Free and open source (MIT OR Apache-2.0).
+
+MailGrit is a native desktop GUI application for mail server administrators. It does NOT read mail — it is a bulk account-provisioning tool for iRedAdmin servers. Operations run as a JS `fetch()` POST of the real iRedAdmin HTML form (CSRF-aware) inside the same webview that holds the legitimate session, so the tool works even when the server sits behind a WAF / reverse proxy (e.g. FortiWeb).
+
+Authorized use only: run MailGrit solely on systems and accounts you own or are authorized to administer. Unauthorized use is illegal and is the user's sole responsibility. "iRedAdmin" is a trademark of its respective owners; MailGrit is independent and not affiliated with or endorsed by iRedAdmin.
+
+## Project
+
+- [MailGrit on GitHub](https://github.com/netreondev/MailGrit): Source code, issues, releases
+- [Website / landing page](https://netreondev.github.io/MailGrit/): Product overview (EN)
+- [Ukrainian landing page](https://netreondev.github.io/MailGrit/uk/): Product overview (UK)
+
+## Documentation
+
+- [README (English)](https://github.com/netreondev/MailGrit/blob/main/README.md): Quick start, usage, operation mode, security model, CSV format, i18n
+- [README (Ukrainian)](https://github.com/netreondev/MailGrit/blob/main/README.uk.md): Українська документація
+- [Security policy](https://github.com/netreondev/MailGrit/blob/main/SECURITY.md): Vulnerability reporting
+- [Privacy policy](https://github.com/netreondev/MailGrit/blob/main/PRIVACY.md): Data handling
+- [Disclaimer](https://github.com/netreondev/MailGrit/blob/main/DISCLAIMER.md): Authorized-use notice
+
+## Download
+
+- [Releases](https://github.com/netreondev/MailGrit/releases): Prebuilt binaries for Windows, Linux and macOS (Apple Silicon)
+- Supported targets: `x86_64-pc-windows-msvc`, `x86_64-unknown-linux-gnu`, `aarch64-apple-darwin`
+
+## Optional
+
+- [License (MIT)](https://github.com/netreondev/MailGrit/blob/main/LICENSE-MIT)
+- [License (Apache-2.0)](https://github.com/netreondev/MailGrit/blob/main/LICENSE-APACHE)
+- [Contributing](https://github.com/netreondev/MailGrit/blob/main/CONTRIBUTING.md)
