@@ -25,6 +25,7 @@ theme.light: "Helles Design"
 theme.dark: "Dunkles Design"
 theme.toggle: "Design umschalten"
 logout: "Abmelden"
+donate.label: "Spenden"
 
 # ── (Ziel × Vorgang) — 3×3 Matrix ──────────────────────────────────────────
 op_label.user.create: "Benutzer anlegen"

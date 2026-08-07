@@ -119,6 +119,21 @@ fn context_bar(
             Button {
                 kind: ButtonKind::Ghost,
                 size: ButtonSize::Small,
+                icon_left: Some(Icon::Heart),
+                // External link: Dioxus/wry hands it to the system browser.
+                onclick: move |_| {
+                    if let Err(e) =
+                        dioxus::desktop::use_window().webview
+                            .evaluate_script("window.open('https://donatello.to/VladymyrM','_blank','noopener');")
+                    {
+                        tracing::warn!("opening donate link: {e}");
+                    }
+                },
+                {tr!("donate.label")}
+            }
+            Button {
+                kind: ButtonKind::Ghost,
+                size: ButtonSize::Small,
                 icon_left: Some(Icon::Logout),
                 onclick: move |_| {
                     // Logout: clear the session and return to the login screen.

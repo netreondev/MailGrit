@@ -126,6 +126,14 @@ pub fn login_screen() -> Element {
                     IconView { icon: Icon::Lock, size: IconSize::Small }
                     {tr!("login.footer")}
                 }
+                // Donate / support link — opens in the system browser (Dioxus
+                // hands external URLs to the OS by default).
+                a {
+                    class: "login-donate",
+                    href: "https://donatello.to/VladymyrM",
+                    IconView { icon: Icon::Heart, size: IconSize::Small }
+                    {tr!("donate.label")}
+                }
             }
             // Language selector + theme toggle — tucked into the top-right corner.
             {login_language_selector(state, language)}

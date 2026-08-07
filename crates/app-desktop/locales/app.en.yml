@@ -31,6 +31,7 @@ theme.light: "Light theme"
 theme.dark: "Dark theme"
 theme.toggle: "Toggle theme"
 logout: "Log out"
+donate.label: "Donate"
 
 # ── (target x kind) labels — 3x3 matrix ─────────────────────────────────────
 op_label.user.create: "Creating user"

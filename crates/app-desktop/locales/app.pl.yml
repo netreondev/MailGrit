@@ -25,6 +25,7 @@ theme.light: "Jasny motyw"
 theme.dark: "Ciemny motyw"
 theme.toggle: "Przełącz motyw"
 logout: "Wyloguj"
+donate.label: "Wesprzyj"
 
 # ── (cel × operacja) — macierz 3×3 ─────────────────────────────────────────
 op_label.user.create: "Tworzenie użytkownika"

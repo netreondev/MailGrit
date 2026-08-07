@@ -25,6 +25,7 @@ theme.light: "Licht thema"
 theme.dark: "Donker thema"
 theme.toggle: "Thema wisselen"
 logout: "Afmelden"
+donate.label: "Doneren"
 
 # ── (doel × bewerking) — 3×3 matrix ────────────────────────────────────────
 op_label.user.create: "Gebruiker aanmaken"

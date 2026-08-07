@@ -25,6 +25,7 @@ theme.light: "Tema claro"
 theme.dark: "Tema escuro"
 theme.toggle: "Alternar tema"
 logout: "Terminar sessão"
+donate.label: "Doar"
 
 # ── (alvo × operação) — matriz 3×3 ─────────────────────────────────────────
 op_label.user.create: "A criar utilizador"

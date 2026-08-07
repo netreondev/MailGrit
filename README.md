@@ -201,3 +201,10 @@ made under the same dual license (inbound = outbound); see
 developers; the name is used solely to indicate compatibility. See
 [NOTICE.md](NOTICE.md).
 
+## Support the project
+
+MailGrit is free and open source. If it saves you time, consider supporting its
+development:
+
+- [Donate](https://donatello.to/VladymyrM)
+
