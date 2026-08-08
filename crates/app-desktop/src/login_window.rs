@@ -104,12 +104,10 @@ fn handle_auth_event(state: &Arc<LoginWindowState>) {
     if is_logged_in {
         // Invoke the callback → it mutates Signal<AppState> via spawn_forever.
         let invoked = state.on_login.lock().is_ok_and(|slot| {
-            if let Some(cb) = slot.as_ref() {
+            slot.as_ref().is_some_and(|cb| {
                 cb();
                 true
-            } else {
-                false
-            }
+            })
         });
         if !invoked {
             tracing::warn!("on_login callback is not registered — login not handled");
@@ -278,8 +276,9 @@ fn build_login_window<T: 'static>(
     // The URL goes through the same validation as the main base_url (https + host):
     // iRedAdmin over HTTP would leak the session cookie (see util::validate_base_url),
     // so the env override must not bypass this requirement.
-    let url = match std::env::var("MAILGRIT_LOGIN_URL") {
-        Ok(env_url) => {
+    let url = std::env::var("MAILGRIT_LOGIN_URL").map_or_else(
+        |_| req.base_url.clone(),
+        |env_url| {
             if let Err(e) = crate::util::validate_base_url(&env_url) {
                 tracing::warn!(
                     "MAILGRIT_LOGIN_URL rejected ({e}), using base_url: {}",
@@ -290,9 +289,8 @@ fn build_login_window<T: 'static>(
                 tracing::warn!("MAILGRIT_LOGIN_URL overrides the URL: {env_url}");
                 env_url
             }
-        }
-        Err(_) => req.base_url.clone(),
-    };
+        },
+    );
 
     // 1. A tao window on the same event-loop. The title is localized (rust_i18n).
     let window = Arc::new(

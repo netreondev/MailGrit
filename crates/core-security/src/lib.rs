@@ -9,21 +9,9 @@
 //! - **Hash-chained audit** (§III.6): an `HMAC-SHA256` chain for the operations log.
 
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
-// Documented exception (Spec §Clippy): unwrap_used/expect_used/indexing_slicing/
-// arithmetic_side_effects/panic are forbidden in production code, but allowed in
-// tests, where a panic means a test failure (intentional). Applied to all test
-// modules of the crate.
-#![cfg_attr(
-    test,
-    allow(
-        clippy::unwrap_used,
-        clippy::expect_used,
-        clippy::indexing_slicing,
-        clippy::arithmetic_side_effects,
-        clippy::panic
-    )
-)]
+// Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny) is set
+// centrally in [workspace.lints.rust] of the root Cargo.toml. Test modules
+// follow the same policy (no test-only suppressions).
 
 /// AEAD-at-Rest encryption (XChaCha20-Poly1305).
 pub mod aead;

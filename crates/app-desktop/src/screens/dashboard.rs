@@ -54,16 +54,15 @@ pub fn dashboard_screen() -> Element {
                 {section_body(state, section)}
 
                 // Error as a highlighted block (mirrors toasts in case of long messages).
-                {if let Some(err) = &error_msg {
-                    rsx! {
+                {error_msg.as_ref().map_or_else(
+                    || rsx! {},
+                    |err| rsx! {
                         div { class: "op-running error-banner",
                             IconView { icon: Icon::Alert, class: "toast-icon".to_string() }
                             "{err}"
                         }
-                    }
-                } else {
-                    rsx! {}
-                }}
+                    },
+                )}
             }
         }
 
@@ -146,8 +145,8 @@ fn context_bar(
                     s.column_mapping = None;
                     s.current_profile = None;
                     s.editable_rows = None;
-                    s.pending_delete = false;
-                    s.pending_password_regenerate = false;
+                    s.modals.pending_delete = false;
+                    s.modals.pending_password_regenerate = false;
                     s.error_msg = None;
                 },
                 {tr!("logout")}

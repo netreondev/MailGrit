@@ -8,17 +8,6 @@
 //! empty — all application code lives in the binary crate (`main.rs`).
 
 #![forbid(unsafe_code)]
-#![allow(clippy::option_if_let_else)]
-// Documented exception (spec §Clippy): unwrap_used/expect_used/indexing_slicing/
-// arithmetic_side_effects/panic are forbidden in production code but allowed in
-// tests, where a panic = a test failure (intentionally). Applies to all test modules of the crate.
-#![cfg_attr(
-    test,
-    allow(
-        clippy::unwrap_used,
-        clippy::expect_used,
-        clippy::indexing_slicing,
-        clippy::arithmetic_side_effects,
-        clippy::panic
-    )
-)]
+// Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny, plus the
+// clippy groups) is set centrally in the root Cargo.toml. No crate-level or
+// test-only suppressions.

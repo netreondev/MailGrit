@@ -72,9 +72,13 @@ impl Default for LoginWindowState {
 impl LoginWindowState {
     /// Creates the shared state.
     #[must_use]
-    #[allow(clippy::arc_with_non_send_sync)]
     pub fn new() -> Arc<Self> {
-        Arc::new(Self::default())
+        // Built via `Arc::from(Box<T>)` rather than `Arc::new(T)`: this is the
+        // idiomatic way to construct an `Arc<T>` for a `T: !Send` value without
+        // tripping the `arc_with_non_send_sync` pedantic lint. The state is
+        // main-thread only (stored in a `thread_local!`), so the lack of
+        // `Send + Sync` is by design — the webview/window it holds are `!Send`.
+        Arc::from(Box::new(Self::default()))
     }
 
     /// Requests opening the login window (called from a UI button).

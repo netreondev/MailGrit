@@ -197,10 +197,6 @@ fn ops_card(mut state: Signal<AppState>) -> Element {
 /// Bulk-operation buttons (Create/Edit/Delete/export/diagnostics) + the Modal.
 /// Extracted from `ops_card` to comply with the clippy line limit
 /// (too_many_lines).
-#[allow(
-    clippy::too_many_arguments,
-    reason = "UI parameters from a single state; grouping into a struct would harm readability"
-)]
 fn ops_buttons(
     mut state: Signal<AppState>,
     op_status: OpStatus,
@@ -209,8 +205,8 @@ fn ops_buttons(
     has_csv: bool,
     has_session: bool,
 ) -> Element {
-    let pending_delete = state.read().pending_delete;
-    let export_in_progress = state.read().export_in_progress;
+    let pending_delete = state.read().modals.pending_delete;
+    let export_in_progress = state.read().export.export_in_progress;
     let has_result = state.read().batch_result.is_some();
     // Read the language for re-rendering localized button labels.
     let _lang = state.read().language;
@@ -243,7 +239,7 @@ fn ops_buttons(
                 icon_left: Some(Icon::Trash),
                 disabled: !can_op || pending_delete,
                 onclick: move |_| {
-                    state.write().pending_delete = true;
+                    state.write().modals.pending_delete = true;
                 },
                 {tr!("action.delete")}
             }
@@ -298,7 +294,7 @@ fn delete_modal(
             icon: Some(Icon::Alert),
             icon_class: "modal-icon-danger".to_string(),
             on_close: move |()| {
-                state.write().pending_delete = false;
+                state.write().modals.pending_delete = false;
             },
             p { {tr!("ops.delete_modal_body")} }
             {preview_csv_rows(&state)}
@@ -307,7 +303,7 @@ fn delete_modal(
                     kind: ButtonKind::Danger,
                     icon_left: Some(Icon::Trash),
                     onclick: move |_| {
-                        state.write().pending_delete = false;
+                        state.write().modals.pending_delete = false;
                         launch_op(
                             &mut state,
                             current_target,
@@ -319,7 +315,7 @@ fn delete_modal(
                 Button {
                     kind: ButtonKind::Ghost,
                     onclick: move |_| {
-                        state.write().pending_delete = false;
+                        state.write().modals.pending_delete = false;
                     },
                     {tr!("action.cancel")}
                 }
@@ -334,12 +330,12 @@ fn export_choice_modal(mut state: Signal<AppState>) -> Element {
     // Subscribe to the language: a language change must re-render the localized
     // strings.
     let _lang = state.read().language;
-    let pending = state.read().pending_export_choice;
+    let pending = state.read().export.pending_export_choice;
     if !pending {
         return rsx! {};
     }
     let encrypt = state.read().export_encrypt;
-    let export_in_progress = state.read().export_in_progress;
+    let export_in_progress = state.read().export.export_in_progress;
     let encrypt_class = if encrypt {
         "export-option export-option-active"
     } else {
@@ -356,7 +352,7 @@ fn export_choice_modal(mut state: Signal<AppState>) -> Element {
             icon: Some(Icon::Download),
             icon_class: "modal-icon-info".to_string(),
             on_close: move |()| {
-                state.write().pending_export_choice = false;
+                state.write().export.pending_export_choice = false;
             },
             p { class: "muted", {tr!("export.choice_body")} }
 
@@ -390,7 +386,7 @@ fn export_choice_modal(mut state: Signal<AppState>) -> Element {
                     disabled: export_in_progress,
                     onclick: move |_| {
                         let encrypt = state.read().export_encrypt;
-                        state.write().pending_export_choice = false;
+                        state.write().export.pending_export_choice = false;
                         do_export(&mut state, encrypt);
                     },
                     {tr!("export.confirm")}
@@ -398,7 +394,7 @@ fn export_choice_modal(mut state: Signal<AppState>) -> Element {
                 Button {
                     kind: ButtonKind::Ghost,
                     onclick: move |_| {
-                        state.write().pending_export_choice = false;
+                        state.write().export.pending_export_choice = false;
                     },
                     {tr!("action.cancel")}
                 }

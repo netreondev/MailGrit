@@ -1,8 +1,8 @@
 //! Tests for the local password policy.
 //!
-#![allow(clippy::unwrap_used, reason = "tests intentionally use unwrap")]
 
 use super::*;
+use crate::CharacterClasses;
 
 /// A strong password (per the default policy) yields an empty violation list.
 #[test]
@@ -54,7 +54,10 @@ fn one_char_short_reports_only_too_short() {
         1,
         "only TooShort when all classes are present"
     );
-    assert_eq!(warnings[0], PasswordWarning::TooShort { min: 8, actual: 7 });
+    assert_eq!(
+        warnings.first().cloned(),
+        Some(PasswordWarning::TooShort { min: 8, actual: 7 })
+    );
 }
 
 /// Length counts characters, not bytes (UTF-8), and non-Latin lowercase counts.
@@ -79,7 +82,10 @@ fn length_counts_chars_not_bytes() {
         1,
         "an 8-character UTF-8 password without a special char = 1 violation: {warnings:?}"
     );
-    assert_eq!(warnings[0], PasswordWarning::MissingSpecial);
+    assert_eq!(
+        warnings.first().cloned(),
+        Some(PasswordWarning::MissingSpecial)
+    );
     // "еревір1" — 7 characters, no uppercase and no special -> 3 violations.
     let warnings = policy.validate("еревір1");
     assert_eq!(warnings.len(), 3);
@@ -93,10 +99,7 @@ fn length_counts_chars_not_bytes() {
 fn relaxed_policy_accepts_simple_password() {
     let policy = PasswordPolicy {
         min_len: 4,
-        require_uppercase: false,
-        require_lowercase: false,
-        require_number: false,
-        require_special: false,
+        classes: CharacterClasses::none(),
     };
     // "abcd" — 4 characters, no classes required -> valid.
     let warnings = policy.validate("abcd");
@@ -104,7 +107,10 @@ fn relaxed_policy_accepts_simple_password() {
     // "ab" — shorter than 4 -> only TooShort.
     let warnings = policy.validate("ab");
     assert_eq!(warnings.len(), 1);
-    assert_eq!(warnings[0], PasswordWarning::TooShort { min: 4, actual: 2 });
+    assert_eq!(
+        warnings.first().cloned(),
+        Some(PasswordWarning::TooShort { min: 4, actual: 2 })
+    );
 }
 
 /// Default policy: fixed values (min_len=8, all classes true).
@@ -112,10 +118,10 @@ fn relaxed_policy_accepts_simple_password() {
 fn default_policy_matches_iredadmin_defaults() {
     let policy = PasswordPolicy::default_policy();
     assert_eq!(policy.min_len, 8);
-    assert!(policy.require_uppercase);
-    assert!(policy.require_lowercase);
-    assert!(policy.require_number);
-    assert!(policy.require_special);
+    assert!(policy.classes.uppercase());
+    assert!(policy.classes.lowercase());
+    assert!(policy.classes.digits());
+    assert!(policy.classes.special());
 }
 
 /// The Default trait equals default_policy() (consistency).
@@ -161,10 +167,7 @@ fn empty_password_reports_too_short_and_all_missing_classes() {
 fn special_chars_include_punctuation() {
     let policy = PasswordPolicy {
         min_len: 1,
-        require_uppercase: false,
-        require_lowercase: false,
-        require_number: false,
-        require_special: true,
+        classes: CharacterClasses::from_tuple((false, false, false, true)),
     };
     for ch in [
         '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '-', '_', '=', '+',

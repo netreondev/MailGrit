@@ -141,33 +141,36 @@ mod tests {
     use super::*;
 
     #[test]
-    fn encrypt_decrypt_roundtrip() {
+    fn encrypt_decrypt_roundtrip() -> Result<(), Box<dyn std::error::Error>> {
         let key = EncryptionKey::generate();
         let plaintext = b"sensitive backup data";
         let aad = b"mailgrit-backup-v1";
 
-        let ciphertext = encrypt(&key, plaintext, aad).unwrap();
+        let ciphertext = encrypt(&key, plaintext, aad)?;
         // Ciphertext ≠ plaintext (actual encryption).
-        assert_ne!(&ciphertext[NONCE_LEN..], plaintext);
+        assert_ne!(ciphertext.get(NONCE_LEN..).unwrap_or(&[]), plaintext);
 
-        let decrypted = decrypt(&key, &ciphertext, aad).unwrap();
+        let decrypted = decrypt(&key, &ciphertext, aad)?;
         assert_eq!(decrypted, plaintext);
+        Ok(())
     }
 
     #[test]
-    fn decrypt_fails_with_wrong_aad() {
+    fn decrypt_fails_with_wrong_aad() -> Result<(), Box<dyn std::error::Error>> {
         let key = EncryptionKey::generate();
-        let ciphertext = encrypt(&key, b"data", b"correct-aad").unwrap();
+        let ciphertext = encrypt(&key, b"data", b"correct-aad")?;
         // AAD mismatch → authentication fails.
         assert!(decrypt(&key, &ciphertext, b"wrong-aad").is_err());
+        Ok(())
     }
 
     #[test]
-    fn decrypt_fails_with_wrong_key() {
+    fn decrypt_fails_with_wrong_key() -> Result<(), Box<dyn std::error::Error>> {
         let key1 = EncryptionKey::generate();
         let key2 = EncryptionKey::generate();
-        let ciphertext = encrypt(&key1, b"secret", b"aad").unwrap();
+        let ciphertext = encrypt(&key1, b"secret", b"aad")?;
         assert!(decrypt(&key2, &ciphertext, b"aad").is_err());
+        Ok(())
     }
 
     #[test]
@@ -191,11 +194,12 @@ mod tests {
     }
 
     #[test]
-    fn different_nonces_each_encryption() {
+    fn different_nonces_each_encryption() -> Result<(), Box<dyn std::error::Error>> {
         let key = EncryptionKey::generate();
-        let c1 = encrypt(&key, b"data", b"aad").unwrap();
-        let c2 = encrypt(&key, b"data", b"aad").unwrap();
+        let c1 = encrypt(&key, b"data", b"aad")?;
+        let c2 = encrypt(&key, b"data", b"aad")?;
         // Random nonce → ciphertexts differ, even though the plaintext is the same.
         assert_ne!(c1, c2);
+        Ok(())
     }
 }

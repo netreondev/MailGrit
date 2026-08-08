@@ -1,0 +1,45 @@
+# gitleaks — secret-scanning config (CI gate + pre-commit).
+#
+# CI: see .github/workflows/ci.yml (gitleaks job). Scans the full git history
+# and each new commit pushed in a PR for accidentally-committed secrets.
+#
+# This config EXTENDS gitleaks's default rule set (allowlist.title is not set,
+# so the default rules ship unchanged) and adds project-specific allowlist
+# entries for documented false positives.
+
+title = "MailGrit gitleaks config"
+
+[extend]
+# Inherit all built-in gitleaks rules (API keys, tokens, private keys, ...).
+useDefault = true
+
+# ----------------------------------------------------------------------------
+# [allowlist] — documented false positives.
+# Each entry MUST have a comment explaining why it is not a real secret.
+# ----------------------------------------------------------------------------
+[allowlist]
+description = "MailGrit allowlist (documented false positives only)"
+
+# Test fixtures contain deliberately-looking-secret placeholders that are NOT
+# credentials (random opaque strings in CSV/parser test data). Scoped by path.
+paths = [
+    # Playwright e2e fixture: synthetic login URL / test markers, not real.
+    '''e2e/.*''',
+    # Fuzz corpus / seeds: arbitrary byte inputs for the fuzzer.
+    '''fuzz/seeds/.*''',
+    # This very supply-chain config references URLs that gitleaks may flag.
+    '''supply-chain/.*''',
+]
+
+# Sample/demo strings in source that match generic token patterns but are
+# intentionally inert. Matched by regex against the secret value.
+regexes = [
+    # "S3cur3P@ss1", "Str0ngPwd!2", "Pass123" — example CSV passwords in tests.
+    '''S3cur3P@ss\d|Str0ngPwd!\d|Pass123''',
+    # Test audit-log messages ("entry1", "entry2") are not secrets.
+    '''entry\d''',
+]
+
+# Commit hashes that introduced content later identified as a benign match can
+# be allowlisted here (none currently — keep this list empty by policy).
+commits = []

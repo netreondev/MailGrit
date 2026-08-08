@@ -57,27 +57,20 @@ impl Default for Settings {
 /// [password_policy] TOML section: server-side password policy for the strength
 /// indicator in the editable table. Parsed by serde, converted into
 /// [`PasswordPolicy`] via [`Self::to_policy`] (the parse-don't-validate boundary).
-#[allow(
-    clippy::struct_excessive_bools,
-    reason = "4 character-class flags mirror PasswordPolicy and the TOML on/off toggles"
-)]
+///
+/// The four character-class requirement flags live in [`PolicyClasses`] (a single
+/// sub-struct field) so this struct stays below clippy's `struct_excessive_bools`
+/// threshold. The TOML schema is unchanged: the four flags still serialize as the
+/// flat keys `require_uppercase`/`require_lowercase`/`require_number`/
+/// `require_special` (see [`PolicyClasses`]'s manual serde impl + `#[serde(flatten)]`).
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct PasswordPolicyConfig {
     /// Minimum password length (in characters). Default 8 (like iRedAdmin).
     #[serde(default = "default_pp_min_len")]
     pub min_len: usize,
-    /// An uppercase letter is required. Default true.
-    #[serde(default = "default_pp_true")]
-    pub require_uppercase: bool,
-    /// A lowercase letter is required. Default true.
-    #[serde(default = "default_pp_true")]
-    pub require_lowercase: bool,
-    /// A digit is required. Default true.
-    #[serde(default = "default_pp_true")]
-    pub require_number: bool,
-    /// A special character is required. Default true.
-    #[serde(default = "default_pp_true")]
-    pub require_special: bool,
+    /// Required character classes (flattened into the TOML section).
+    #[serde(flatten)]
+    pub classes: PolicyClasses,
 }
 
 const fn default_pp_min_len() -> usize {
@@ -91,10 +84,7 @@ impl Default for PasswordPolicyConfig {
     fn default() -> Self {
         Self {
             min_len: default_pp_min_len(),
-            require_uppercase: default_pp_true(),
-            require_lowercase: default_pp_true(),
-            require_number: default_pp_true(),
-            require_special: default_pp_true(),
+            classes: PolicyClasses::default(),
         }
     }
 }
@@ -102,40 +92,33 @@ impl Default for PasswordPolicyConfig {
 impl PasswordPolicyConfig {
     /// Converts the configuration into the domain [`PasswordPolicy`] (field mapping).
     #[must_use]
-    pub const fn to_policy(&self) -> mailgrit_core_domain::PasswordPolicy {
+    pub fn to_policy(&self) -> mailgrit_core_domain::PasswordPolicy {
+        let (uppercase, lowercase, number, special) = self.classes.into_tuple();
         mailgrit_core_domain::PasswordPolicy {
             min_len: self.min_len,
-            require_uppercase: self.require_uppercase,
-            require_lowercase: self.require_lowercase,
-            require_number: self.require_number,
-            require_special: self.require_special,
+            classes: mailgrit_core_domain::CharacterClasses::from_tuple((
+                uppercase, lowercase, number, special,
+            )),
         }
     }
 }
 
 /// [password_generator] TOML section: password generator for the editable table.
 /// Parsed by serde, converted into [`PasswordGenerator`] via [`Self::to_generator`].
-#[allow(
-    clippy::struct_excessive_bools,
-    reason = "4 character-class flags mirror PasswordGenerator and the TOML on/off toggles"
-)]
+///
+/// The four character-class toggles live in [`GeneratorClasses`] (a single
+/// sub-struct field) so this struct stays below clippy's `struct_excessive_bools`
+/// threshold. The TOML schema is unchanged: the flags still serialize as the flat
+/// keys `use_uppercase`/`use_lowercase`/`use_digits`/`use_special`
+/// (see [`GeneratorClasses`]'s manual serde impl + `#[serde(flatten)]`).
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub struct PasswordGeneratorConfig {
     /// Target password length (in characters). Default 16.
     #[serde(default = "default_pg_length")]
     pub length: usize,
-    /// Use uppercase letters. Default true.
-    #[serde(default = "default_pg_true")]
-    pub use_uppercase: bool,
-    /// Use lowercase letters. Default true.
-    #[serde(default = "default_pg_true")]
-    pub use_lowercase: bool,
-    /// Use digits. Default true.
-    #[serde(default = "default_pg_true")]
-    pub use_digits: bool,
-    /// Use special characters. Default true.
-    #[serde(default = "default_pg_true")]
-    pub use_special: bool,
+    /// Enabled character classes (flattened into the TOML section).
+    #[serde(flatten)]
+    pub classes: GeneratorClasses,
 }
 
 const fn default_pg_length() -> usize {
@@ -149,10 +132,7 @@ impl Default for PasswordGeneratorConfig {
     fn default() -> Self {
         Self {
             length: default_pg_length(),
-            use_uppercase: default_pg_true(),
-            use_lowercase: default_pg_true(),
-            use_digits: default_pg_true(),
-            use_special: default_pg_true(),
+            classes: GeneratorClasses::default(),
         }
     }
 }
@@ -160,14 +140,219 @@ impl Default for PasswordGeneratorConfig {
 impl PasswordGeneratorConfig {
     /// Converts the configuration into the domain [`PasswordGenerator`].
     #[must_use]
-    pub const fn to_generator(&self) -> PasswordGenerator {
+    pub fn to_generator(&self) -> PasswordGenerator {
+        let (uppercase, lowercase, digits, special) = self.classes.into_tuple();
         PasswordGenerator {
             length: self.length,
-            use_uppercase: self.use_uppercase,
-            use_lowercase: self.use_lowercase,
-            use_digits: self.use_digits,
-            use_special: self.use_special,
+            classes: mailgrit_core_domain::CharacterClasses::from_tuple((
+                uppercase, lowercase, digits, special,
+            )),
         }
+    }
+}
+
+// ============================================================================
+// Character-class flag sets for the password policy/generator config sections.
+//
+// Stored as a fixed `[bool; 4]` array (a single field — keeps the parent config
+// struct below clippy's `struct_excessive_bools` limit). The flags are accessed
+// via destructuring (never raw indexing, to satisfy `indexing_slicing`). Each
+// type implements serde manually so the TOML schema stays flat with the original
+// named keys (require_*/use_*), via `#[serde(flatten)]` on the parent.
+// ============================================================================
+
+/// Indexes into the `[bool; 4]` array: `[uppercase, lowercase, digit, special]`.
+const CLS_UPPER: usize = 0;
+const CLS_LOWER: usize = 1;
+const CLS_DIGIT: usize = 2;
+const CLS_SPECIAL: usize = 3;
+
+/// Required character classes for the server-side password policy
+/// (`[password_policy]`). Serializes to the flat TOML keys `require_uppercase`/
+/// `require_lowercase`/`require_number`/`require_special` (all default `true`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PolicyClasses([bool; 4]);
+
+impl Default for PolicyClasses {
+    fn default() -> Self {
+        // Mirrors the original per-field serde default (`default_pp_true`).
+        Self([true, true, true, true])
+    }
+}
+
+impl PolicyClasses {
+    /// Returns the four flags as a tuple `(uppercase, lowercase, number, special)`.
+    #[must_use]
+    pub fn into_tuple(self) -> (bool, bool, bool, bool) {
+        self.0.into()
+    }
+}
+
+/// Enabled character classes for the password generator (`[password_generator]`).
+/// Serializes to the flat TOML keys `use_uppercase`/`use_lowercase`/`use_digits`/
+/// `use_special` (all default `true`).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GeneratorClasses([bool; 4]);
+
+impl Default for GeneratorClasses {
+    fn default() -> Self {
+        // Mirrors the original per-field serde default (`default_pg_true`).
+        Self([true, true, true, true])
+    }
+}
+
+impl GeneratorClasses {
+    /// Returns the four flags as a tuple `(uppercase, lowercase, digits, special)`.
+    #[must_use]
+    pub fn into_tuple(self) -> (bool, bool, bool, bool) {
+        self.0.into()
+    }
+}
+
+/// Serializes a `[bool; 4]` class set as four named TOML/map keys (in declaration order).
+fn serialize_classes<S>(
+    serializer: S,
+    classes: [bool; 4],
+    keys: [&'static str; 4],
+    type_name: &'static str,
+) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeStruct;
+    let [upper, lower, digit, special] = classes;
+    let mut state = serializer.serialize_struct(type_name, 4)?;
+    state.serialize_field(keys[CLS_UPPER], &upper)?;
+    state.serialize_field(keys[CLS_LOWER], &lower)?;
+    state.serialize_field(keys[CLS_DIGIT], &digit)?;
+    state.serialize_field(keys[CLS_SPECIAL], &special)?;
+    state.end()
+}
+
+/// Deserializes a `[bool; 4]` class set from four named map keys, defaulting each
+/// missing key to `default_value`. Unknown keys are ignored (forward-compatible).
+fn deserialize_classes<'de, D>(
+    deserializer: D,
+    keys: [&'static str; 4],
+    default_value: bool,
+) -> Result<[bool; 4], D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::de::Visitor;
+
+    struct ClassVisitor {
+        keys: [&'static str; 4],
+        default_value: bool,
+    }
+
+    impl<'de> Visitor<'de> for ClassVisitor {
+        type Value = [bool; 4];
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            formatter.write_str("a character-class mapping of boolean flags")
+        }
+
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::MapAccess<'de>,
+        {
+            let mut flags = [self.default_value; 4];
+            while let Some(key) = map.next_key::<std::borrow::Cow<'de, str>>()? {
+                match key.as_ref() {
+                    k if k == self.keys[CLS_UPPER] => flags[CLS_UPPER] = map.next_value()?,
+                    k if k == self.keys[CLS_LOWER] => flags[CLS_LOWER] = map.next_value()?,
+                    k if k == self.keys[CLS_DIGIT] => flags[CLS_DIGIT] = map.next_value()?,
+                    k if k == self.keys[CLS_SPECIAL] => flags[CLS_SPECIAL] = map.next_value()?,
+                    // Unknown key: ignore (forward-compatible with future config keys).
+                    _ => {
+                        let _: serde::de::IgnoredAny = map.next_value()?;
+                    }
+                }
+            }
+            Ok(flags)
+        }
+    }
+
+    deserializer.deserialize_map(ClassVisitor {
+        keys,
+        default_value,
+    })
+}
+
+impl serde::Serialize for PolicyClasses {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serialize_classes(
+            serializer,
+            self.0,
+            [
+                "require_uppercase",
+                "require_lowercase",
+                "require_number",
+                "require_special",
+            ],
+            "PasswordPolicyConfig",
+        )
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for PolicyClasses {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserialize_classes(
+            deserializer,
+            [
+                "require_uppercase",
+                "require_lowercase",
+                "require_number",
+                "require_special",
+            ],
+            default_pp_true(),
+        )
+        .map(Self)
+    }
+}
+
+impl serde::Serialize for GeneratorClasses {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serialize_classes(
+            serializer,
+            self.0,
+            [
+                "use_uppercase",
+                "use_lowercase",
+                "use_digits",
+                "use_special",
+            ],
+            "PasswordGeneratorConfig",
+        )
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for GeneratorClasses {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserialize_classes(
+            deserializer,
+            [
+                "use_uppercase",
+                "use_lowercase",
+                "use_digits",
+                "use_special",
+            ],
+            default_pg_true(),
+        )
+        .map(Self)
     }
 }
 

@@ -4,18 +4,14 @@
 //! code alone is insufficient: a positive success marker and/or the absence of an
 //! error marker in the response body/URL is required.
 
-// The predicates/constants primarily serve test coverage of the marker set as a
-// regression guard.
-#![cfg_attr(not(test), allow(dead_code))]
-
 /// Positive markers in the response URL (query `?msg=CREATED|UPDATED|DELETED`).
-pub const SUCCESS_URL_MSGS: &[&str] = &["CREATED", "UPDATED", "DELETED"];
+const SUCCESS_URL_MSGS: &[&str] = &["CREATED", "UPDATED", "DELETED"];
 
 /// Positive markers in the response body (the success-notification HTML class).
-pub const SUCCESS_BODY: &[&str] = &["note-success"];
+const SUCCESS_BODY: &[&str] = &["note-success"];
 
 /// Negative markers in the response URL (all known iRedAdmin error codes).
-pub const ERROR_URL_MSGS: &[&str] = &[
+const ERROR_URL_MSGS: &[&str] = &[
     "ERROR",
     "NO_SUCH_ACCOUNT",
     "ALREADY_EXISTS",
@@ -27,7 +23,7 @@ pub const ERROR_URL_MSGS: &[&str] = &[
 
 /// Negative markers in the response body (notification HTML classes and error
 /// signatures).
-pub const ERROR_BODY: &[&str] = &[
+const ERROR_BODY: &[&str] = &[
     "note-error",
     "note-warning",
     "note-danger",
@@ -37,7 +33,7 @@ pub const ERROR_BODY: &[&str] = &[
 ];
 
 /// Map of known iRedAdmin error codes (`?msg=CODE`) → human-readable message.
-pub const ERROR_CODE_MAP: &[(&str, &str)] = &[
+const ERROR_CODE_MAP: &[(&str, &str)] = &[
     // (iRedAdmin code, translation key in locales/app.<lang>.yml).
     ("NO_SUCH_ACCOUNT", "err_code.NO_SUCH_ACCOUNT"),
     ("ALREADY_EXISTS", "err_code.ALREADY_EXISTS"),
@@ -49,23 +45,27 @@ pub const ERROR_CODE_MAP: &[(&str, &str)] = &[
 ];
 
 /// Success indicator by URL and response body (at least one positive marker is present).
+/// Test-only predicate (the marker arrays are also consumed by the JS builders below).
+#[cfg(test)]
 #[must_use]
-pub fn has_ose_success(haystack_url: &str, haystack_body: &str) -> bool {
+fn has_ose_success(haystack_url: &str, haystack_body: &str) -> bool {
     SUCCESS_URL_MSGS.iter().any(|m| haystack_url.contains(m))
         || SUCCESS_BODY.iter().any(|m| haystack_body.contains(m))
 }
 
 /// Error indicator by URL and response body (OSE forms).
+#[cfg(test)]
 #[must_use]
-pub fn has_ose_error(haystack_url: &str, haystack_body: &str) -> bool {
+fn has_ose_error(haystack_url: &str, haystack_body: &str) -> bool {
     ERROR_URL_MSGS.iter().any(|m| haystack_url.contains(m))
         || ERROR_BODY.iter().any(|m| haystack_body.contains(m))
 }
 
 /// Final success verdict of an OSE operation: HTTP OK + a success marker is
 /// present + no error.
+#[cfg(test)]
 #[must_use]
-pub fn ose_final_ok(http_ok: bool, haystack_url: &str, haystack_body: &str) -> bool {
+fn ose_final_ok(http_ok: bool, haystack_url: &str, haystack_body: &str) -> bool {
     http_ok
         && has_ose_success(haystack_url, haystack_body)
         && !has_ose_error(haystack_url, haystack_body)
@@ -73,8 +73,9 @@ pub fn ose_final_ok(http_ok: bool, haystack_url: &str, haystack_body: &str) -> b
 
 /// Extracts the value of the `msg` parameter from a URL query string
 /// (`?msg=CODE`).
+#[cfg(test)]
 #[must_use]
-pub fn extract_msg_code(url: &str) -> Option<&str> {
+fn extract_msg_code(url: &str) -> Option<&str> {
     let key = "msg=";
     let start = url.find(key)?;
     let value_start = start.saturating_add(key.len());
@@ -86,8 +87,9 @@ pub fn extract_msg_code(url: &str) -> Option<&str> {
 
 /// Maps an iRedAdmin error code to a localized message (`None` for success and
 /// unknown codes).
+#[cfg(test)]
 #[must_use]
-pub fn map_error_code(code: &str) -> Option<String> {
+fn map_error_code(code: &str) -> Option<String> {
     ERROR_CODE_MAP
         .iter()
         .find(|(k, _)| *k == code)
@@ -97,7 +99,6 @@ pub fn map_error_code(code: &str) -> Option<String> {
 /// Generates a JS fragment with the marker arrays and predicates for
 /// `webview_js`. The JS side uses the same constants as the Rust tests (a single
 /// source).
-#[must_use]
 pub fn build_marker_js() -> String {
     let success_url = js_array(SUCCESS_URL_MSGS);
     let success_body = js_array(SUCCESS_BODY);

@@ -3,7 +3,17 @@
 /// Maximum number of bulk-upload CSV rows in a single batch.
 pub const MAX_CSV_ROWS: usize = 50_000;
 
-/// Maximum length of an individual CSV field (bytes, after UTF-8 decoding).
+/// Maximum length of an individual CSV field, measured in **bytes** (after UTF-8
+/// decoding). This is a coarse DoS guard applied at the CSV layer, BEFORE any
+/// semantic validation.
+///
+/// Note the deliberate two-regime design: this limit counts **bytes**, whereas
+/// the semantic per-field limits below (`MAX_USERNAME_LEN`,
+/// `MAX_DISPLAY_NAME_LEN`, …) count **Unicode chars**. They are not redundant:
+/// a field may pass this byte budget and still be rejected by the semantic
+/// layer for having too many chars (e.g. a long multi-byte display name), or
+/// vice versa. `MAX_CSV_FIELD_BYTES` is intentionally large (4 KiB) so it never
+/// pre-empts a semantically-valid field (see `csv_byte_budget_covers_char_limits`).
 pub const MAX_CSV_FIELD_BYTES: usize = 4096;
 
 /// Default mailbox quota (MiB) when the `quota_mb` column is empty.
@@ -38,6 +48,21 @@ mod tests {
         const { assert!(MAX_DOMAIN_LEN > 0 && MAX_DOMAIN_LEN <= 253) };
         const { assert!(MAX_DISPLAY_NAME_LEN > 0) };
         const { assert!(MAX_PASSWORD_LEN > 0) };
+    }
+
+    /// The byte-budget DoS guard (`MAX_CSV_FIELD_BYTES`) must be large enough
+    /// that any semantically-valid field (worst case: `len` chars × 4 bytes/char
+    /// for a maximally multibyte UTF-8 string) fits within it. This guarantees
+    /// the byte limit never pre-empts a semantically-valid value — i.e. the only
+    /// reason a field can be rejected at the CSV layer is genuine size abuse.
+    #[test]
+    fn csv_byte_budget_covers_char_limits() {
+        const {
+            assert!(MAX_USERNAME_LEN * 4 <= MAX_CSV_FIELD_BYTES);
+            assert!(MAX_DOMAIN_LEN * 4 <= MAX_CSV_FIELD_BYTES);
+            assert!(MAX_DISPLAY_NAME_LEN * 4 <= MAX_CSV_FIELD_BYTES);
+            assert!(MAX_PASSWORD_LEN * 4 <= MAX_CSV_FIELD_BYTES);
+        }
     }
 
     #[test]

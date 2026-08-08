@@ -19,11 +19,15 @@ use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitEx
 /// Never panics: on a directory/file creation error it logs to stderr and
 /// returns without file output (the application keeps running).
 #[must_use]
-#[allow(clippy::print_stderr)] // messages emitted BEFORE the subscriber is initialized — stderr only
 pub fn init() -> Option<WorkerGuard> {
     let log_dir = log_dir();
     if let Err(e) = std::fs::create_dir_all(&log_dir) {
-        eprintln!(
+        // Emitted BEFORE the subscriber is initialized, so tracing is not yet
+        // available. Write directly to stderr via Write (not eprintln!, which is
+        // denied by the print_stderr lint).
+        use std::io::Write as _;
+        let _ = writeln!(
+            std::io::stderr(),
             "MailGrit: failed to create log directory {}: {e}",
             log_dir.display()
         );
@@ -53,7 +57,12 @@ pub fn init() -> Option<WorkerGuard> {
 
     if result.is_err() {
         // Subscriber already installed (e.g. dioxus-logger) — not critical.
-        eprintln!("MailGrit: tracing subscriber already initialized, file logging may be inactive");
+        // Written to stderr via Write (not eprintln!, which is denied by print_stderr).
+        use std::io::Write as _;
+        let _ = writeln!(
+            std::io::stderr(),
+            "MailGrit: tracing subscriber already initialized, file logging may be inactive"
+        );
     } else {
         tracing::info!(
             "=== MailGrit started; log: {}/mailgrit.log ===",

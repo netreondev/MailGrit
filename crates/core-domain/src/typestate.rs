@@ -32,7 +32,7 @@ pub struct Sanitized;
 
 /// Raw CSV row, as read from a file. Has NOT been validated.
 ///
-/// Does not implement `Into<SanitizedUserRow>` directly — only via [`parse`].
+/// Does not implement `Into<SanitizedUserRow>` directly — only via [`parse`](Self::parse).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RawCsvRow {
     /// Fields in order: `domain, username, password, display_name, quota_mb`.
@@ -116,12 +116,13 @@ mod tests {
     }
 
     #[test]
-    fn parses_valid_row() {
-        let row = raw_valid().parse().unwrap();
+    fn parses_valid_row() -> Result<(), CsvRowError> {
+        let row = raw_valid().parse()?;
         assert_eq!(row.domain.as_str(), "example.com");
         assert_eq!(row.username.as_str(), "ivan.petrov");
         assert_eq!(row.quota.mb(), 1024);
         assert_eq!(row.state, Sanitized);
+        Ok(())
     }
 
     #[test]
@@ -138,27 +139,30 @@ mod tests {
     }
 
     #[test]
-    fn rejects_email_as_domain() {
+    fn rejects_email_as_domain() -> Result<(), Box<dyn std::error::Error>> {
         let mut row = raw_valid();
-        row.fields[0] = "user@example.com".into();
+        *row.fields.get_mut(0).ok_or("expected at least 1 field")? = "user@example.com".into();
         assert!(row.parse().is_err());
+        Ok(())
     }
 
     #[test]
-    fn quota_defaults_when_empty() {
+    fn quota_defaults_when_empty() -> Result<(), Box<dyn std::error::Error>> {
         let mut row = raw_valid();
-        row.fields[4] = String::new();
-        let parsed = row.parse().unwrap();
+        *row.fields.get_mut(4).ok_or("expected at least 5 fields")? = String::new();
+        let parsed = row.parse()?;
         assert_eq!(parsed.quota.mb(), crate::limits::DEFAULT_QUOTA_MB);
+        Ok(())
     }
 
     #[test]
-    fn sanitized_row_not_constructable_directly() {
+    fn sanitized_row_not_constructable_directly() -> Result<(), CsvRowError> {
         // SanitizedUserRow can only be created via RawCsvRow::parse(),
         // because the fields require Validated* types, which have no public
         // constructors other than parse(). state = Sanitized cannot be forged.
         // (Compile-time guarantee; this test documents the contract.)
-        let row = raw_valid().parse().unwrap();
+        let row = raw_valid().parse()?;
         assert_eq!(row.state, Sanitized);
+        Ok(())
     }
 }

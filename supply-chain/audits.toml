@@ -1,0 +1,80 @@
+
+# cargo-vet audits file
+
+[[audits.argon2]]
+criteria = "safe-to-deploy"
+version = "0.5.3"
+notes = """
+Reviewed 2026-08. Argon2id KDF (core-security/kdf.rs). Surface used:
+Argon2::new(...), verify_pwd, raw_hash. No unsafe in the public API we use.
+Backed by the maintained RustCrypto `argon2` crate; no open RUSTSEC for the 0.5
+line at audit time. Key derivation path matches RFC 9106.
+"""
+
+[[audits.chacha20poly1305]]
+criteria = "safe-to-deploy"
+version = "0.11.0"
+notes = """
+Reviewed 2026-08. XChaCha20-Poly1305 AEAD (core-security/aead.rs). Surface used:
+XChaCha20Poly1305::new, encrypt, decrypt with AAD. Nonce is 24 bytes (random per
+op), avoiding nonce-reuse. Uses the maintained RustCrypto `aead` + `chacha20`
+crates. No unsafe in the public AEAD API.
+"""
+
+[[audits.hmac]]
+criteria = "safe-to-deploy"
+version = "0.13.0"
+notes = """
+Reviewed 2026-08. HMAC-SHA256 for the hash-chained audit log
+(core-security/hashchain.rs). Surface: Hmac<Sha256>, KeyInit::new_from_slice,
+update, finalize, verify. Constant-time tag comparison via `subtle`. No unsafe
+in the used API.
+"""
+
+[[audits.rusqlite]]
+criteria = "safe-to-deploy"
+version = "0.40.1"
+notes = """
+Reviewed 2026-08. Embedded SQLite (bundled feature) for the local audit log
+(core-storage/audit.rs). Surface: Connection, prepare, query params (?1..?n). All
+queries use parameterized bindings — no string-interpolated SQL, so no injection
+surface. `bundled` pulls SQLite C source (unsafe by construction); we rely on the
+upstream SQLite project's audit posture and the rusqlite maintainers' bundling.
+Local file only (no network, no untrusted input beyond the file path).
+"""
+
+[[audits.sha2]]
+criteria = "safe-to-deploy"
+version = "0.10.9"
+notes = """
+Reviewed 2026-08. SHA-256 digest, used transitively by hmac 0.13. No unsafe in
+the pure-software path we use (no SIMD asm on the audit target).
+"""
+
+[[audits.sha2]]
+criteria = "safe-to-deploy"
+version = "0.11.0"
+notes = """
+Reviewed 2026-08. SHA-256 digest, direct dependency of core-security (0.11 line).
+Same maintained RustCrypto digest family as 0.10; no unsafe in the software path
+used by MailGrit. Audited alongside the 0.10.9 entry above.
+"""
+
+[[audits.subtle]]
+criteria = "safe-to-deploy"
+version = "2.6.1"
+notes = """
+Reviewed 2026-08. Constant-time equality (ConstantTimeEq) for crypto-tag / key
+comparison in core-security/ct_eq.rs. The whole point of this crate is to be
+side-channel-safe; uses intentionally-unoptimized ops. Trusted, widely audited.
+"""
+
+[[audits.zeroize]]
+criteria = "safe-to-deploy"
+version = "1.9.0"
+notes = """
+Reviewed 2026-08. Key-material zeroization on Drop for EncryptionKey
+(core-security/aead.rs). The `zeroize` crate uses volatile writes and a compiler
+fence; unsafe is contained and has been independently audited many times. The
+derive path (Zeroize on Box<[u8;32]>) does not introduce new unsafe.
+"""

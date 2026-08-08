@@ -4,18 +4,9 @@
 //! row breaks the chain on verification. Access: a single exclusive writer.
 
 #![forbid(unsafe_code)]
-#![warn(missing_docs)]
-// In tests, unwrap/panic are permitted (a test failure is an intentional panic).
-#![cfg_attr(
-    test,
-    allow(
-        clippy::unwrap_used,
-        clippy::expect_used,
-        clippy::indexing_slicing,
-        clippy::arithmetic_side_effects,
-        clippy::panic
-    )
-)]
+// Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny) is set
+// centrally in [workspace.lints.rust] of the root Cargo.toml. Test modules
+// follow the same policy (no test-only suppressions).
 
 pub mod audit;
 pub mod error;

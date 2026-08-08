@@ -1,0 +1,17 @@
+# cargo-mutants configuration.
+#
+# Kani proof harnesses (`kani_harnesses.rs`) live behind `#![cfg(kani)]` and are
+# never compiled or run by `cargo test` — they are formal-verification entry
+# points executed only by `cargo kani` (bounded model checking via CBMC). Mutating
+# them is pointless: no unit test can "catch" the mutation, so every mutant in
+# that file is reported as MISSED. They are excluded to avoid noise.
+#
+# The actual logic these harnesses verify (parsers, crypto) IS covered by unit
+# tests + Miri + Kani proofs; mutants in the real source files are caught there.
+#
+# Run: `cargo +nightly mutants --workspace --in-place`
+
+exclude_globs = [
+    # Formal-verification harnesses — not executed by `cargo test` (cfg(kani)).
+    "crates/*/src/kani_harnesses.rs",
+]

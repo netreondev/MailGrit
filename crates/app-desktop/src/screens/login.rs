@@ -106,16 +106,15 @@ pub fn login_screen() -> Element {
                     }}
 
                     // Error (if any).
-                    {if let Some(err) = &error_msg {
-                        rsx! {
+                    {error_msg.as_ref().map_or_else(
+                        || rsx! {},
+                        |err| rsx! {
                             div { class: "poll-banner error-banner",
                                 IconView { icon: Icon::Alert, class: "toast-icon".to_string() }
                                 div { class: "poll-banner-text", "{err}" }
                             }
-                        }
-                    } else {
-                        rsx! {}
-                    }}
+                        },
+                    )}
 
                     // Cookie diagnostics — collapsible (hidden by default).
                     {cookies_disclosure(&state)}

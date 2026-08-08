@@ -1,15 +1,13 @@
 use super::*;
 
-/// Helper for a successful result: the signature `Result<(), String>`
-/// intentionally matches the real result type of a bulk operation, so the test
-/// data is realistic — otherwise clippy suggests returning `()`.
-#[allow(clippy::unnecessary_wraps)]
-fn ok() -> Result<(), String> {
-    Ok(())
-}
+/// Helper for an error result mirroring the real bulk-operation result type.
 fn err(reason: &str) -> Result<(), String> {
     Err(reason.to_string())
 }
+
+// A successful result mirrors the real bulk-operation type `Result<(), String>`.
+// Written inline as `&Ok::<(), String>(())` at call sites (clippy::unnecessary_wraps
+// flags a helper that always returns Ok, so the helper is avoided).
 
 // --- P0: is_session_expired by objective signals ---
 
@@ -54,7 +52,7 @@ fn session_not_expired_verify_url_clean() {
     // The verify-GET reached the profile page — the session is alive.
     assert!(!is_session_expired(
         200,
-        &ok(),
+        &Ok::<(), String>(()),
         Some("https://x/?msg=CREATED"),
         Some("https://x/iredadmin/profile/user/general/u@d"),
     ));
@@ -76,7 +74,7 @@ fn session_not_expired_real_server_error() {
 fn session_not_expired_successful_op() {
     assert!(!is_session_expired(
         200,
-        &ok(),
+        &Ok::<(), String>(()),
         Some("https://x/?msg=CREATED"),
         None
     ));

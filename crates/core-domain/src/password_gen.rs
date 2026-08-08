@@ -9,10 +9,10 @@ use rand::RngExt;
 use rand::seq::IteratorRandom;
 
 /// Minimum length: smaller values cannot fit all character classes.
-const MIN_LENGTH: usize = 4;
+pub const MIN_LENGTH: usize = 4;
 
 /// Maximum reasonable password length in the UI (separate from `MAX_PASSWORD_LEN`).
-const MAX_LENGTH: usize = 64;
+pub const MAX_LENGTH: usize = 64;
 
 /// Safe special characters: ASCII punctuation WITHOUT comma (forbidden by
 /// `ValidatedPassword`, breaks CSV), quotes, or backslash (which break JS strings
@@ -34,22 +34,19 @@ const LOWERS: &[char] = &[
 const DIGITS: &[char] = &['2', '3', '4', '5', '6', '7', '8', '9'];
 
 /// Generator configuration: length and enabled character classes.
-#[allow(
-    clippy::struct_excessive_bools,
-    reason = "4 independent character-class flags are the canonical form (the same as in PasswordPolicy and iRedAdmin settings.py)"
-)]
+///
+/// The four character-class toggles live in [`classes`](Self::classes) (a single
+/// [`CharacterClasses`](crate::CharacterClasses) field), keeping this struct below
+/// clippy's `struct_excessive_bools` threshold. The flags mirror the canonical
+/// `use_uppercase`/`use_lowercase`/`use_digits`/`use_special` set (the same four
+/// classes as in [`PasswordPolicy`](crate::PasswordPolicy) and iRedAdmin
+/// `settings.py`).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PasswordGenerator {
     /// Target password length. Clamped to [`MIN_LENGTH`]..=[`MAX_LENGTH`].
     pub length: usize,
-    /// Use uppercase letters.
-    pub use_uppercase: bool,
-    /// Use lowercase letters.
-    pub use_lowercase: bool,
-    /// Use digits.
-    pub use_digits: bool,
-    /// Use special characters.
-    pub use_special: bool,
+    /// Enabled character classes (uppercase/lowercase/digits/special).
+    pub classes: crate::CharacterClasses,
 }
 
 impl PasswordGenerator {
@@ -58,10 +55,7 @@ impl PasswordGenerator {
     pub const fn default_generator() -> Self {
         Self {
             length: 16,
-            use_uppercase: true,
-            use_lowercase: true,
-            use_digits: true,
-            use_special: true,
+            classes: crate::CharacterClasses::all(),
         }
     }
 
@@ -80,7 +74,7 @@ impl PasswordGenerator {
     /// Whether at least one class is enabled. If all flags are false, generation is impossible.
     #[must_use]
     pub const fn has_any_class(&self) -> bool {
-        self.use_uppercase || self.use_lowercase || self.use_digits || self.use_special
+        self.classes.has_any()
     }
 
     /// Length for the UI slider: clamped to 8..=32 (the slider's working range).
@@ -108,10 +102,10 @@ impl PasswordGenerator {
 
         let classes: &[&[char]] = &[UPPERS, LOWERS, DIGITS, SPECIALS];
         let active_flags = [
-            self.use_uppercase,
-            self.use_lowercase,
-            self.use_digits,
-            self.use_special,
+            self.classes.uppercase(),
+            self.classes.lowercase(),
+            self.classes.digits(),
+            self.classes.special(),
         ];
 
         // One mandatory character from each enabled class (there are ≤4 ≤ MIN_LENGTH).
@@ -176,14 +170,18 @@ fn shuffle(chars: &mut [char], rng: &mut impl Rng) {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::indexing_slicing)]
     use super::*;
 
     #[test]
     fn default_is_length_16_all_classes() {
         let g = PasswordGenerator::default_generator();
         assert_eq!(g.length, 16);
-        assert!(g.use_uppercase && g.use_lowercase && g.use_digits && g.use_special);
+        assert!(
+            g.classes.uppercase()
+                && g.classes.lowercase()
+                && g.classes.digits()
+                && g.classes.special()
+        );
     }
 
     #[test]
@@ -234,9 +232,9 @@ mod tests {
     #[test]
     fn generate_respects_disabled_classes() {
         let mut g = PasswordGenerator::default_generator();
-        g.use_special = false;
-        g.use_digits = false;
-        g.use_uppercase = false;
+        g.classes.set_special(false);
+        g.classes.set_digits(false);
+        g.classes.set_uppercase(false);
         for _ in 0..100 {
             let pw = g.generate();
             assert!(
@@ -264,10 +262,10 @@ mod tests {
     #[test]
     fn generate_empty_when_no_class_enabled() {
         let mut g = PasswordGenerator::default_generator();
-        g.use_uppercase = false;
-        g.use_lowercase = false;
-        g.use_digits = false;
-        g.use_special = false;
+        g.classes.set_uppercase(false);
+        g.classes.set_lowercase(false);
+        g.classes.set_digits(false);
+        g.classes.set_special(false);
         assert_eq!(
             g.generate(),
             "",

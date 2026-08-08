@@ -208,14 +208,6 @@ pub fn validate_fields_localized(row: &EditableUserRow) -> Vec<EditableFieldErro
 
 #[cfg(test)]
 mod tests {
-    #![allow(
-        clippy::unwrap_used,
-        clippy::expect_used,
-        clippy::indexing_slicing,
-        clippy::arithmetic_side_effects,
-        clippy::panic,
-        reason = "tests intentionally use unwrap/indexing/panic"
-    )]
 
     use super::*;
     use crate::i18n::tests::LOCALE_TEST_LOCK;

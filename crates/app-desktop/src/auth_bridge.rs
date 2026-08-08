@@ -60,8 +60,9 @@ pub fn read_cookies_for_panel(
 fn url_origin(url: &str) -> Option<String> {
     let parsed = url::Url::parse(url).ok()?;
     let host = parsed.host_str()?;
-    match parsed.port() {
-        Some(p) => Some(format!("{}://{host}:{p}", parsed.scheme())),
-        None => Some(format!("{}://{host}", parsed.scheme())),
-    }
+    let scheme = parsed.scheme();
+    Some(parsed.port().map_or_else(
+        || format!("{scheme}://{host}"),
+        |p| format!("{scheme}://{host}:{p}"),
+    ))
 }

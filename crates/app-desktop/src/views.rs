@@ -108,24 +108,25 @@ pub fn failed_csv_rows_view(state: &Signal<AppState>) -> Element {
     // Collect the data to display under the read-guard, releasing it before rendering.
     let (total, rows): (usize, Vec<(usize, String, String)>) = {
         let read = state.read();
-        if let Some(csv) = read.csv.as_ref() {
-            let rows = csv
-                .failed
-                .iter()
-                .take(20)
-                // Localized reason via error_i18n (the core crate has no i18n).
-                .map(|f| {
-                    (
-                        f.line_no,
-                        f.fields.join(", "),
-                        crate::error_i18n::csv_parse_error(&f.error),
-                    )
-                })
-                .collect();
-            (csv.failed.len(), rows)
-        } else {
-            (0, Vec::new())
-        }
+        read.csv.as_ref().map_or_else(
+            || (0, Vec::new()),
+            |csv| {
+                let rows = csv
+                    .failed
+                    .iter()
+                    .take(20)
+                    // Localized reason via error_i18n (the core crate has no i18n).
+                    .map(|f| {
+                        (
+                            f.line_no,
+                            f.fields.join(", "),
+                            crate::error_i18n::csv_parse_error(&f.error),
+                        )
+                    })
+                    .collect();
+                (csv.failed.len(), rows)
+            },
+        )
     };
     if total == 0 {
         return rsx! {};
@@ -223,7 +224,7 @@ pub fn audit_view() -> Element {
                 button {
                     class: "btn btn-primary",
                     onclick: move |_| {
-                        state.write().pending_master_password = true;
+                        state.write().modals.pending_master_password = true;
                     },
                     {tr!("master_password.unlock")}
                 }
@@ -249,10 +250,10 @@ pub fn audit_view() -> Element {
                             let join = crate::tokio_runtime().spawn_blocking(move || {
                                 audit.verify()
                             });
-                            match join.await {
-                                Ok(res) => Some(res),
-                                Err(_) => Some(Err(crate::audit_ui::AuditError::PoisonedLock)),
-                            }
+                            join.await.map_or(
+                                Some(Err(crate::audit_ui::AuditError::PoisonedLock)),
+                                Some,
+                            )
                         }
                         None => None,
                     };

@@ -10,10 +10,6 @@ use mailgrit_core_domain::{EditableUserRow, OperationTarget, PasswordGenerator};
 use std::sync::Arc;
 
 /// Application state (which screen to show + data).
-#[allow(
-    clippy::struct_excessive_bools,
-    reason = "independent UI flags, not a state machine"
-)]
 #[derive(Clone)]
 pub struct AppState {
     /// Current screen.
@@ -51,10 +47,8 @@ pub struct AppState {
     pub audit: Option<Arc<AuditWriter>>,
     /// Current operation execution status.
     pub op_status: OpStatus,
-    /// Delete confirmation (fail-closed): awaits explicit confirmation.
-    pub pending_delete: bool,
-    /// "Regenerate all passwords" confirmation (irreversible): awaits a modal.
-    pub pending_password_regenerate: bool,
+    /// Awaiting-confirmation modal flags (delete, regenerate-all-passwords, master password).
+    pub modals: ModalState,
     /// Recent audit entries to display.
     pub audit_entries: Vec<AuditEntryView>,
     /// Diagnostics panel: all cookies after the last extraction (for login debugging).
@@ -68,19 +62,39 @@ pub struct AppState {
     /// Entered master password (protects the audit/export key via the Argon2 KDF).
     /// `None` until the user enters it via the modal; stored only in memory.
     pub master_password: Option<String>,
-    /// Awaits master password entry via the modal (to unlock audit/export).
-    pub pending_master_password: bool,
     /// Master password input fields in the modal (twice, for confirmation on creation).
     pub master_password_input: String,
+    /// Confirmation field for the master password (must match `master_password_input`).
     pub master_password_confirm: String,
+    /// Export lifecycle status flags (format-picker modal, await-unlock, in-progress).
+    pub export: ExportState,
+    /// Selected export encryption mode (true = encrypted, the default).
+    pub export_encrypt: bool,
+}
+
+/// Awaiting-confirmation modal flags. Grouped (3 bools) to stay below clippy's
+/// `struct_excessive_bools` limit; each flag independently gates one modal.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ModalState {
+    /// Delete confirmation (fail-closed): awaits explicit confirmation.
+    pub pending_delete: bool,
+    /// "Regenerate all passwords" confirmation (irreversible): awaits a modal.
+    pub pending_password_regenerate: bool,
+    /// Awaits master password entry via the modal (to unlock audit/export).
+    pub pending_master_password: bool,
+}
+
+/// Export lifecycle status flags. Grouped (3 bools) to stay below clippy's
+/// `struct_excessive_bools` limit. The selected encryption mode
+/// (`AppState::export_encrypt`) is a separate setting, not a lifecycle status.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ExportState {
     /// Opens the export format picker modal (encrypted/plaintext).
     pub pending_export_choice: bool,
     /// Intent for an encrypted export awaiting master password entry.
     /// Set in [`do_export`](crate::ops_export::do_export) when the master password
     /// has not been entered yet; after a successful unlock, the export resumes.
     pub pending_export_after_unlock: bool,
-    /// Selected export encryption mode (true = encrypted, the default).
-    pub export_encrypt: bool,
     /// Export is being performed by a background task (dialog + KDF + file write).
     /// Blocks repeated export button presses / disables the UI for the duration.
     pub export_in_progress: bool,
@@ -147,10 +161,18 @@ impl AppState {
         // Normalize the generator against the server policy: forcibly enable the
         // required character classes (require_*) and clamp the length to >= min_len.
         let mut password_generator = config.password_generator.to_generator();
-        password_generator.use_uppercase |= password_policy.require_uppercase;
-        password_generator.use_lowercase |= password_policy.require_lowercase;
-        password_generator.use_digits |= password_policy.require_number;
-        password_generator.use_special |= password_policy.require_special;
+        password_generator.classes.set_uppercase(
+            password_generator.classes.uppercase() | password_policy.classes.uppercase(),
+        );
+        password_generator.classes.set_lowercase(
+            password_generator.classes.lowercase() | password_policy.classes.lowercase(),
+        );
+        password_generator
+            .classes
+            .set_digits(password_generator.classes.digits() | password_policy.classes.digits());
+        password_generator
+            .classes
+            .set_special(password_generator.classes.special() | password_policy.classes.special());
         // No lower than the policy min_len and no higher than the UI ceiling (32).
         password_generator.length = password_generator
             .length
@@ -174,21 +196,17 @@ impl AppState {
             batch_result: None,
             audit: None,
             op_status: OpStatus::Idle,
-            pending_delete: false,
-            pending_password_regenerate: false,
+            modals: ModalState::default(),
             audit_entries: Vec::new(),
             last_cookies: Vec::new(),
             error_msg: None,
             password_policy,
             password_generator,
             master_password: None,
-            pending_master_password: false,
             master_password_input: String::new(),
             master_password_confirm: String::new(),
-            pending_export_choice: false,
-            pending_export_after_unlock: false,
+            export: ExportState::default(),
             export_encrypt: true,
-            export_in_progress: false,
         }
     }
 
@@ -202,7 +220,7 @@ impl AppState {
         match AuditWriter::open(master_password) {
             Ok(audit) => {
                 self.master_password = Some(master_password.to_string());
-                self.pending_master_password = false;
+                self.modals.pending_master_password = false;
                 self.master_password_input.clear();
                 self.master_password_confirm.clear();
                 let audit = Arc::new(audit);

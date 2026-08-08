@@ -213,11 +213,8 @@ const AUDIT_KEY_FILE_LEN: usize =
 #[must_use]
 pub fn audit_key_file_is_valid() -> bool {
     let key_path = crate::app_data_dir().join(".mailgrit-audit-key");
-    if let Ok(m) = std::fs::metadata(&key_path) {
-        m.len() == u64::try_from(AUDIT_KEY_FILE_LEN).unwrap_or(0)
-    } else {
-        false
-    }
+    std::fs::metadata(&key_path)
+        .is_ok_and(|m| m.len() == u64::try_from(AUDIT_KEY_FILE_LEN).unwrap_or(0))
 }
 
 fn load_or_create_persistent_key(
@@ -290,7 +287,6 @@ fn compute_verify_token(key: &EncryptionKey, tag: &[u8]) -> Result<[u8; 32], Aud
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::indexing_slicing)]
     use super::*;
     use std::path::PathBuf;
     use std::sync::atomic::{AtomicU64, Ordering};
@@ -302,12 +298,12 @@ mod tests {
     /// parallel nextest. Cleaned up (best-effort) via `Drop`.
     struct TempDir(PathBuf);
     impl TempDir {
-        fn new() -> Self {
+        fn new() -> Result<Self, std::io::Error> {
             let n = COUNTER.fetch_add(1, Ordering::Relaxed);
             let dir = std::env::temp_dir()
                 .join(format!("mailgrit-audit-test-{}-{n}", std::process::id()));
-            std::fs::create_dir_all(&dir).expect("creating a temp directory");
-            Self(dir)
+            std::fs::create_dir_all(&dir)?;
+            Ok(Self(dir))
         }
         fn path(&self) -> &Path {
             &self.0
@@ -321,45 +317,48 @@ mod tests {
 
     // First run (no file) → a key is created, the file has the correct length.
     #[test]
-    fn missing_key_file_creates_new_on_first_run() {
-        let dir = TempDir::new();
+    fn missing_key_file_creates_new_on_first_run() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
         let result = load_or_create_persistent_key(dir.path(), b"strong-password-123");
         assert!(result.is_ok(), "the first run must create a key");
         let file = dir.path().join(".mailgrit-audit-key");
-        let data = std::fs::read(&file).expect("the key file is created");
+        let data = std::fs::read(&file)?;
         assert_eq!(data.len(), AUDIT_KEY_FILE_LEN, "the file length is correct");
+        Ok(())
     }
 
     // A correct file → the key is derived and verified by the same password.
     #[test]
-    fn correct_key_file_loads_successfully() {
-        let dir = TempDir::new();
+    fn correct_key_file_loads_successfully() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
         // Create a reference file.
-        load_or_create_persistent_key(dir.path(), b"correct-password-1").expect("creating the key");
+        load_or_create_persistent_key(dir.path(), b"correct-password-1")?;
         // Reopening with the same password must return Ok.
         let result = load_or_create_persistent_key(dir.path(), b"correct-password-1");
         assert!(result.is_ok(), "a correct file must load");
+        Ok(())
     }
 
     // A wrong password on a correct file → WrongMasterPassword (constant-time).
     #[test]
-    fn wrong_password_fails() {
-        let dir = TempDir::new();
-        load_or_create_persistent_key(dir.path(), b"correct-password-1").expect("creating the key");
+    fn wrong_password_fails() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
+        load_or_create_persistent_key(dir.path(), b"correct-password-1")?;
         let result = load_or_create_persistent_key(dir.path(), b"different-password-2");
         assert!(matches!(result, Err(AuditError::WrongMasterPassword)));
+        Ok(())
     }
 
     // Regression for #5: a damaged file (wrong length) is NOT silently recreated
     // — CorruptedKeyFile is returned, otherwise the legitimate audit history
     // would become indistinguishable from a forgery.
     #[test]
-    fn corrupted_key_file_returns_error_not_recreate() {
-        let dir = TempDir::new();
+    fn corrupted_key_file_returns_error_not_recreate() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
         let key_path = dir.path().join(".mailgrit-audit-key");
         // Write a file of a deliberately wrong length (1 byte instead of 48).
-        std::fs::write(&key_path, vec![0u8; 1]).expect("writing a junk file");
-        let original_len = std::fs::metadata(&key_path).unwrap().len();
+        std::fs::write(&key_path, vec![0u8; 1])?;
+        let original_len = std::fs::metadata(&key_path)?.len();
 
         let result = load_or_create_persistent_key(dir.path(), b"any-password-here");
         assert!(
@@ -367,39 +366,41 @@ mod tests {
             "a damaged file must yield CorruptedKeyFile, not a recreation"
         );
         // The file must NOT have been recreated (same length).
-        let after_len = std::fs::metadata(&key_path).unwrap().len();
+        let after_len = std::fs::metadata(&key_path)?.len();
         assert_eq!(
             original_len, after_len,
             "a damaged file must not be silently recreated"
         );
+        Ok(())
     }
 
     // An empty file (0 bytes) is a special case of damage → CorruptedKeyFile.
     #[test]
-    fn empty_key_file_is_corrupted() {
-        let dir = TempDir::new();
+    fn empty_key_file_is_corrupted() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
         let key_path = dir.path().join(".mailgrit-audit-key");
-        std::fs::write(&key_path, b"").expect("writing an empty file");
+        std::fs::write(&key_path, b"")?;
         let result = load_or_create_persistent_key(dir.path(), b"pw");
         assert!(matches!(
             result,
             Err(AuditError::CorruptedKeyFile { actual: 0 })
         ));
+        Ok(())
     }
 
     // An oversized file (> the expected length) is also damage.
     #[test]
-    fn oversized_key_file_is_corrupted() {
-        let dir = TempDir::new();
+    fn oversized_key_file_is_corrupted() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
         let key_path = dir.path().join(".mailgrit-audit-key");
-        std::fs::write(&key_path, vec![0u8; AUDIT_KEY_FILE_LEN + 10])
-            .expect("writing an oversized file");
+        std::fs::write(&key_path, vec![0u8; AUDIT_KEY_FILE_LEN + 10])?;
         let result = load_or_create_persistent_key(dir.path(), b"pw");
         assert!(matches!(
             result,
             Err(AuditError::CorruptedKeyFile { actual })
             if actual == AUDIT_KEY_FILE_LEN + 10
         ));
+        Ok(())
     }
 
     // A file of the correct length, but the verify-token does not match the
@@ -407,30 +408,30 @@ mod tests {
     // NOT CorruptedKeyFile: the length is correct, but the password does not
     // fit.
     #[test]
-    fn wrong_length_ok_but_token_garbage_is_wrong_password() {
-        let dir = TempDir::new();
+    fn wrong_length_ok_but_token_garbage_is_wrong_password()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
         let key_path = dir.path().join(".mailgrit-audit-key");
         // 48 bytes of random junk of the correct length.
-        std::fs::write(&key_path, vec![0xABu8; AUDIT_KEY_FILE_LEN])
-            .expect("writing junk of the correct length");
+        std::fs::write(&key_path, vec![0xABu8; AUDIT_KEY_FILE_LEN])?;
         let result = load_or_create_persistent_key(dir.path(), b"pw");
         assert!(matches!(result, Err(AuditError::WrongMasterPassword)));
+        Ok(())
     }
 
     // Two consecutive key derivations with the same password from a correct file
     // are deterministic (the same key).
     #[test]
-    fn derived_key_is_deterministic_across_loads() {
-        let dir = TempDir::new();
-        load_or_create_persistent_key(dir.path(), b"deterministic-pw-9").expect("creating the key");
-        let k1 =
-            load_or_create_persistent_key(dir.path(), b"deterministic-pw-9").expect("first load");
-        let k2 =
-            load_or_create_persistent_key(dir.path(), b"deterministic-pw-9").expect("second load");
+    fn derived_key_is_deterministic_across_loads() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
+        load_or_create_persistent_key(dir.path(), b"deterministic-pw-9")?;
+        let k1 = load_or_create_persistent_key(dir.path(), b"deterministic-pw-9")?;
+        let k2 = load_or_create_persistent_key(dir.path(), b"deterministic-pw-9")?;
         assert_eq!(
             k1.as_bytes(),
             k2.as_bytes(),
             "the key is deterministic for one password and file"
         );
+        Ok(())
     }
 }

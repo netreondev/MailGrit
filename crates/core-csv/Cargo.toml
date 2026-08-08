@@ -8,7 +8,7 @@ license.workspace = true
 publish.workspace = true
 
 [dependencies]
-mailgrit-core-domain = { version = "0.1.0", path = "../core-domain" }
+mailgrit-core-domain = { workspace = true }
 thiserror = "2.0.19"
 tracing = "0.1"
 
@@ -17,3 +17,15 @@ workspace = true
 
 [dev-dependencies]
 proptest = "1.11.0"
+# criterion — micro-benchmarks for the CSV parser hot path (parse_csv_bytes).
+# Run locally: `cargo bench -p mailgrit-core-csv`. CI only compiles benches
+# (cargo bench --no-run) to keep them buildable and catch compile breakage;
+# it does NOT time anything, so it cannot catch performance regressions —
+# those must be checked by a local `cargo bench` run.
+criterion = "0.8"
+
+# Declare the benchmark target so `cargo bench` discovers it without requiring
+# the `bench = true` default (which would also try to build unit tests as benches).
+[[bench]]
+name = "parser"
+harness = false   # criterion provides its own main

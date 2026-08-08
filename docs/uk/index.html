@@ -1,22 +1,25 @@
 <!DOCTYPE html>
-<html lang="uk">
+<html lang="uk" data-theme="dark">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18376819119"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'AW-18376819119');
-  </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1020">
+  <meta name="theme-color" content="#08080C">
+
+  <!-- Застосувати збережену/системну тему до першого рендеру, щоб уникнути FOUC -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("mailgrit-theme");
+        var theme = saved || (window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    })();
+  </script>
 
   <title>MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin</title>
-  <meta name="description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.">
-  <meta name="keywords" content="iRedAdmin, пакетна автоматизація пошти, десктоп-додаток, Rust, Dioxus, FortiWeb, WAF, адміністрування поштового сервера, створення поштових акаунтів, зашифрований журнал аудиту">
+  <meta name="description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Журнал аудиту з виявленням втручання, 9 мов.">
+  <meta name="keywords" content="iRedAdmin, пакетна автоматизація пошти, десктоп-додаток, Rust, Dioxus, FortiWeb, WAF, адміністрування поштового сервера, створення поштових акаунтів, журнал аудиту з виявленням втручання">
   <meta name="author" content="Учасники MailGrit">
   <meta name="robots" content="index, follow">
 
@@ -30,13 +33,17 @@
   <link rel="icon" type="image/png" sizes="512x512" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
   <link rel="icon" type="image/png" sizes="192x192" href="https://netreondev.github.io/MailGrit/assets/icon-192.png">
   <link rel="apple-touch-icon" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="../assets/style.css">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="MailGrit">
   <meta property="og:title" content="MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin">
-  <meta property="og:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.">
+  <meta property="og:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Журнал аудиту з виявленням втручання, 9 мов.">
   <meta property="og:url" content="https://netreondev.github.io/MailGrit/uk/">
   <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta property="og:image:secure_url" content="https://netreondev.github.io/MailGrit/assets/og.png">
@@ -50,7 +57,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin">
-  <meta name="twitter:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.">
+  <meta name="twitter:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Журнал аудиту з виявленням втручання, 9 мов.">
   <meta name="twitter:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta name="twitter:image:alt" content="MailGrit — десктоп-додаток для пакетної автоматизації iRedAdmin">
 
@@ -101,7 +108,7 @@
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin",
-    "description": "Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Зашифрований журнал аудиту, 9 мов.",
+    "description": "Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Журнал аудиту з виявленням втручання, 9 мов.",
     "url": "https://netreondev.github.io/MailGrit/uk/",
     "inLanguage": "uk",
     "isPartOf": {
@@ -160,7 +167,7 @@
         "name": "Чи безпечний MailGrit? Як захищений журнал аудиту?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Кожна операція додається до ланцюга, стійкого до втручання (HMAC-SHA256), і шифрується у спокої потоковим автентифікованим шифруванням (XChaCha20-Poly1305). Ключі шифрування походять від майстер-пароля через Argon2id; майстер-пароль ніколи не зберігається. Робочий простір застосовує unsafe_code = forbid, тож у додатку немає unsafe-коду."
+          "text": "Кожна операція додається до ланцюга, стійкого до втручання (HMAC-SHA256), що захищає цілісність: будь-яке видалення, переставляння чи зміну минулого запису буде виявлено під час перевірки (verify). Зашифровані експорти та резервні копії захищені у спокої потоковим автентифікованим шифруванням (XChaCha20-Poly1305), ключі для якого виводяться з майстер-пароля через Argon2id; майстер-пароль ніколи не зберігається. Робочий простір застосовує unsafe_code = forbid, тож у крейтах додатку немає unsafe-коду."
         }
       },
       {
@@ -177,20 +184,45 @@
 </head>
 <body>
   <a class="skip" href="#main">Перейти до змісту</a>
+  <div class="progress-bar" aria-hidden="true"></div>
 
   <header class="site-header">
     <div class="container">
       <a class="brand" href="https://netreondev.github.io/MailGrit/uk/" aria-label="MailGrit — головна">
-        <span class="brand-mark" aria-hidden="true">M</span>
+        <svg viewBox="0 0 64 64" role="img" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="hdr-bg" x1="5.33" y1="5.33" x2="58.67" y2="58.67" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#1D4ED8"/><stop offset="0.78" stop-color="#0EA5E9"/><stop offset="1" stop-color="#38BDF8"/>
+            </linearGradient>
+            <linearGradient id="hdr-m" x1="16" y1="16" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BAE6FD"/>
+            </linearGradient>
+          </defs>
+          <rect x="5.33" y="5.33" width="53.33" height="53.33" rx="16" fill="url(#hdr-bg)"/>
+          <path d="M16 46 L16 18 L32 34 L48 18 L48 46" fill="none" stroke="url(#hdr-m)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         MailGrit
       </a>
+      <nav class="nav-links" aria-label="Розділи">
+        <a href="#features">Можливості</a>
+        <a href="#security">Безпека</a>
+        <a href="#languages">Мови</a>
+        <a href="#faq">FAQ</a>
+      </nav>
       <div class="nav-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="Перемкнути тему" title="Перемкнути тему">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
         <nav class="lang-switch" aria-label="Мова">
           <a href="https://netreondev.github.io/MailGrit/" hreflang="en" lang="en">EN</a>
           <span class="sep" aria-hidden="true">|</span>
           <span class="cur">УК</span>
         </nav>
-        <a class="nav-cta" href="https://github.com/netreondev/MailGrit" rel="noopener">GitHub</a>
+        <a class="nav-cta" href="https://github.com/netreondev/MailGrit" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+          <span class="label">GitHub</span>
+        </a>
       </div>
     </div>
   </header>
@@ -199,32 +231,115 @@
     <!-- Hero -->
     <section class="hero">
       <div class="container">
-        <span class="eyebrow">Відкритий код &middot; Rust &middot; MIT / Apache-2.0</span>
-        <h1>Пакетна автоматизація <span class="grad">iRedAdmin</span> — прямо з робочого стола.</h1>
-        <p class="lead">
-          MailGrit — крос-платформний десктоп-додаток для пакетного створення, редагування та
-          видалення облікових записів користувачів пошти на серверах iRedAdmin &mdash; навіть за
-          FortiWeb / WAF &mdash; через вбудований браузер, який виконує легітимний <code>fetch</code>
-          у справжній сесії. Без інструментарію Node/JS: нативний WebView2/wry через Dioxus 0.7.
-        </p>
-        <div class="hero-cta">
-          <a class="btn btn-primary" href="https://github.com/netreondev/MailGrit/releases" rel="noopener">Завантажити</a>
-          <a class="btn btn-ghost" href="#quick-start">Швидкий старт</a>
-          <a class="btn btn-ghost" href="https://github.com/netreondev/MailGrit" rel="noopener">Переглянути вихідний код</a>
-          <a class="btn btn-ghost" href="https://donatello.to/VladymyrM" target="_blank" rel="noopener">Донат</a>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow">Відкритий код &middot; Rust &middot; MIT / Apache-2.0</span>
+            <h1>Пакетна автоматизація <span class="grad">iRedAdmin</span> — прямо з робочого стола.</h1>
+            <p class="lead">
+              MailGrit — крос-платформний десктоп-додаток для пакетного створення, редагування та
+              видалення облікових записів користувачів пошти на серверах iRedAdmin &mdash; навіть за
+              FortiWeb / WAF &mdash; через вбудований браузер, який виконує легітимний <code>fetch</code>
+              у справжній сесії. Без інструментарію Node/JS: нативний WebView2/wry через Dioxus 0.7.
+            </p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="https://github.com/netreondev/MailGrit/releases" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Завантажити
+              </a>
+              <a class="btn btn-ghost" href="#quick-start">Швидкий старт</a>
+              <a class="btn btn-ghost" href="https://github.com/netreondev/MailGrit" rel="noopener">Вихідний код</a>
+              <a class="btn btn-ghost" href="https://donatello.to/VladymyrM" target="_blank" rel="noopener">Донат</a>
+            </div>
+            <div class="hero-meta" aria-label="Коротко">
+              <span>Windows</span><span class="dot">&bull;</span>
+              <span>Linux</span><span class="dot">&bull;</span>
+              <span>macOS ARM</span><span class="dot">&bull;</span>
+              <span>Dioxus 0.7</span><span class="dot">&bull;</span>
+              <span>Rust 1.97.1, edition 2024</span><span class="dot">&bull;</span>
+              <span>9 мов</span>
+            </div>
+            <p class="legal-microcopy">
+              Лише для авторизованого адміністрування &mdash; працюйте виключно на серверах iRedAdmin,
+              якими володієте або які уповноважені адмініструвати. Не афілійовано з iRedAdmin.
+            </p>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="mockup-stage">
+            <div class="mockup">
+              <div class="mu-titlebar">
+                <span class="mu-brand">
+                  <svg viewBox="0 0 64 64" focusable="false"><rect x="6" y="6" width="52" height="52" rx="14" fill="#2563EB"/><path d="M17 46 L17 20 L32 34 L47 20 L47 46" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span class="mu-name">MailGrit</span><span class="mu-sub">Панель операцій</span>
+                </span>
+                <span class="mu-win">
+                  <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg></i>
+                  <i><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></i>
+                  <i class="close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></i>
+                </span>
+              </div>
+              <div class="mu-ctx">
+                <span class="mu-badge">Сесію активовано</span>
+                <span class="mu-url">https://mail.netreon.io/iredadmin</span>
+                <span class="mu-ctx-right">
+                  <span class="mu-seg"><span class="active">Операції</span><span>Аудит</span></span>
+                </span>
+              </div>
+              <div class="mu-body">
+                <div class="mu-card">
+                  <div class="mu-card-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                    Завантаження та редагування CSV
+                  </div>
+                  <div class="mu-card-body">
+                    <div class="mu-rows-count"><b>10</b> валідних рядків</div>
+                    <div class="mu-scroll">
+                    <table class="mu-table mu-rows">
+                      <thead><tr><th>Домен</th><th>Логін</th><th>Пароль</th><th>Квота</th></tr></thead>
+                      <tbody>
+                        <tr><td class="mono">netreon.io</td><td class="mono">j.doe</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">a.kova</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>2048</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">m.lee</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>512</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">s.nova</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">p.garcia</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>512</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">t.bauer</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>2048</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">l.petrov</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">j.doe</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">a.kova</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>2048</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">m.lee</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>512</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">s.nova</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">p.garcia</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>512</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">t.bauer</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>2048</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">l.petrov</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                      </tbody>
+                    </table>
+                    </div>
+                  </div>
+                </div>
+                <div class="mu-card">
+                  <div class="mu-card-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    Пакетні операції
+                  </div>
+                  <div class="mu-card-body">
+                    <div class="mu-target"><span class="active">Користувачі</span><span>Домени</span><span>Адміни</span></div>
+                    <div class="mu-actions">
+                      <span class="mu-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Створити</span>
+                      <span class="mu-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Змінити</span>
+                      <span class="mu-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>Видалити</span>
+                    </div>
+                    <div class="mu-running"><span class="spinner"></span> Виконання операції через iRedAdmin&hellip;</div>
+                    <div class="mu-track"><span class="mu-fill"></span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="mu-result">
+                <span class="mu-res-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Остання операція</span>
+                <span class="ok">Успішно: 10</span><span class="bad">Відхилено: 0</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="hero-meta" aria-label="Коротко">
-          <span>Windows</span><span class="dot">&bull;</span>
-          <span>Linux</span><span class="dot">&bull;</span>
-          <span>macOS ARM</span><span class="dot">&bull;</span>
-          <span>Dioxus 0.7</span><span class="dot">&bull;</span>
-          <span>Rust 1.97.1, edition 2024</span><span class="dot">&bull;</span>
-          <span>9 мов</span>
-        </div>
-        <p class="legal-microcopy">
-          Лише для авторизованого адміністрування &mdash; працюйте виключно на серверах iRedAdmin,
-          якими володієте або які уповноважені адмініструвати. Не афілійовано з iRedAdmin.
-        </p>
       </div>
     </section>
 
@@ -232,10 +347,10 @@
     <section class="section" aria-label="Цифрами">
       <div class="container">
         <div class="stats">
-          <div class="stat"><div class="num">5</div><div class="label">Ізольованих крейтів воркспейсу</div></div>
-          <div class="stat"><div class="num">9</div><div class="label">мов інтерфейсу, вбудованих під час компіляції</div></div>
-          <div class="stat"><div class="num">0</div><div class="label">байт <code>unsafe</code> (forbid у всьому воркспейсі)</div></div>
-          <div class="stat"><div class="num">3</div><div class="label">платформи у CI: Windows, Linux, macOS ARM</div></div>
+          <div class="stat reveal"><div class="num" data-count="5">5</div><div class="label">Ізольованих крейтів воркспейсу</div></div>
+          <div class="stat reveal"><div class="num" data-count="9">9</div><div class="label">мов інтерфейсу, вбудованих під час компіляції</div></div>
+          <div class="stat reveal"><div class="num" data-count="0">0</div><div class="label">байт <code>unsafe</code> (forbid у всьому воркспейсі)</div></div>
+          <div class="stat reveal"><div class="num" data-count="3">3</div><div class="label">платформи у CI: Windows, Linux, macOS ARM</div></div>
         </div>
       </div>
     </section>
@@ -243,39 +358,39 @@
     <!-- Features -->
     <section class="section" id="features">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">01 / Можливості</span>
           <h2>Усе для керування поштовими акаунтами у масштабі.</h2>
           <p>Нативна панель поверх справжньої сесії iRedAdmin &mdash; без крихкого відтворення куків і без окремого HTTP-клієнта, що ламається за WAF.</p>
         </div>
         <div class="grid">
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#9881;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg></div>
             <h3>Пакетні операції на основі CSV</h3>
             <p>Керуйте масовим створенням / редагуванням / видаленням із CSV. BOM видаляється автоматично, заголовки зіставляються гнучко (нечутливі до регістру), а жорсткі обмеження на кількість рядків і довжину захищають від випадкових великих вхідних даних.</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#128274;</div>
-            <h3>Зашифрований ланцюговий журнал аудиту</h3>
-            <p>Кожна операція додається до ланцюга, стійкого до втручання (HMAC-SHA256), і шифрується в спокої потоковим AEAD (XChaCha20-Poly1305). Ніщо не змінюється непомітно.</p>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <h3>Ланцюговий журнал аудиту з виявленням втручання</h3>
+            <p>Кожна операція додається до ланцюга, стійкого до втручання (HMAC-SHA256), тож будь-яке видалення, переставляння чи зміну минулого запису буде виявлено під час перевірки. Експорти та резервні копії шифруються в спокої потоковим AEAD (XChaCha20-Poly1305).</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#128737;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
             <h3>Захист ключем головного пароля</h3>
-            <p>Виводить ключ журналу аудиту та ключ експорту через Argon2id (KDF, стійкий до атак по пам'яті). Пароль ніколи не зберігається: втративши його, ви не розблокуєте журнал аудиту та зашифровані експорти.</p>
+            <p>Виводить ключ журналу аудиту та ключ експорту через Argon2id (KDF, стійкий до атак по пам'яті). Пароль ніколи не зберігається: втративши його, ви не зможете перевірити журнал аудиту та розблокувати зашифровані експорти.</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#127760;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
             <h3>Працює за FortiWeb / WAF</h3>
             <p>Запити виконуються як <code>fetch</code> у тому самому вебв'ю, що утримує легітимну сесію, тож серверну автентифікацію, яку тримає проксі, не потрібно відтворювати &mdash; без вгадування куків.</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#127468;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
             <h3>9 мов, скомпільовано всередину</h3>
             <p>Англійська, німецька, французька, іспанська, італійська, португальська, нідерландська, польська та українська. Переклади вбудовуються в бінарник; ваш вибір зберігається в <code>config.toml</code>.</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#9728;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></div>
             <h3>Безрамковий інтерфейс з темами</h3>
             <p>Власна дизайн-система на CSS-токенах: користувацький тайтлбар, темна та світла теми з перемикачем, симетрична сітка карток, модальне підтвердження для руйнівних операцій та індикатори прогресу.</p>
           </article>
@@ -286,24 +401,24 @@
     <!-- Security -->
     <section class="section" id="security">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">02 / Модель безпеки</span>
           <h2>Безпека за замовчуванням, контрольована під час компіляції.</h2>
           <p>Безпека &mdash; це політика всього воркспейсу, а не «найкраще зусилля»: <code>unsafe_code = "forbid"</code>, суворий clippy та перевірки ланцюга постачання виконуються на кожній підтримуваній платформі у CI.</p>
         </div>
         <div class="split">
-          <div class="panel">
+          <div class="panel reveal">
             <h3>Політика, що не може «попливти»</h3>
             <ul class="checklist">
               <li><strong><code>unsafe_code = "forbid"</code></strong> у всьому воркспейсі &mdash; жодного <code>unsafe</code> в жодному крейті додатку.</li>
               <li>Групи clippy <code>correctness</code>, <code>suspicious</code>, <code>complexity</code>, <code>perf</code>, <code>pedantic</code>, <code>nursery</code> та <code>cargo</code> &mdash; усі <code>deny</code>.</li>
               <li><code>panic</code>, <code>unwrap_used</code>, <code>expect_used</code>, <code>indexing_slicing</code>, <code>arithmetic_side_effects</code> &mdash; усі <code>deny</code>.</li>
               <li>Ланцюг постачання: <code>cargo-deny</code> (advisories, bans, licenses, sources) плюс <code>cargo-audit</code>.</li>
-              <li>Журнал аудиту у спокої: потоковий AEAD XChaCha20-Poly1305; хеш-ланцюг HMAC-SHA256 для цілісності.</li>
+              <li>Цілісність журналу аудиту: хеш-ланцюг HMAC-SHA256. Зашифровані експорти та резервні копії: потоковий AEAD XChaCha20-Poly1305.</li>
               <li>Головний пароль: Argon2id — KDF, стійкий до атак по пам'яті; ніколи не зберігається і не логується.</li>
             </ul>
           </div>
-          <div class="code-window" aria-label="Уривок політики лінтів воркспейсу">
+          <div class="code-window reveal" aria-label="Уривок політики лінтів воркспейсу">
             <div class="bar"><i></i><i></i><i></i><span class="title">Cargo.toml</span></div>
 <pre><span class="c"># Без винятків: wry 0.53 повертає HttpOnly cookies нативно.</span>
 <span class="c"># Кожен крейт додатку перевіряється за цією політикою.</span>
@@ -326,12 +441,12 @@
     <!-- i18n -->
     <section class="section" id="languages">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">03 / Інтернаціоналізація</span>
           <h2>Дев'ять мов, у бінарнику.</h2>
           <p>Переклади вбудовуються під час компіляції через <code>rust-i18n</code> &mdash; файлів ресурсів ганяти під час виконання не треба. Ваш вибір зберігається в <code>config.toml</code>.</p>
         </div>
-        <div class="langs">
+        <div class="langs reveal">
           <span class="lang-chip"><code>en</code> Англійська <span class="end" lang="en">English</span></span>
           <span class="lang-chip"><code>de</code> Німецька <span class="end" lang="de">Deutsch</span></span>
           <span class="lang-chip"><code>fr</code> Французька <span class="end" lang="fr">Fran&ccedil;ais</span></span>
@@ -348,12 +463,12 @@
     <!-- Quick start -->
     <section class="section" id="quick-start">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">04 / Швидкий старт</span>
           <h2>Одна команда до release-збірки.</h2>
           <p>MailGrit &mdash; це воркспейс Cargo; зберіть десктоп-додаток для своєї платформи й запускайте його безпосередньо.</p>
         </div>
-        <div class="code-window" aria-label="Збірка десктоп-додатку">
+        <div class="code-window reveal" aria-label="Збірка десктоп-додатку">
           <div class="bar"><i></i><i></i><i></i><span class="title">bash</span></div>
 <pre><span class="c"># Потребує Rust 1.97.1 (закріплений через rust-toolchain.toml, edition 2024)</span>
 <span class="p">$</span> <span class="k">cargo build</span> --release -p mailgrit-app-desktop
@@ -364,7 +479,7 @@
 <span class="c"># Linux / macOS</span>
 <span class="p">$</span> ./target/release/mailgrit-app-desktop</pre>
         </div>
-        <p style="margin-top:18px;color:var(--text-muted);font-size:0.95rem;max-width:62ch;">
+        <p class="reveal" style="margin-top:18px;color:var(--text-muted);font-size:0.95rem;max-width:62ch;">
           Під час першого запуску поряд із бінарником створюється тека <code>mailgrit-data/</code>, де
           зберігаються усі файли додатку. Вкажіть URL вашого iRedAdmin, увійдіть один раз у вбудованому
           браузері &mdash; і панель операцій відкриється автоматично.
@@ -375,13 +490,13 @@
     <!-- Architecture -->
     <section class="section" id="architecture">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">05 / Архітектура</span>
           <h2>П'ять крейтів, кожен можна тестувати окремо.</h2>
           <p>Воркспейс Cargo, де шари домену, парсингу, сховища, безпеки та інтерфейсу розділені &mdash; <code>cargo test -p &lt;crate&gt;</code> запускає кожен окремо.</p>
         </div>
         <div class="split">
-          <div class="panel">
+          <div class="panel reveal">
             <h3>Структура воркспейсу</h3>
             <ul class="checklist">
               <li><strong>core-domain</strong> &mdash; доменні типи (Newtype/Typestate), помилки, константи обмежень, політика паролів.</li>
@@ -391,13 +506,50 @@
               <li><strong>app-desktop</strong> &mdash; десктоп-додаток Dioxus 0.7: вікно входу, обробка куків, нативна RSX-панель.</li>
             </ul>
           </div>
-          <div class="code-window" aria-label="Граф залежностей воркспейсу">
+          <div class="code-window reveal" aria-label="Граф залежностей воркспейсу">
             <div class="bar"><i></i><i></i><i></i><span class="title">graph</span></div>
 <pre><span class="c"># кожен крейт компілюється / тестується окремо</span>
 core-domain ─┬─ core-csv ────┐
              ├─ core-storage ─┤
              └─ core-security ┴─ app-desktop</pre>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-num">06 / FAQ</span>
+          <h2>Часті запитання.</h2>
+          <p>Що таке MailGrit, як він працює та як залишається безпечним.</p>
+        </div>
+        <div class="faq reveal">
+          <details class="faq-item">
+            <summary>Що таке MailGrit? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">MailGrit — це безкоштовний крос-платформний десктоп-додаток із відкритим кодом, написаний на Rust, який виконує пакетне створення, редагування та видалення поштових акаунтів користувачів на поштових серверах iRedAdmin. Це інструмент адміністрування, а не поштовий клієнт для читання листів.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Які операційні системи підтримує MailGrit? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">MailGrit працює на Windows, Linux (x86_64) та macOS на Apple Silicon (aarch64). Додаток створено на базі десктоп-фреймворку Dioxus і використовує системний WebView, тому немає потреби у Node чи JavaScript-інструментарії.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Чи працює MailGrit за FortiWeb або WAF? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">Так. Пакетні операції виконуються як JavaScript <code>fetch</code> POST справжньої HTML-форми створення/редагування iRedAdmin (із CSRF-токеном) усередині того ж вбудованого webview, що тримає легітимну сесію. Оскільки запит походить із автентифікованого браузерного сеансу, він працює навіть тоді, коли сервер знаходиться за FortiWeb або іншим веб-фаєрволом (WAF).</div>
+          </details>
+          <details class="faq-item">
+            <summary>Як MailGrit автентифікується на iRedAdmin? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">Ви входите через вбудований браузер, використовуючи свої справжні облікові дані iRedAdmin. Додаток визначає успішний вхід орієнтованим на дані способом &mdash; за переходом webview входу на <code>/dashboard</code>, а не вгадуванням імен cookie. Потім він виконує операції як <code>fetch</code> у межах того ж автентифікованого webview.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Чи безпечний MailGrit? Як захищений журнал аудиту? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">Кожна операція додається до ланцюга, стійкого до втручання (HMAC-SHA256), що захищає <strong>цілісність</strong>: будь-яке видалення, переставляння чи зміну минулого запису буде виявлено під час перевірки (<code>verify</code>). Зашифровані експорти та резервні копії захищені у спокої потоковим автентифікованим шифруванням (XChaCha20-Poly1305), ключі для якого виводяться з майстер-пароля через Argon2id; майстер-пароль ніколи не зберігається. Робочий простір застосовує <code>unsafe_code = "forbid"</code>, тож у крейтах додатку немає unsafe-коду.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Чи безкоштовний MailGrit і яка у нього ліцензія? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">MailGrit безкоштовний і має відкритий код, подвійно ліцензований за ліцензією MIT або Apache License 2.0 на ваш вибір. Вихідний код і готові бінарні файли доступні на GitHub. iRedAdmin є торговою маркою відповідних власників; MailGrit незалежний і не пов'язаний із iRedAdmin та не схвалений ним.</div>
+          </details>
         </div>
       </div>
     </section>
@@ -417,7 +569,18 @@ core-domain ─┬─ core-csv ────┐
       <div class="footer-grid">
         <div>
           <a class="brand" href="https://netreondev.github.io/MailGrit/uk/" aria-label="MailGrit — головна">
-            <span class="brand-mark" aria-hidden="true">M</span>
+            <svg viewBox="0 0 64 64" role="img" aria-hidden="true" focusable="false">
+              <defs>
+                <linearGradient id="ftr-bg" x1="5.33" y1="5.33" x2="58.67" y2="58.67" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#1D4ED8"/><stop offset="0.78" stop-color="#0EA5E9"/><stop offset="1" stop-color="#38BDF8"/>
+                </linearGradient>
+                <linearGradient id="ftr-m" x1="16" y1="16" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BAE6FD"/>
+                </linearGradient>
+              </defs>
+              <rect x="5.33" y="5.33" width="53.33" height="53.33" rx="16" fill="url(#ftr-bg)"/>
+              <path d="M16 46 L16 18 L32 34 L48 18 L48 46" fill="none" stroke="url(#ftr-m)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             MailGrit
           </a>
           <p>Десктоп-клієнт з відкритим кодом для пакетної автоматизації iRedAdmin. Побудований на Dioxus 0.7 desktop &mdash; без інструментарію Node/JS.</p>
@@ -459,5 +622,7 @@ core-domain ─┬─ core-csv ────┐
       </p>
     </div>
   </footer>
+
+  <script src="../assets/app.js" defer></script>
 </body>
 </html>

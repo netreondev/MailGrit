@@ -10,20 +10,33 @@
 
 [package]
 name = "mailgrit-fuzz"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-publish.workspace = true
+# The fuzz crate is intentionally NOT a workspace member (it builds under
+# nightly with libfuzzer-sys, whose FFI requires relaxed lints the workspace
+# forbids). To keep it fully self-contained — so `cargo +nightly fuzz run` works
+# without it "believing it is in a workspace" — the metadata is inlined here
+# (mirroring the root [workspace.package]) instead of inherited via `*.workspace`.
+version = "0.1.2"
+edition = "2024"
+rust-version = "1.97.1"
+license = "MIT OR Apache-2.0"
+publish = false
 description = "MailGrit fuzz targets (cargo-fuzz)."
 
 [package.metadata]
 cargo-fuzz = true
 
 [dependencies]
+# Fuzz crate is intentionally NOT a workspace member (libfuzzer-sys needs
+# nightly + coverage instrumentation, and the workspace lints forbid unsafe).
+# Path-only deps keep it self-contained under cargo-fuzz.
 mailgrit-core-csv = { path = "../crates/core-csv" }
 mailgrit-core-domain = { path = "../crates/core-domain" }
 libfuzzer-sys = "0.4"
+# `url` is a direct dependency of the app's URL/scheme validation
+# (crates/app-desktop/src/util.rs::validate_base_url + login_window navigation
+# handler). We pull it here directly (lightweight, no GUI stack) so the scheme
+# allow-list (http/https only) can be fuzzed without dragging in dioxus/wry.
+url = "2.5"
 
 [[bin]]
 name = "fuzz_parse_csv_bytes"
@@ -37,8 +50,27 @@ path = "fuzz_targets/parse_domain.rs"
 test = false
 doc = false
 
+[[bin]]
+name = "fuzz_parse_username"
+path = "fuzz_targets/parse_username.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_parse_quota"
+path = "fuzz_targets/parse_quota.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "fuzz_url_parse"
+path = "fuzz_targets/url_parse.rs"
+test = false
+doc = false
+
 # The fuzz crate compiles under nightly with libfuzzer-sys (no_main, coverage
 # instrumentation). The workspace lints (forbid unsafe and strict denies) are NOT
 # inherited here — the fuzz environment inherently uses unsafe (libfuzzer FFI) and
 # relaxed rules. The quality of the code under test (crates/*) is protected by the
 # main workspace lints.
+

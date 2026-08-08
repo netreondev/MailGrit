@@ -123,7 +123,6 @@ impl OperationProfile {
 
 #[cfg(test)]
 mod tests {
-    #![allow(clippy::indexing_slicing)]
     use super::*;
 
     #[test]
@@ -140,37 +139,58 @@ mod tests {
     }
 
     #[test]
-    fn user_create_required_flags_are_correct() {
+    fn user_create_required_flags_are_correct() -> Result<(), Box<dyn std::error::Error>> {
         let p = OperationProfile::for_user_create();
-        assert!(p.fields[0].required, "domain is required");
-        assert!(p.fields[1].required, "username is required");
-        assert!(p.fields[2].required, "password is required");
-        assert!(!p.fields[3].required, "display_name is optional");
-        assert!(!p.fields[4].required, "quota_mb is optional");
+        let fields = p.fields.as_slice();
+        let f0 = fields.first().ok_or("domain missing")?;
+        let f1 = fields.get(1).ok_or("username missing")?;
+        let f2 = fields.get(2).ok_or("password missing")?;
+        let f3 = fields.get(3).ok_or("display_name missing")?;
+        let f4 = fields.get(4).ok_or("quota_mb missing")?;
+        assert!(f0.required, "domain is required");
+        assert!(f1.required, "username is required");
+        assert!(f2.required, "password is required");
+        assert!(!f3.required, "display_name is optional");
+        assert!(!f4.required, "quota_mb is optional");
+        Ok(())
     }
 
     #[test]
-    fn user_create_defaults_are_sane() {
+    fn user_create_defaults_are_sane() -> Result<(), Box<dyn std::error::Error>> {
         let p = OperationProfile::for_user_create();
-        assert_eq!(p.fields[0].default, None, "domain has no default");
-        assert_eq!(p.fields[1].default, None, "username has no default");
-        assert_eq!(p.fields[2].default, None, "password has no default");
-        assert_eq!(p.fields[3].default, Some(""), "display_name default = ''");
+        let fields = p.fields.as_slice();
+        let f0 = fields.first().ok_or("domain missing")?;
+        let f1 = fields.get(1).ok_or("username missing")?;
+        let f2 = fields.get(2).ok_or("password missing")?;
+        let f3 = fields.get(3).ok_or("display_name missing")?;
+        let f4 = fields.get(4).ok_or("quota_mb missing")?;
+        assert_eq!(f0.default, None, "domain has no default");
+        assert_eq!(f1.default, None, "username has no default");
+        assert_eq!(f2.default, None, "password has no default");
+        assert_eq!(f3.default, Some(""), "display_name default = ''");
         assert_eq!(
-            p.fields[4].default,
+            f4.default,
             Some(DEFAULT_QUOTA_MB_STR),
             "quota_mb default = DEFAULT_QUOTA_MB_STR"
         );
+        Ok(())
     }
 
     #[test]
-    fn user_create_max_lens_match_limits_module() {
+    fn user_create_max_lens_match_limits_module() -> Result<(), Box<dyn std::error::Error>> {
         let p = OperationProfile::for_user_create();
-        assert_eq!(p.fields[0].max_len, Some(MAX_DOMAIN_LEN));
-        assert_eq!(p.fields[1].max_len, Some(MAX_USERNAME_LEN));
-        assert_eq!(p.fields[2].max_len, Some(MAX_PASSWORD_LEN));
-        assert_eq!(p.fields[3].max_len, Some(MAX_DISPLAY_NAME_LEN));
-        assert!(p.fields[4].max_len.is_some());
+        let fields = p.fields.as_slice();
+        let f0 = fields.first().ok_or("domain missing")?;
+        let f1 = fields.get(1).ok_or("username missing")?;
+        let f2 = fields.get(2).ok_or("password missing")?;
+        let f3 = fields.get(3).ok_or("display_name missing")?;
+        let f4 = fields.get(4).ok_or("quota_mb missing")?;
+        assert_eq!(f0.max_len, Some(MAX_DOMAIN_LEN));
+        assert_eq!(f1.max_len, Some(MAX_USERNAME_LEN));
+        assert_eq!(f2.max_len, Some(MAX_PASSWORD_LEN));
+        assert_eq!(f3.max_len, Some(MAX_DISPLAY_NAME_LEN));
+        assert!(f4.max_len.is_some());
+        Ok(())
     }
 
     #[test]
@@ -190,7 +210,7 @@ mod tests {
     }
 
     #[test]
-    fn domain_create_has_correct_fields_and_defaults() {
+    fn domain_create_has_correct_fields_and_defaults() -> Result<(), Box<dyn std::error::Error>> {
         let p = OperationProfile::for_domain_create();
         assert_eq!(p.target, OperationTarget::Domain);
         assert_eq!(p.kind, BulkOperationKind::Create);
@@ -198,14 +218,28 @@ mod tests {
             names_of(&p),
             vec!["domain", "quota_mb", "transport", "is_backupmx"]
         );
-        assert!(p.fields[0].required, "domain is required");
-        assert_eq!(p.fields[1].default, Some(DEFAULT_QUOTA_MB_STR));
-        assert_eq!(p.fields[2].default, Some("dovecot"));
-        assert_eq!(p.fields[3].default, Some("0"));
+        let fields = p.fields.as_slice();
+        assert!(
+            fields.first().ok_or("domain missing")?.required,
+            "domain is required"
+        );
+        assert_eq!(
+            fields.get(1).ok_or("quota_mb missing")?.default,
+            Some(DEFAULT_QUOTA_MB_STR)
+        );
+        assert_eq!(
+            fields.get(2).ok_or("transport missing")?.default,
+            Some("dovecot")
+        );
+        assert_eq!(
+            fields.get(3).ok_or("is_backupmx missing")?.default,
+            Some("0")
+        );
+        Ok(())
     }
 
     #[test]
-    fn admin_create_has_correct_fields() {
+    fn admin_create_has_correct_fields() -> Result<(), Box<dyn std::error::Error>> {
         let p = OperationProfile::for_admin_create();
         assert_eq!(p.target, OperationTarget::Admin);
         assert_eq!(p.kind, BulkOperationKind::Create);
@@ -213,8 +247,14 @@ mod tests {
             names_of(&p),
             vec!["domain", "username", "password", "display_name"]
         );
-        assert!(p.fields[0].required && p.fields[1].required && p.fields[2].required);
-        assert!(!p.fields[3].required);
-        assert_eq!(p.fields[3].default, Some(""));
+        let fields = p.fields.as_slice();
+        let f0 = fields.first().ok_or("domain missing")?;
+        let f1 = fields.get(1).ok_or("username missing")?;
+        let f2 = fields.get(2).ok_or("password missing")?;
+        let f3 = fields.get(3).ok_or("display_name missing")?;
+        assert!(f0.required && f1.required && f2.required);
+        assert!(!f3.required);
+        assert_eq!(f3.default, Some(""));
+        Ok(())
     }
 }

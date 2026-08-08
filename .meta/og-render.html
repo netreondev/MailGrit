@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1200, initial-scale=1">
+<title>MailGrit OG render</title>
+<style>
+  /* Self-contained 1200x630 canvas for OG image generation.
+     Uses the app's premium dark palette. Inline so it renders identically
+     when screenshotted offline. Fonts fall back gracefully without network. */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #08080C;
+    --bg-elevated: #0F0F15;
+    --bg-surface: #1A1A22;
+    --bg-surface-2: #20202B;
+    --bg-input: #14141C;
+    --text: #EDEDF0;
+    --text-muted: #8A8A99;
+    --text-subtle: #5E5E6B;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.14);
+    --accent: #2563EB;
+    --accent-2: #38BDF8;
+    --accent-soft: rgba(37,99,235,0.16);
+    --accent-grad: linear-gradient(135deg, #1D4ED8 0%, #38BDF8 100%);
+    --success: #3DD68C;
+    --success-fg: #6FE0AC;
+    --success-soft: rgba(61,214,140,0.14);
+    --danger: #E5484D;
+    --sans: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --mono: "JetBrains Mono", "Cascadia Code", "SF Mono", Consolas, monospace;
+  }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    position: relative;
+  }
+  /* kinetic mesh background */
+  .mesh {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(720px 460px at 82% -8%, rgba(56,189,248,0.20), transparent 65%),
+      radial-gradient(640px 420px at 8% 4%, rgba(37,99,235,0.22), transparent 65%);
+  }
+  .grid-texture {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(680px 460px at 60% 30%, #000, transparent 78%);
+            mask-image: radial-gradient(680px 460px at 60% 30%, #000, transparent 78%);
+    opacity: 0.6;
+  }
+  .canvas {
+    position: relative; z-index: 1;
+    width: 1200px; height: 630px;
+    padding: 52px 60px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+
+  /* ---- Top: brand + eyebrow ---- */
+  .top { display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand .logo { width: 60px; height: 60px; flex-shrink: 0; }
+  .brand .name { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-size: 14px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--accent-2);
+    background: var(--accent-soft);
+    border: 1px solid rgba(56,189,248,0.30);
+    padding: 8px 16px; border-radius: 999px;
+  }
+  .pill::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent-2); box-shadow: 0 0 10px var(--accent-2);
+  }
+
+  /* ---- Middle: headline + meta ---- */
+  .middle { margin-top: -6px; }
+  h1 {
+    font-size: 60px; line-height: 1.02; letter-spacing: -0.035em; font-weight: 800;
+    max-width: 16ch; margin-bottom: 22px;
+  }
+  h1 .grad {
+    background: var(--accent-grad);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .sub { font-size: 21px; color: var(--text-muted); max-width: 56ch; line-height: 1.45; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 22px; font-size: 15px; color: var(--text-muted); }
+  .meta .dot { opacity: 0.4; }
+  .meta b { color: var(--text); font-weight: 600; }
+
+  /* ---- Bottom: stat chips + footer ---- */
+  .bottom { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+  .stats { display: flex; gap: 14px; }
+  .stat {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 22px;
+  }
+  .stat .n {
+    font-size: 34px; font-weight: 800; letter-spacing: -0.03em;
+    background: var(--accent-grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    line-height: 1; font-variant-numeric: tabular-nums;
+  }
+  .stat .l { color: var(--text-muted); font-size: 13px; margin-top: 6px; }
+  .footer-info { text-align: right; color: var(--text-subtle); font-size: 14px; line-height: 1.5; }
+  .footer-info .lic { color: var(--text-muted); font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="mesh"></div>
+  <div class="grid-texture"></div>
+  <div class="canvas">
+    <div class="top">
+      <div class="brand">
+        <svg class="logo" viewBox="0 0 64 64" role="img" aria-label="MailGrit">
+          <defs>
+            <linearGradient id="og-bg" x1="5.33" y1="5.33" x2="58.67" y2="58.67" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#1D4ED8"/><stop offset="0.42" stop-color="#2563EB"/>
+              <stop offset="0.78" stop-color="#0EA5E9"/><stop offset="1" stop-color="#38BDF8"/>
+            </linearGradient>
+            <linearGradient id="og-sheen" x1="8" y1="8" x2="34.67" y2="37.33" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#ffffff" stop-opacity="0.34"/>
+              <stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
+            </linearGradient>
+            <linearGradient id="og-m" x1="16" y1="16" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BAE6FD"/>
+            </linearGradient>
+            <filter id="og-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="1.7"/></filter>
+          </defs>
+          <rect x="5.33" y="5.33" width="53.33" height="53.33" rx="16" fill="url(#og-bg)"/>
+          <rect x="5.33" y="5.33" width="53.33" height="53.33" rx="16" fill="url(#og-sheen)"/>
+          <rect x="6.93" y="6.93" width="50.13" height="50.13" rx="14.4" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="1.87"/>
+          <path d="M16 46 L16 18 L32 34 L48 18 L48 46" fill="none" stroke="#7DD3FC" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" filter="url(#og-glow)"/>
+          <path d="M16 46 L16 18 L32 34 L48 18 L48 46" fill="none" stroke="url(#og-m)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <g stroke="#1D4ED8" stroke-opacity="0.38" stroke-width="1.5" stroke-linecap="round">
+            <line x1="13.4" y1="25" x2="18.6" y2="25"/><line x1="13.4" y1="32" x2="18.6" y2="32"/>
+            <line x1="13.4" y1="39" x2="18.6" y2="39"/><line x1="45.4" y1="25" x2="50.6" y2="25"/>
+            <line x1="45.4" y1="32" x2="50.6" y2="32"/><line x1="45.4" y1="39" x2="50.6" y2="39"/>
+          </g>
+        </svg>
+        <span class="name">MailGrit</span>
+      </div>
+      <span class="pill">Open source &middot; Rust</span>
+    </div>
+
+    <div class="middle">
+      <h1>Bulk <span class="grad">iRedAdmin</span> automation, from the desktop.</h1>
+      <p class="sub">Create, edit and delete mail accounts in bulk &mdash; even behind FortiWeb / WAF &mdash; through a real authenticated session. Tamper-evident audit log, 9 languages.</p>
+      <div class="meta">
+        <span><b>Windows</b></span><span class="dot">&bull;</span>
+        <span><b>Linux</b></span><span class="dot">&bull;</span>
+        <span><b>macOS ARM</b></span><span class="dot">&bull;</span>
+        <span>Dioxus 0.7</span><span class="dot">&bull;</span>
+        <span>Rust 1.97.1</span><span class="dot">&bull;</span>
+        <span>0 bytes of <b>unsafe</b></span>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div class="stats">
+        <div class="stat"><div class="n">5</div><div class="l">workspace crates</div></div>
+        <div class="stat"><div class="n">9</div><div class="l">UI languages</div></div>
+        <div class="stat"><div class="n">0</div><div class="l">bytes unsafe</div></div>
+        <div class="stat"><div class="n">3</div><div class="l">CI platforms</div></div>
+      </div>
+      <div class="footer-info">
+        <span class="lic">MIT OR Apache-2.0</span><br>
+        Free &amp; open source
+      </div>
+    </div>
+  </div>
+</body>
+</html>

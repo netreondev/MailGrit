@@ -5,15 +5,14 @@
 /// folder next to the executable. Convenient for porting: copy the binary + the folder.
 pub fn app_data_dir() -> std::path::PathBuf {
     // Path of the executable -> sibling mailgrit-data folder.
-    if let Some(exe) = std::env::current_exe()
+    // Fallback (None): mailgrit-data in the current directory.
+    std::env::current_exe()
         .ok()
         .and_then(|p| p.parent().map(std::path::Path::to_path_buf))
-    {
-        exe.join("mailgrit-data")
-    } else {
-        // Fallback — current directory.
-        std::path::PathBuf::from("mailgrit-data")
-    }
+        .map_or_else(
+            || std::path::PathBuf::from("mailgrit-data"),
+            |exe| exe.join("mailgrit-data"),
+        )
 }
 
 /// Global tokio runtime. Stored in a `static OnceLock`, NOT in `AppState`:

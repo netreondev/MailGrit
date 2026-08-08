@@ -9,14 +9,14 @@
 //! core-csv). This covers any invariant-relevant content without an unsized `&str`.
 
 #![cfg(kani)]
-// Kani harnesses do not follow workspace lints (forbid unsafe in core-domain
-// remains, but pedantic/nursery are excessive here for verification code).
-#![allow(clippy::pedantic, clippy::nursery, clippy::needless_pass_by_value)]
+// Kani proof harnesses are verification entry points: their signatures and
+// internal style follow workspace lints (no suppressions). `expect` is used
+// intentionally where an invariant must hold (its failure = a proof failure).
 
 use crate::types::{
     SanitizedDisplayName, SanitizedUsername, ValidatedDomain, ValidatedPassword, ValidatedQuota,
 };
-use crate::typestate::{EXPECTED_CSV_COLUMNS, RawCsvRow};
+use crate::typestate::RawCsvRow;
 
 /// Buffer size for modeling arbitrary parser input.
 /// Large enough to cover boundary cases (empty, long strings, invalid
@@ -132,8 +132,11 @@ fn verify_quota_parse_no_panic() {
 #[kani::proof]
 fn verify_quota_parse_empty_defaults() {
     // Invariant: empty string → default quota (not an error).
-    let q = ValidatedQuota::parse("").expect("empty quota → default");
-    assert_eq!(q.mb(), crate::limits::DEFAULT_QUOTA_MB);
+    let parsed = ValidatedQuota::parse("");
+    assert!(parsed.is_ok(), "empty quota must parse to the default");
+    if let Ok(q) = parsed {
+        assert_eq!(q.mb(), crate::limits::DEFAULT_QUOTA_MB);
+    }
 }
 
 #[kani::proof]
@@ -151,23 +154,52 @@ fn verify_quota_parse_range_invariant() {
 // RawCsvRow::parse (typestate roundtrip)
 // ============================================================================
 
+/// Helper: a RawCsvRow built from exactly `N` empty fields (only the field
+/// *count* is relevant to the ColumnCount invariant — `parse` matches on slice
+/// length before inspecting any field content).
+fn row_with_n_empty_fields<const N: usize>() -> RawCsvRow {
+    let fields: [String; N] = std::array::from_fn(|_| String::new());
+    RawCsvRow::new(fields.to_vec())
+}
+
 #[kani::proof]
-fn verify_raw_csv_row_parse_column_count() {
-    // Invariant: a RawCsvRow with a number of fields ≠ EXPECTED_CSV_COLUMNS is
-    // always rejected with CsvRowError::ColumnCount.
-    let mut fields = Vec::new();
-    // Kani: model 0..EXPECTED_CSV_COLUMNS fields (fewer than expected).
-    for i in 0..(EXPECTED_CSV_COLUMNS - 1) {
-        let _ = i;
-        fields.push(any_string());
-    }
-    let row = RawCsvRow::new(fields);
-    // Fewer than 5 fields → guaranteed ColumnCount.
-    assert!(
-        matches!(
-            row.parse(),
-            Err(crate::error::CsvRowError::ColumnCount { .. })
-        ),
-        "fewer than 5 fields → ColumnCount"
-    );
+fn verify_raw_csv_row_parse_zero_fields() {
+    // 0 fields → ColumnCount (0 ≠ EXPECTED_CSV_COLUMNS).
+    assert!(matches!(
+        row_with_n_empty_fields::<0>().parse(),
+        Err(crate::error::CsvRowError::ColumnCount { .. })
+    ));
+}
+
+#[kani::proof]
+fn verify_raw_csv_row_parse_one_field() {
+    assert!(matches!(
+        row_with_n_empty_fields::<1>().parse(),
+        Err(crate::error::CsvRowError::ColumnCount { .. })
+    ));
+}
+
+#[kani::proof]
+fn verify_raw_csv_row_parse_two_fields() {
+    assert!(matches!(
+        row_with_n_empty_fields::<2>().parse(),
+        Err(crate::error::CsvRowError::ColumnCount { .. })
+    ));
+}
+
+#[kani::proof]
+fn verify_raw_csv_row_parse_three_fields() {
+    assert!(matches!(
+        row_with_n_empty_fields::<3>().parse(),
+        Err(crate::error::CsvRowError::ColumnCount { .. })
+    ));
+}
+
+#[kani::proof]
+fn verify_raw_csv_row_parse_four_fields() {
+    // EXPECTED_CSV_COLUMNS - 1 = 4 → still rejected.
+    assert!(matches!(
+        row_with_n_empty_fields::<4>().parse(),
+        Err(crate::error::CsvRowError::ColumnCount { .. })
+    ));
 }
