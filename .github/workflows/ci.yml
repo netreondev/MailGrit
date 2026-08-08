@@ -29,9 +29,11 @@ env:
   # release gate: missing_docs, dead_code, unused, rust_2018_idioms are all
   # denied in [workspace.lints.rust]; this flag makes them fail the build.
   RUSTFLAGS: "-D warnings"
-  # sccache — compilation-artifact caching across runs.
-  SCCACHE_GHA_ENABLED: "true"
-  RUSTC_WRAPPER: sccache
+  # NOTE: sccache env (RUSTC_WRAPPER, SCCACHE_GHA_ENABLED) is NOT set globally.
+  # It is scoped to the `quality` and `build-release` jobs — the only ones that
+  # install sccache via mozilla-actions/sccache-action. Setting RUSTC_WRAPPER
+  # globally would make cargo-deny/audit/vet/fuzz/kani/mutants crash with
+  # "No such file or directory" trying to invoke the missing sccache binary.
 
 jobs:
   # ============================================================================
@@ -99,6 +101,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: supply-chain
     timeout-minutes: 45
+    env:
+      # sccache — scoped to this job (it installs sccache-action below).
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     strategy:
       fail-fast: false
       matrix:
@@ -182,6 +188,10 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: quality
     timeout-minutes: 45
+    env:
+      # sccache — scoped to this job (it installs sccache-action below).
+      SCCACHE_GHA_ENABLED: "true"
+      RUSTC_WRAPPER: sccache
     strategy:
       fail-fast: false
       matrix:
