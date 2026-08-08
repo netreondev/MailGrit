@@ -21,31 +21,20 @@
 /// from configuration. The [`validate`](Self::validate) function never panics and
 /// returns the list of violations (parse-don't-validate): an empty list means the
 /// password satisfies the policy.
-//
-// struct_excessive_bools: 4 independent character-class requirement flags
-// (uppercase/lowercase/number/special) — this is the canonical form of a password
-// policy (the same 4 flags in iRedAdmin settings.py and in most systems). Grouping
-// them into bitflags/enum hurts readability for no benefit: the user sees explicit
-// on/off toggles in config.toml. The same established pattern as in AppState.
-#[allow(
-    clippy::struct_excessive_bools,
-    reason = "4 independent character-class flags are the canonical form of a password policy"
-)]
+///
+/// The four character-class requirement flags live in [`classes`](Self::classes)
+/// (a single [`CharacterClasses`](crate::CharacterClasses) field), keeping this
+/// struct below clippy's `struct_excessive_bools` threshold: the same canonical
+/// `require_uppercase`/`require_lowercase`/`require_number`/`require_special`
+/// set from iRedAdmin `settings.py`, grouped so the bool count stays at zero on
+/// the parent struct.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PasswordPolicy {
     /// Minimum password length (in characters). Matches the iRedAdmin default of 8.
     pub min_len: usize,
-    /// Whether at least one uppercase letter is required (Unicode `is_uppercase`:
-    /// Latin `A`-`Z`, Greek, Cyrillic, ...).
-    pub require_uppercase: bool,
-    /// Whether at least one lowercase letter is required (Unicode `is_lowercase`:
-    /// Latin `a`-`z`, Greek, Cyrillic, ...).
-    pub require_lowercase: bool,
-    /// Whether at least one digit is required (Unicode `is_numeric`: `0`-`9`, ...).
-    pub require_number: bool,
-    /// Whether at least one special character is required (ASCII punctuation:
-    /// `!@#$%^&*`, etc.).
-    pub require_special: bool,
+    /// Required character classes (uppercase/lowercase/digits/special). Each flag
+    /// mirrors the iRedAdmin `require_*` toggle from `settings.py`.
+    pub classes: crate::CharacterClasses,
 }
 
 impl PasswordPolicy {
@@ -56,10 +45,7 @@ impl PasswordPolicy {
     pub const fn default_policy() -> Self {
         Self {
             min_len: 8,
-            require_uppercase: true,
-            require_lowercase: true,
-            require_number: true,
-            require_special: true,
+            classes: crate::CharacterClasses::all(),
         }
     }
 
@@ -104,16 +90,16 @@ impl PasswordPolicy {
                 special = true;
             }
         }
-        if self.require_uppercase && !upper {
+        if self.classes.uppercase() && !upper {
             warnings.push(PasswordWarning::MissingUppercase);
         }
-        if self.require_lowercase && !lower {
+        if self.classes.lowercase() && !lower {
             warnings.push(PasswordWarning::MissingLowercase);
         }
-        if self.require_number && !number {
+        if self.classes.digits() && !number {
             warnings.push(PasswordWarning::MissingNumber);
         }
-        if self.require_special && !special {
+        if self.classes.special() && !special {
             warnings.push(PasswordWarning::MissingSpecial);
         }
         warnings

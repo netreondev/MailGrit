@@ -1,6 +1,6 @@
 # MailGrit
 
-> Cross-platform desktop client (Windows / Linux / macOS ARM) for bulk automation of iRedAdmin mail servers. Built in Rust with Dioxus desktop — no Node/JS toolchain. Performs bulk create, edit and delete of mail user accounts through an embedded authenticated browser (works behind FortiWeb / WAF). Ships a tamper-evident, encrypted audit log and 9 UI languages. Free and open source (MIT OR Apache-2.0).
+> Cross-platform desktop client (Windows / Linux / macOS ARM) for bulk automation of iRedAdmin mail servers. Built in Rust with Dioxus desktop — no Node/JS toolchain. Performs bulk create, edit and delete of mail user accounts through an embedded authenticated browser (works behind FortiWeb / WAF). Ships a tamper-evident hash-chained audit log and 9 UI languages. Free and open source (MIT OR Apache-2.0).
 
 MailGrit is a native desktop GUI application for mail server administrators. It does NOT read mail — it is a bulk account-provisioning tool for iRedAdmin servers. Operations run as a JS `fetch()` POST of the real iRedAdmin HTML form (CSRF-aware) inside the same webview that holds the legitimate session, so the tool works even when the server sits behind a WAF / reverse proxy (e.g. FortiWeb).
 

@@ -6,18 +6,9 @@
 //! does not authenticate the backend when reqwest replays the cookie).
 
 #![forbid(unsafe_code)]
-#![allow(clippy::option_if_let_else)]
-// Panics are allowed in tests (intentionally). Applies to all test modules of the binary.
-#![cfg_attr(
-    test,
-    allow(
-        clippy::unwrap_used,
-        clippy::expect_used,
-        clippy::indexing_slicing,
-        clippy::arithmetic_side_effects,
-        clippy::panic
-    )
-)]
+// Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny, plus the
+// clippy groups) is set centrally in the root Cargo.toml. No crate-level or
+// test-only suppressions.
 
 // i18n: translation catalogs are embedded into the binary (locales/app.<lang>.yml),
 // with English as the fallback. The `t!` macro is available across the whole crate
@@ -31,6 +22,11 @@ rust_i18n::i18n!("locales", fallback = "en");
 /// `#[macro_export]` makes it available in all submodules of the crate.
 #[macro_use]
 mod i18n_macros {
+    /// Translate a message key to the active locale, returning an owned `String`.
+    ///
+    /// Delegates to [`rust_i18n::t!`] and converts the `Cow<str>` into `String`
+    /// so the result is usable directly in RSX (Dioxus implements `IntoDynNode`
+    /// for `String`/`&str`, but not for `Cow<str>`).
     #[macro_export]
     macro_rules! tr {
         ($($arg:tt)*) => {

@@ -24,8 +24,16 @@ pub fn strip_bom(data: &[u8]) -> &[u8] {
 /// Splits a line into cells by comma, validating length limits.
 ///
 /// Checks: overall line length (`MAX_LINE_BYTES`) and each field length
-/// (`MAX_CSV_FIELD_BYTES`). Returns `Err` on a limit breach with `line_no: 0`
-/// (the caller fills in the real line number in `FailedRow`).
+/// (`MAX_CSV_FIELD_BYTES`, measured in **bytes**). Returns `Err` on a limit
+/// breach with `line_no: 0` (the caller fills in the real line number in
+/// `FailedRow`).
+///
+/// Note: this byte-budget check is a coarse DoS guard and is deliberately
+/// measured in **bytes**, whereas the downstream semantic limits in
+/// `core-domain` (username / domain / display_name / password length) are
+/// measured in **Unicode chars**. A field that passes here may still be rejected
+/// downstream on a char-count basis. See `MAX_CSV_FIELD_BYTES` for the
+/// rationale and the invariant test that keeps the two regimes consistent.
 ///
 /// # Errors
 ///

@@ -5,8 +5,8 @@
   "start_url": "https://netreondev.github.io/MailGrit/",
   "scope": "https://netreondev.github.io/MailGrit/",
   "display": "standalone",
-  "background_color": "#0b1020",
-  "theme_color": "#0b1020",
+  "background_color": "#08080C",
+  "theme_color": "#08080C",
   "lang": "en",
   "icons": [
     {

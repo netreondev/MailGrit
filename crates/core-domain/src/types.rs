@@ -11,7 +11,7 @@ use crate::limits::{
 use std::sync::Arc;
 
 /// Reasonable upper bound for mailbox quota (1 TiB).
-const MAX_QUOTA_MB: u64 = 1024 * 1024;
+pub const MAX_QUOTA_MB: u64 = 1024 * 1024;
 
 /// Sanitized username. Allows `[a-zA-Z0-9._-]`, with no leading/trailing dot or hyphen.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -247,9 +247,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn username_valid() {
-        let u = SanitizedUsername::parse("ivan.petrov").unwrap();
+    fn username_valid() -> Result<(), UsernameError> {
+        let u = SanitizedUsername::parse("ivan.petrov")?;
         assert_eq!(u.as_str(), "ivan.petrov");
+        Ok(())
     }
 
     #[test]
@@ -281,9 +282,10 @@ mod tests {
     }
 
     #[test]
-    fn domain_normalizes_lowercase() {
-        let d = ValidatedDomain::parse("Example.COM").unwrap();
+    fn domain_normalizes_lowercase() -> Result<(), DomainError> {
+        let d = ValidatedDomain::parse("Example.COM")?;
         assert_eq!(d.as_str(), "example.com");
+        Ok(())
     }
 
     #[test]
@@ -356,14 +358,16 @@ mod tests {
     fn domain_accepts_long_valid_tld() {
         let ok = format!("sub.example.{}", "com".repeat(20));
         // 60 characters — within 63.
-        assert!(ok.rsplit('.').next().unwrap().len() <= 63);
+        let tld = ok.rsplit('.').next().map_or(0, str::len);
+        assert!(tld <= 63);
         assert!(ValidatedDomain::parse(&ok).is_ok());
     }
 
     #[test]
-    fn quota_defaults_on_empty() {
-        let q = ValidatedQuota::parse("").unwrap();
+    fn quota_defaults_on_empty() -> Result<(), QuotaError> {
+        let q = ValidatedQuota::parse("")?;
         assert_eq!(q.mb(), DEFAULT_QUOTA_MB);
+        Ok(())
     }
 
     #[test]
@@ -373,8 +377,10 @@ mod tests {
     }
 
     #[test]
-    fn quota_accepts_valid() {
-        assert_eq!(ValidatedQuota::parse("2048").unwrap().mb(), 2048);
+    fn quota_accepts_valid() -> Result<(), QuotaError> {
+        let q = ValidatedQuota::parse("2048")?;
+        assert_eq!(q.mb(), 2048);
+        Ok(())
     }
 
     #[test]
@@ -386,8 +392,9 @@ mod tests {
     }
 
     #[test]
-    fn display_name_strips_control_chars() {
-        let d = SanitizedDisplayName::parse("Ivan\r\nPetrov").unwrap();
+    fn display_name_strips_control_chars() -> Result<(), DisplayNameError> {
+        let d = SanitizedDisplayName::parse("Ivan\r\nPetrov")?;
         assert_eq!(d.as_str(), "IvanPetrov");
+        Ok(())
     }
 }

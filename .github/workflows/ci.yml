@@ -1,10 +1,18 @@
 # MailGrit CI — three-platform matrix (Windows/Linux/macOS ARM).
-# Full specification: formatting, lints, nextest, supply-chain.
+# Full specification: formatting, lints, nextest, supply-chain, SAST.
 #
 # Targets:
 #   - x86_64-pc-windows-msvc    (Windows)
 #   - x86_64-unknown-linux-gnu  (Linux)
 #   - aarch64-apple-darwin      (macOS ARM / Apple Silicon)
+#
+# Strict release gate: RUSTFLAGS="-D warnings" makes every rustc warning a
+# blocking error on build/test/doc. Clippy adds `-D warnings` on top (plus the
+# pedantic/nursery/cargo groups via [workspace.lints]). All formal-verification
+# jobs (Miri, Kani, cargo-mutants, exploratory fuzz) are BLOCKING — no
+# `continue-on-error`. The single accepted lint exception is
+# `-A clippy::multiple_crate_versions` (transitive duplicates of the GUI/crypto
+# stack, covered by cargo-deny advisories).
 #
 # Fast linker (mold/lld) and sccache are wired per-target (see .cargo/config.toml).
 name: CI
@@ -17,19 +25,87 @@ on:
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: short
+  # Treat any compiler warning as an error across build/test/doc. This is the
+  # release gate: missing_docs, dead_code, unused, rust_2018_idioms are all
+  # denied in [workspace.lints.rust]; this flag makes them fail the build.
+  RUSTFLAGS: "-D warnings"
   # sccache — compilation-artifact caching across runs.
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: sccache
 
 jobs:
+  # ============================================================================
+  # Supply-chain, SAST, secret scanning — fast, gating, Linux-only.
+  # Run before the expensive matrix build so a vulnerable dep or a leaked secret
+  # fails the PR within seconds, not after a 15-minute cross-platform build.
+  # ============================================================================
+  supply-chain:
+    name: Supply chain, SAST & secrets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history so gitleaks can scan all commits, not just the PR tip.
+          fetch-depth: 0
+
+      - name: Install cargo tools
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny,cargo-audit,cargo-vet,cargo-machete
+
+      # --- Secret scanning (gitleaks) -----------------------------------------
+      # Scans the full git history + the diff for accidentally-committed secrets.
+      # Config: .gitleaks.toml (extends the default rule set).
+      - name: Secret scanning — gitleaks
+        uses: gitleaks/gitleaks-action@v2.3.9
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Fail on any finding (no baseline / allowlist beyond .gitleaks.toml).
+          GITLEAKS_ENABLE_COMMENTS: "true"
+
+      # --- SAST (Semgrep) -----------------------------------------------------
+      # Rule set: Rust security, secret-detection, common audit findings.
+      # Focus: format!-built JS strings (injection into the privileged webview)
+      # and secret values reaching tracing logs.
+      - name: SAST — Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: "p/rust p/secret-detection p/security-audit p/owasp-top-ten"
+
+      # --- Supply-chain: cargo-deny + cargo-audit + cargo-vet -----------------
+      - name: Supply-chain — cargo-deny (advisories, bans, licenses, sources)
+        run: cargo deny check advisories bans licenses sources
+
+      - name: Supply-chain — cargo-audit (independent advisory check)
+        run: cargo audit
+
+      - name: Supply-chain — cargo-vet (audited / imported attestations)
+        # Refresh the imported third-party audits (Mozilla/Google/Bytecode
+        # Alliance/Embark) from their sources, then verify every dependency is
+        # either vetted, imported, or explicitly exempted with a reason. Fails
+        # the build on any unaudited crate.
+        run: |
+          cargo vet regenerate imports
+          cargo vet check --verbose=info
+
+      - name: Unused deps — cargo-machete
+        run: cargo machete --skip-target-dir
+
+  # ============================================================================
+  # Quality & tests — three-platform matrix.
+  # ============================================================================
   quality:
     name: Quality & Tests (${{ matrix.os }} / ${{ matrix.target }})
     runs-on: ${{ matrix.os }}
+    needs: supply-chain
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          # CI and release share the same Linux image (ubuntu-22.04) so the
+          # tested glibc matches the shipped binary's glibc.
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             name: linux
           - os: windows-latest
@@ -57,7 +133,7 @@ jobs:
       - name: Install cargo tools
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-nextest,cargo-deny,cargo-audit,cargo-machete,cargo-semver-checks
+          tool: cargo-nextest,cargo-semver-checks,cargo-msrv
 
       - name: Formatting check
         run: cargo fmt --all -- --check
@@ -65,29 +141,34 @@ jobs:
       - name: Clippy (strict: -D warnings — pedantic/nursery lints in [workspace.lints])
         # Strictness level is set declaratively in [workspace.lints.clippy] (deny
         # correctness/suspicious/complexity/perf/pedantic/nursery/cargo). `-D warnings`
-        # here is a safety net: no warning passes CI.
+        # here (and the global RUSTFLAGS) is a safety net: no warning passes CI.
         # Exception: multiple_crate_versions stays warn — these are transitive duplicates
         # of the GUI stack (dioxus/wry/windows), outside our control; real vulnerabilities
         # are blocked by a separate cargo-deny step (advisories).
         run: cargo clippy --workspace --all-targets --all-features --target ${{ matrix.target }} -- -D warnings -A clippy::multiple_crate_versions
 
-      - name: Supply-chain — cargo-deny (advisories, bans, licenses, sources)
-        run: cargo deny check advisories bans licenses sources
-
-      - name: Supply-chain — cargo-audit (independent advisory check)
-        run: cargo audit
-
-      - name: Unused deps — cargo-machete
-        run: cargo machete --skip-target-dir
-
       - name: SemVer checks (public API of internal crates)
         run: cargo semver-checks --workspace
 
-      - name: Tests (nextest, process-isolated)
-        run: cargo nextest run --workspace --profile ci --target ${{ matrix.target }}
+      # Verify the declared MSRV (rust-version = "1.97.1") is actually the
+      # minimum: cargo-msrv probes the lowest toolchain that still compiles.
+      - name: MSRV verify (declared minimum supported Rust version)
+        run: cargo msrv --workspace verify
 
-      - name: Doc tests
-        run: cargo test --workspace --doc --target ${{ matrix.target }}
+      - name: Tests (nextest, process-isolated, --all-features)
+        run: cargo nextest run --workspace --profile ci --all-features --target ${{ matrix.target }}
+
+      - name: Doc tests (--all-features)
+        run: cargo test --workspace --doc --all-features --target ${{ matrix.target }}
+
+      # Compile the criterion benchmarks (without running them). This catches
+      # benchmark *compile* breakage cheaply; full timing runs are local-only
+      # (see crates/core-csv/benches/ and crates/core-security/benches/). This
+      # step does NOT measure performance, so it cannot catch perf regressions —
+      # only that the benchmarks still build.
+      - name: Benchmarks compile (criterion, compile-only)
+        if: runner.os == 'Linux'
+        run: cargo bench --no-run -p mailgrit-core-csv -p mailgrit-core-security
 
       - name: Upload nextest results (degradation metric)
         if: always()
@@ -100,11 +181,14 @@ jobs:
     name: Release build (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
     needs: quality
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-latest
+          # Same image as the quality job + release.yml (ubuntu-22.04) for glibc
+          # parity between the tested and the shipped binary.
+          - os: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             name: linux
           - os: windows-latest
@@ -121,18 +205,57 @@ jobs:
         run: rustup target add ${{ matrix.target }}
       - name: Configure sccache
         uses: mozilla-actions/sccache-action@v0.0.7
-      - name: Build release
-        run: cargo build --release --workspace --target ${{ matrix.target }}
+      - name: Build release (--all-features, warnings-as-errors)
+        run: cargo build --release --workspace --all-features --target ${{ matrix.target }}
 
   # ==========================================================================
-  # Formal verification & hardening (nightly-only, non-blocking on PR).
-  # Tools: cargo-mutants, Miri, cargo-fuzz, Kani.
-  # These require a nightly toolchain or separate installation.
+  # Fuzz regression — runs the committed seed corpus against every fuzz target.
+  # Distinct from the continuous-fuzz job (which explores for NEW crashes with a
+  # time budget): this job replays known inputs deterministically and FAILS if
+  # any of them panics, catching regressions in parsers immediately on a PR.
+  # Seeds live in fuzz/seeds/<target>/ (committed) — fuzz/corpus/ is gitignored.
+  # BLOCKING.
+  # ==========================================================================
+  fuzz-regression:
+    name: Fuzz regression (seed corpus)
+    runs-on: ubuntu-latest
+    needs: supply-chain
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install nightly Rust
+        run: rustup toolchain install nightly
+      - name: Install cargo-fuzz
+        run: cargo +nightly install cargo-fuzz
+      - name: Replay seed corpus against every fuzz target
+        working-directory: fuzz
+        run: |
+          set -e
+          # For each target with a committed seed dir, run the fuzzer over those
+          # exact inputs (-runs=0 means "only the corpus, no random mutation").
+          for tgt in parse_csv_bytes parse_domain parse_username parse_quota url_parse; do
+            seed_dir="seeds/$tgt"
+            if [ -d "$seed_dir" ] && [ -n "$(ls -A "$seed_dir" 2>/dev/null)" ]; then
+              echo "::group::Replaying $tgt"
+              cargo +nightly fuzz run "fuzz_$tgt" "$seed_dir" -- -runs=0
+              echo "::endgroup::"
+            else
+              echo "::notice::No committed seeds for $tgt — skipped (exploratory fuzz job still covers it)."
+            fi
+          done
+
+  # ==========================================================================
+  # Formal verification & hardening (nightly-only, BLOCKING).
+  # Tools: cargo-mutants, Miri, cargo-fuzz (exploratory), Kani.
+  # These require a nightly toolchain or separate installation. None use
+  # `continue-on-error`: a Miri/Kani/mutants failure or a newly-found fuzzer
+  # crash blocks the PR.
   # ==========================================================================
   formal-verification:
-    name: Formal verification (nightly)
+    name: Formal verification (Miri + cargo-mutants)
     runs-on: ubuntu-latest
-    continue-on-error: true # exploratory tools, do not block the PR
+    needs: quality
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - name: Install nightly Rust
@@ -143,38 +266,71 @@ jobs:
           tool: cargo-mutants
       - name: Mutation testing (unit-test effectiveness)
         run: cargo +nightly mutants --workspace --in-place
-      - name: Miri (UB detection for unsafe/FFI)
+      # Miri covers the unsafe/FFI-adjacent storage crate AND the parser crates
+      # that ingest untrusted input (csv/domain) + the crypto crate (manual byte
+      # handling). UB in any of these is release-critical.
+      - name: Miri (UB detection — storage, csv, domain, security)
         env:
           MIRIFLAGS: "-Zmiri-disable-isolation"
-        run: cargo +nightly miri test -p mailgrit-core-storage
+        run: |
+          cargo +nightly miri test -p mailgrit-core-storage
+          cargo +nightly miri test -p mailgrit-core-csv
+          cargo +nightly miri test -p mailgrit-core-domain
+          cargo +nightly miri test -p mailgrit-core-security
 
   kani:
     name: Kani formal verification (core crates)
     runs-on: ubuntu-latest
-    continue-on-error: true # bounded model-checking; does not block the PR
+    needs: quality
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
-      - name: Kani (formal verification of core-domain parsers and the crypto layer)
-        uses: model-checking/kani-github-action@v1
+      # Kani pins its own nightly Rust toolchain (e.g. nightly-2025-11-21 =
+      # rustc 1.93.0) which is OLDER than this workspace's MSRV (1.97.1).
+      # Cargo's rust-version gate rejects the build ("rustc X is not supported
+      # by package requiring Y"). Temporarily lower the declared rust-version so
+      # Kani's bundled toolchain can compile the crates. The real MSRV (1.97.1)
+      # is enforced by the `quality` job (cargo-msrv) and is restored here after
+      # verification. This is a known Kani limitation, not a code issue:
+      # https://model-checking.github.io/kani/install-guide.html
+      - name: Temporarily lower rust-version for Kani's pinned nightly
+        run: |
+          sed -i 's/^rust-version = "1.97.1"/rust-version = "1.93.0"/' Cargo.toml
+      # --solver kissat: faster SAT solver for the numeric/UTF-8 proof
+      # conditions. --default-unwind 20 bounds the `from_utf8_lossy` /
+      # `Utf8Chunks::next` loop (16-byte input buffer → ≤16 iterations + slack)
+      # that Kani would otherwise unroll indefinitely.
+      - name: Kani (core-domain — parsers: no-panic, determinism, invariants)
+        uses: model-checking/kani-github-action@v1.1
         with:
-          args: "-p mailgrit-core-domain"
-      - name: Kani (core-security — hash-chain, EncryptionKey)
-        uses: model-checking/kani-github-action@v1
+          args: "-p mailgrit-core-domain -Z unstable-options --solver kissat --default-unwind 20"
+      - name: Kani (core-security — hash-chain + AEAD)
+        uses: model-checking/kani-github-action@v1.1
         with:
-          args: "-p mailgrit-core-security"
+          args: "-p mailgrit-core-security -Z unstable-options --solver kissat --default-unwind 20"
+      - name: Restore MSRV
+        if: always()
+        run: |
+          sed -i 's/^rust-version = "1.93.0"/rust-version = "1.97.1"/' Cargo.toml
 
   fuzz:
     name: Continuous fuzzing
     runs-on: ubuntu-latest
-    continue-on-error: true
+    needs: quality
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - name: Install nightly Rust
         run: rustup toolchain install nightly
       - name: Install cargo-fuzz
         run: cargo +nightly install cargo-fuzz
+      # Exploratory fuzzing: a newly-found crash FAILS the PR (no
+      # continue-on-error). 60s budget per target.
       - name: Run fuzz targets (limited duration in CI)
         working-directory: fuzz
         run: |
           cargo +nightly fuzz run fuzz_parse_csv_bytes -- -max_total_time=60
           cargo +nightly fuzz run fuzz_parse_domain -- -max_total_time=60
+          cargo +nightly fuzz run fuzz_parse_username -- -max_total_time=60
+          cargo +nightly fuzz run fuzz_parse_quota -- -max_total_time=60
+          cargo +nightly fuzz run fuzz_url_parse -- -max_total_time=60

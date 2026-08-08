@@ -9,7 +9,8 @@
 //! which:
 //! - is **initialized** from parsed CSV (`From<&SanitizedUserRow>`);
 //! - is **edited** by the user in the table (cells = `<input>`);
-//! - is **re-validated** on execution via [`to_sanitized`](Self::to_sanitized),
+//! - is **re-validated** on execution via
+//!   [`EditableUserRow::to_sanitized`](EditableUserRow::to_sanitized),
 //!   which runs the row through the typestate pipeline again. This guarantees
 //!   that only canonically validated values ever reach the server.
 //!
@@ -133,9 +134,9 @@ mod tests {
     }
 
     #[test]
-    fn valid_row_roundtrips_through_sanitized() {
+    fn valid_row_roundtrips_through_sanitized() -> Result<(), CsvRowError> {
         let editable = valid_row();
-        let sanitized = editable.to_sanitized().expect("valid row");
+        let sanitized = editable.to_sanitized()?;
         // The reverse conversion restores the same values (display_name is
         // trimmed by the parser, but here it has no edge whitespace — identical).
         assert_eq!(sanitized.domain.as_str(), "example.com");
@@ -143,6 +144,7 @@ mod tests {
         assert_eq!(sanitized.password.as_secret_str(), "S3cur3P@ss1");
         assert_eq!(sanitized.display_name.as_str(), "Ivan Petrov");
         assert_eq!(sanitized.quota.mb(), 1024);
+        Ok(())
     }
 
     #[test]
@@ -152,10 +154,11 @@ mod tests {
     }
 
     #[test]
-    fn to_sanitized_round_trips_back_to_editable() {
+    fn to_sanitized_round_trips_back_to_editable() -> Result<(), CsvRowError> {
         let original = valid_row();
-        let sanitized = original.to_sanitized().expect("valid");
+        let sanitized = original.to_sanitized()?;
         let back = EditableUserRow::from(&sanitized);
         assert_eq!(back, original);
+        Ok(())
     }
 }

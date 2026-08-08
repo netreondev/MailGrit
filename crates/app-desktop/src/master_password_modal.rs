@@ -24,7 +24,7 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
     // Dioxus signal, so without this line a language change would not re-render
     // the modal (see the pattern in i18n.rs:16-21).
     let _ = state.read().language;
-    let pending = state.read().pending_master_password;
+    let pending = state.read().modals.pending_master_password;
     if !pending {
         return rsx! {};
     }
@@ -39,8 +39,8 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
             icon_class: "modal-icon-info".to_string(),
             on_close: move |()| {
                 let mut s = state.write();
-                s.pending_master_password = false;
-                s.pending_export_after_unlock = false;
+                s.modals.pending_master_password = false;
+                s.export.pending_export_after_unlock = false;
                 s.master_password_input.clear();
                 s.master_password_confirm.clear();
             },
@@ -98,8 +98,8 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
                     kind: ButtonKind::Ghost,
                     onclick: move |_| {
                         let mut s = state.write();
-                        s.pending_master_password = false;
-                        s.pending_export_after_unlock = false;
+                        s.modals.pending_master_password = false;
+                        s.export.pending_export_after_unlock = false;
                         s.master_password_input.clear();
                         s.master_password_confirm.clear();
                     },
@@ -140,8 +140,8 @@ fn confirm_master_password(state: &mut Signal<AppState>, is_create: bool) {
                 // `pending_export_after_unlock` when there was no master password
                 // yet. Now there is — launch the export (encrypt=true, since that
                 // encrypted mode is exactly what the password was needed for).
-                resume = s.pending_export_after_unlock;
-                s.pending_export_after_unlock = false;
+                resume = s.export.pending_export_after_unlock;
+                s.export.pending_export_after_unlock = false;
             }
             Err(e) => {
                 s.error_msg = Some(e);

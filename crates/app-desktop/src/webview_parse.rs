@@ -13,12 +13,28 @@ use crate::webview_ops::OpResult;
 /// array (starting with `[`). Previously there was a branch here for unquoting
 /// JSON quotes from `evaluate_script_with_callback`, but that path is not used in
 /// batch operations (see `ipc.rs`), so the branch was unreachable and removed.
+///
+/// On a parse error the raw response is **not** logged: a malformed response
+/// bypasses the JS-side `mfMask` redaction (which only runs when building the
+/// structured `dump`), so its raw text is untrusted and may contain a plaintext
+/// secret. Only the parse error and the response length are emitted.
 pub fn parse_batch_result(js_response: &str) -> Vec<OpResult> {
     let s = js_response.trim();
     let arr: Vec<serde_json::Value> = match serde_json::from_str(s) {
         Ok(v) => v,
         Err(e) => {
-            tracing::warn!("parsing JS batch response: {e}; raw: {s}");
+            // SECURITY: a malformed response arrives BEFORE the normal dump path,
+            // so the JS-side masking (mfMask) that redacts passwords/CSRF/email/PII
+            // inside the structured `dump` has NOT been applied to this raw string.
+            // Log only the error + the response length, NEVER the raw text — a
+            // server echo or an attacker-controlled payload could otherwise carry a
+            // plaintext secret into `mailgrit.log` verbatim. (Bounded previews are
+            // still unsafe: a secret may sit anywhere in the response and passwords
+            // are up to MAX_PASSWORD_LEN chars, longer than any sane preview.)
+            tracing::warn!(
+                "parsing JS batch response failed: {e}; response was {} chars (not logged)",
+                s.chars().count()
+            );
             return Vec::new();
         }
     };
@@ -137,39 +153,45 @@ mod tests {
 
     // ok=true → Ok(()); status and resp_url are populated.
     #[test]
-    fn parse_success_ok() {
+    fn parse_success_ok() -> Result<(), Box<dyn std::error::Error>> {
         let js = r#"[{"username":"u","domain":"d","ok":true,"status":200,"error":null,"dump":{"responseUrl":"https://x/?msg=CREATED"}}]"#;
         let r = parse_batch_result(js);
         assert_eq!(r.len(), 1);
-        assert!(r[0].outcome.is_ok());
-        assert_eq!(r[0].username, "u");
-        assert_eq!(r[0].domain, "d");
-        assert_eq!(r[0].status, 200);
-        assert_eq!(r[0].resp_url.as_deref(), Some("https://x/?msg=CREATED"));
+        let first = r.first().ok_or("expected at least one result")?;
+        assert!(first.outcome.is_ok());
+        assert_eq!(first.username, "u");
+        assert_eq!(first.domain, "d");
+        assert_eq!(first.status, 200);
+        assert_eq!(first.resp_url.as_deref(), Some("https://x/?msg=CREATED"));
+        Ok(())
     }
 
     // ok=false with a non-empty reason → Err(reason), without an HTTP prefix (E3).
     #[test]
-    fn parse_failure_with_reason() {
+    fn parse_failure_with_reason() -> Result<(), Box<dyn std::error::Error>> {
         let js = r#"[{"username":"u","domain":"d","ok":false,"status":200,"error":"Account does not exist","dump":{"responseUrl":"https://x/?msg=NO_SUCH_ACCOUNT"}}]"#;
         let r = parse_batch_result(js);
-        assert_eq!(r[0].outcome, Err("Account does not exist".to_string()));
-        assert_eq!(r[0].status, 200);
+        let first = r.first().ok_or("expected at least one result")?;
+        assert_eq!(first.outcome, Err("Account does not exist".to_string()));
+        assert_eq!(first.status, 200);
         assert_eq!(
-            r[0].resp_url.as_deref(),
+            first.resp_url.as_deref(),
             Some("https://x/?msg=NO_SUCH_ACCOUNT")
         );
+        Ok(())
     }
 
     // ok=false with an empty reason → Err("HTTP {status}") (E3 fallback).
     #[test]
-    fn parse_failure_empty_reason_synthesizes_status() {
+    fn parse_failure_empty_reason_synthesizes_status() -> Result<(), Box<dyn std::error::Error>> {
         let js =
             r#"[{"username":"u","domain":"d","ok":false,"status":500,"error":null,"dump":null}]"#;
         let r = parse_batch_result(js);
-        assert_eq!(r[0].outcome, Err("HTTP 500".to_string()));
-        assert_eq!(r[0].status, 500);
-        assert!(r[0].resp_url.is_none());
+        let first = r.first().ok_or("expected at least one result")?;
+        assert_eq!(first.outcome, Err("HTTP 500".to_string()));
+        assert_eq!(first.status, 500);
+        assert!(first.resp_url.is_none());
+        Ok(())
     }
 
     // Malformed JSON → an empty vector (triggers the "0 results" guard in ops.rs).
@@ -181,25 +203,30 @@ mod tests {
 
     // No dump → resp_url = None (does not panic).
     #[test]
-    fn parse_no_dump_yields_none_url() {
+    fn parse_no_dump_yields_none_url() -> Result<(), Box<dyn std::error::Error>> {
         let js = r#"[{"username":"u","domain":"d","ok":true,"status":200}]"#;
         let r = parse_batch_result(js);
-        assert!(r[0].resp_url.is_none());
-        assert_eq!(r[0].status, 200);
+        let first = r.first().ok_or("expected at least one result")?;
+        assert!(first.resp_url.is_none());
+        assert_eq!(first.status, 200);
+        Ok(())
     }
 
     // Multiple results preserve order.
     #[test]
-    fn parse_multiple_preserves_order() {
+    fn parse_multiple_preserves_order() -> Result<(), Box<dyn std::error::Error>> {
         let js = r#"[
             {"username":"a","domain":"d","ok":true,"status":200},
             {"username":"b","domain":"d","ok":false,"status":200,"error":"Error"}
         ]"#;
         let r = parse_batch_result(js);
         assert_eq!(r.len(), 2);
-        assert_eq!(r[0].username, "a");
-        assert!(r[0].outcome.is_ok());
-        assert_eq!(r[1].username, "b");
-        assert!(r[1].outcome.is_err());
+        let first = r.first().ok_or("expected first result")?;
+        assert_eq!(first.username, "a");
+        assert!(first.outcome.is_ok());
+        let second = r.get(1).ok_or("expected second result")?;
+        assert_eq!(second.username, "b");
+        assert!(second.outcome.is_err());
+        Ok(())
     }
 }

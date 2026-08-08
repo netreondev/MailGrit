@@ -70,32 +70,44 @@ pub fn derive_key(password: &[u8], salt: &[u8]) -> Result<[u8; DERIVED_KEY_LEN],
 mod tests {
     use super::*;
 
+    // The KDF tests below exercise the real Argon2id algorithm (64 MiB memory,
+    // 3 passes, parallelism 4). Miri interprets this pure-Rust code correctly,
+    // but the memory-hard computation is prohibitively slow under interpretation
+    // (tens of minutes per `derive_key` call). They are therefore skipped under
+    // `cfg(miri)`; the `generate_salt` test (no KDF) still runs.
     #[test]
-    fn derive_key_is_deterministic() {
+    #[cfg_attr(miri, ignore)]
+    fn derive_key_is_deterministic() -> Result<(), Box<dyn std::error::Error>> {
         let salt = generate_salt();
-        let k1 = derive_key(b"master-pass", &salt).unwrap();
-        let k2 = derive_key(b"master-pass", &salt).unwrap();
+        let k1 = derive_key(b"master-pass", &salt)?;
+        let k2 = derive_key(b"master-pass", &salt)?;
         assert_eq!(k1, k2, "identical inputs → identical KDF key");
+        Ok(())
     }
 
     #[test]
-    fn derive_key_differs_for_different_passwords() {
+    #[cfg_attr(miri, ignore)]
+    fn derive_key_differs_for_different_passwords() -> Result<(), Box<dyn std::error::Error>> {
         let salt = generate_salt();
-        let k1 = derive_key(b"password1", &salt).unwrap();
-        let k2 = derive_key(b"password2", &salt).unwrap();
+        let k1 = derive_key(b"password1", &salt)?;
+        let k2 = derive_key(b"password2", &salt)?;
         assert_ne!(k1, k2, "different passwords → different keys");
+        Ok(())
     }
 
     #[test]
-    fn derive_key_differs_for_different_salts() {
+    #[cfg_attr(miri, ignore)]
+    fn derive_key_differs_for_different_salts() -> Result<(), Box<dyn std::error::Error>> {
         let salt1 = generate_salt();
         let salt2 = generate_salt();
-        let k1 = derive_key(b"same-pass", &salt1).unwrap();
-        let k2 = derive_key(b"same-pass", &salt2).unwrap();
+        let k1 = derive_key(b"same-pass", &salt1)?;
+        let k2 = derive_key(b"same-pass", &salt2)?;
         assert_ne!(k1, k2, "different salts → different keys");
+        Ok(())
     }
 
     #[test]
+    #[cfg_attr(miri, ignore)]
     fn derive_key_rejects_wrong_salt_length() {
         assert!(derive_key(b"pass", &[0u8; 15]).is_err());
         assert!(derive_key(b"pass", &[0u8; 17]).is_err());
@@ -103,10 +115,12 @@ mod tests {
     }
 
     #[test]
-    fn derived_key_length_is_32() {
+    #[cfg_attr(miri, ignore)]
+    fn derived_key_length_is_32() -> Result<(), Box<dyn std::error::Error>> {
         let salt = generate_salt();
-        let k = derive_key(b"x", &salt).unwrap();
+        let k = derive_key(b"x", &salt)?;
         assert_eq!(k.len(), DERIVED_KEY_LEN);
+        Ok(())
     }
 
     #[test]

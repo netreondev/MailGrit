@@ -43,7 +43,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
     // (the UI limit).
     let length_min = policy.min_len.max(8);
     let length_label = tr!("pw.length_label", n = pw_gen.clamped_for_label());
-    let regenerate_confirm = state.read().pending_password_regenerate;
+    let regenerate_confirm = state.read().modals.pending_password_regenerate;
 
     rsx! {
         if has_rows {
@@ -75,36 +75,36 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
                     label { class: "pw-class",
                         input {
                             r#type: "checkbox",
-                            checked: pw_gen.use_uppercase,
-                            disabled: op_running || policy.require_uppercase,
-                            onchange: move |ev| state.write().password_generator.use_uppercase = ev.checked(),
+                            checked: pw_gen.classes.uppercase(),
+                            disabled: op_running || policy.classes.uppercase(),
+                            onchange: move |ev| state.write().password_generator.classes.set_uppercase(ev.checked()),
                         }
                         " A–Z"
                     }
                     label { class: "pw-class",
                         input {
                             r#type: "checkbox",
-                            checked: pw_gen.use_lowercase,
-                            disabled: op_running || policy.require_lowercase,
-                            onchange: move |ev| state.write().password_generator.use_lowercase = ev.checked(),
+                            checked: pw_gen.classes.lowercase(),
+                            disabled: op_running || policy.classes.lowercase(),
+                            onchange: move |ev| state.write().password_generator.classes.set_lowercase(ev.checked()),
                         }
                         " a–z"
                     }
                     label { class: "pw-class",
                         input {
                             r#type: "checkbox",
-                            checked: pw_gen.use_digits,
-                            disabled: op_running || policy.require_number,
-                            onchange: move |ev| state.write().password_generator.use_digits = ev.checked(),
+                            checked: pw_gen.classes.digits(),
+                            disabled: op_running || policy.classes.digits(),
+                            onchange: move |ev| state.write().password_generator.classes.set_digits(ev.checked()),
                         }
                         " 0–9"
                     }
                     label { class: "pw-class",
                         input {
                             r#type: "checkbox",
-                            checked: pw_gen.use_special,
-                            disabled: op_running || policy.require_special,
-                            onchange: move |ev| state.write().password_generator.use_special = ev.checked(),
+                            checked: pw_gen.classes.special(),
+                            disabled: op_running || policy.classes.special(),
+                            onchange: move |ev| state.write().password_generator.classes.set_special(ev.checked()),
                         }
                         " !@#"
                     }
@@ -125,7 +125,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
                         size: ButtonSize::Small,
                         disabled: op_running || !pw_gen.has_any_class(),
                         onclick: move |_| {
-                            state.write().pending_password_regenerate = true;
+                            state.write().modals.pending_password_regenerate = true;
                         },
                         {tr!("pw.regenerate_all")}
                     }
@@ -144,7 +144,7 @@ fn regenerate_all_modal(mut state: Signal<AppState>) -> Element {
             icon: Some(Icon::Alert),
             icon_class: "modal-icon-danger".to_string(),
             on_close: move |()| {
-                state.write().pending_password_regenerate = false;
+                state.write().modals.pending_password_regenerate = false;
             },
             p { {tr!("pw.regenerate_modal_body")} }
             ModalFooter {
@@ -158,7 +158,7 @@ fn regenerate_all_modal(mut state: Signal<AppState>) -> Element {
                 Button {
                     kind: ButtonKind::Ghost,
                     onclick: move |_| {
-                        state.write().pending_password_regenerate = false;
+                        state.write().modals.pending_password_regenerate = false;
                     },
                     {tr!("action.cancel")}
                 }
@@ -183,9 +183,8 @@ pub fn editable_table_view(mut state: Signal<AppState>) -> Element {
     let snapshot: Vec<(EditableUserRow, Vec<EditableFieldError>, String)> = {
         let read = state.read();
         let policy = read.password_policy.clone();
-        match read.editable_rows.as_ref() {
-            Some(rows) => rows
-                .iter()
+        read.editable_rows.as_ref().map_or_else(Vec::new, |rows| {
+            rows.iter()
                 .map(|r| {
                     let errs = crate::error_i18n::validate_fields_localized(r);
                     // Password strength per the server-side policy (the warnings
@@ -200,9 +199,8 @@ pub fn editable_table_view(mut state: Signal<AppState>) -> Element {
                         .join("; ");
                     (r.clone(), errs, pw_warns)
                 })
-                .collect(),
-            None => Vec::new(),
-        }
+                .collect()
+        })
     };
     let row_count = snapshot.len();
 
@@ -267,12 +265,7 @@ pub fn editable_table_view(mut state: Signal<AppState>) -> Element {
 //
 // too_many_lines: the RSX markup of one table row with 5 inputs + actions;
 // extracting the cells into separate components would complicate reading (shared
-// `state`/`idx`). Allow.
-#[allow(clippy::too_many_arguments)]
-#[allow(
-    clippy::too_many_lines,
-    reason = "table-row RSX markup; extracting cells harms readability"
-)]
+// `state`/`idx`).
 fn render_row(
     mut state: Signal<AppState>,
     idx: usize,
@@ -284,31 +277,11 @@ fn render_row(
     let invalid = !errs.is_empty();
     let title_attr = errs.first().map_or("", |e| e.message.as_str());
     // Per-cell format-error flags + ready classes for each input.
-    let class_domain = if errs.iter().any(|e| e.field == EditableField::Domain) {
-        "input input-cell input-cell-invalid"
-    } else {
-        "input input-cell"
-    };
-    let class_username = if errs.iter().any(|e| e.field == EditableField::Username) {
-        "input input-cell input-cell-invalid"
-    } else {
-        "input input-cell"
-    };
-    let class_password = if errs.iter().any(|e| e.field == EditableField::Password) {
-        "input input-cell mono input-cell-invalid"
-    } else {
-        "input input-cell mono"
-    };
-    let class_display = if errs.iter().any(|e| e.field == EditableField::DisplayName) {
-        "input input-cell input-cell-invalid"
-    } else {
-        "input input-cell"
-    };
-    let class_quota = if errs.iter().any(|e| e.field == EditableField::Quota) {
-        "input input-cell input-cell-invalid"
-    } else {
-        "input input-cell"
-    };
+    let class_domain = cell_input_class(errs, EditableField::Domain, false);
+    let class_username = cell_input_class(errs, EditableField::Username, false);
+    let class_password = cell_input_class(errs, EditableField::Password, true);
+    let class_display = cell_input_class(errs, EditableField::DisplayName, false);
+    let class_quota = cell_input_class(errs, EditableField::Quota, false);
     let has_pw_warn = !pw_warns.is_empty();
     rsx! {
         tr {
@@ -345,22 +318,7 @@ fn render_row(
                         set_field(&mut state, idx, |r| r.password = ev.value());
                     },
                 }
-                // Password-strength indicator: a warning icon with a tooltip
-                // showing policy violations (length/classes). Does not block the
-                // operation — it only informs. The warnings do not contain the
-                // password. The span wrapper carries the title (the native
-                // tooltip), since IconView itself is an SVG without a title
-                // attribute.
-                if has_pw_warn {
-                    span {
-                        class: "pw-strength-warn",
-                        title: "{pw_warns}",
-                        IconView {
-                            icon: Icon::Alert,
-                            size: IconSize::Small,
-                        }
-                    }
-                }
+                {render_password_strength(pw_warns, has_pw_warn)}
                 button {
                     class: "btn btn-ghost btn-icon btn-gen-pw",
                     title: tr!("pw.gen_one_title"),
@@ -407,6 +365,40 @@ fn render_row(
                     },
                     IconView { icon: Icon::Trash }
                 }
+            }
+        }
+    }
+}
+
+/// Builds the CSS class for a cell's `<input>`: `input input-cell[ mono][ input-cell-invalid]`.
+/// `mono` is added for the password field. The invalid marker is set when the row's
+/// error list contains an entry for `field`.
+fn cell_input_class(errs: &[EditableFieldError], field: EditableField, mono: bool) -> &'static str {
+    let invalid = errs.iter().any(|e| e.field == field);
+    match (mono, invalid) {
+        (true, true) => "input input-cell mono input-cell-invalid",
+        (true, false) => "input input-cell mono",
+        (false, true) => "input input-cell input-cell-invalid",
+        (false, false) => "input input-cell",
+    }
+}
+
+/// Password-strength indicator: a warning icon with a tooltip showing policy
+/// violations (length/classes). Does not block the operation — it only informs.
+/// The warnings do not contain the password. The span wrapper carries the title
+/// (the native tooltip), since IconView itself is an SVG without a title
+/// attribute. Rendered only when there are warnings.
+fn render_password_strength(pw_warns: &str, has_pw_warn: bool) -> Element {
+    if !has_pw_warn {
+        return rsx! {};
+    }
+    rsx! {
+        span {
+            class: "pw-strength-warn",
+            title: "{pw_warns}",
+            IconView {
+                icon: Icon::Alert,
+                size: IconSize::Small,
             }
         }
     }
@@ -462,7 +454,7 @@ fn fill_empty_passwords(state: &mut Signal<AppState>) {
 /// Regenerates the password in ALL rows (after a Modal confirmation).
 fn regenerate_all_passwords(state: &mut Signal<AppState>) {
     let pw_gen = state.read().password_generator.clone();
-    state.write().pending_password_regenerate = false;
+    state.write().modals.pending_password_regenerate = false;
     if !pw_gen.has_any_class() {
         state.write().error_msg = Some(tr!("pw.need_one_class"));
         return;

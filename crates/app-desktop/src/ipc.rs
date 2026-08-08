@@ -138,6 +138,17 @@ mod tests {
         )
     }
 
+    /// Locks the pending map, recovering the guard on a poisoned mutex (mirrors
+    /// the production poison-recovery policy in `register`/`dispatch`).
+    fn lock_map(
+        pending: &PendingMap,
+    ) -> std::sync::MutexGuard<'_, HashMap<u64, oneshot::Sender<IpcReply>>> {
+        match pending.lock() {
+            Ok(m) => m,
+            Err(poisoned) => poisoned.into_inner(),
+        }
+    }
+
     // Full round-trip: register -> dispatch -> reply received.
     #[test]
     fn register_then_dispatch_delivers_reply() {
@@ -153,7 +164,7 @@ mod tests {
         let reply = rx.try_recv();
         assert!(matches!(reply, Ok(IpcReply::Batch(r)) if r.len() == 1));
         // After dispatch the entry is removed from the map.
-        assert!(pending.lock().unwrap().is_empty());
+        assert!(lock_map(&pending).is_empty());
     }
 
     // Invalid id -> warning, entry untouched (but there is none anyway).
@@ -176,7 +187,7 @@ mod tests {
         // Reply not delivered.
         assert!(rx.try_recv().is_err());
         // Entry removed (dispatch takes tx by id before matching on the tag).
-        assert!(!pending.lock().unwrap().contains_key(&id));
+        assert!(!lock_map(&pending).contains_key(&id));
     }
 
     // cancel removes the entry; a late dispatch does not panic.
@@ -184,9 +195,9 @@ mod tests {
     fn cancel_removes_entry() {
         let (pending, counter) = fresh_map();
         let (id, _rx) = register(&pending, &counter);
-        assert_eq!(pending.lock().unwrap().len(), 1);
+        assert_eq!(lock_map(&pending).len(), 1);
         cancel(&pending, id);
-        assert!(pending.lock().unwrap().is_empty());
+        assert!(lock_map(&pending).is_empty());
         // A late dispatch for the canceled id does not panic (warn).
         dispatch(&pending, &format!("batch:{id}:[{{}}]"));
     }
@@ -198,7 +209,7 @@ mod tests {
         let (id1, _) = register(&pending, &counter);
         let (id2, _) = register(&pending, &counter);
         assert_ne!(id1, id2);
-        assert_eq!(pending.lock().unwrap().len(), 2);
+        assert_eq!(lock_map(&pending).len(), 2);
     }
 
     // JSON containing a colon — splitn(3, ':') splits correctly.

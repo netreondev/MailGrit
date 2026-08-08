@@ -3,15 +3,6 @@
 //! After removing the Pro REST API, all builders work only with OSE forms. The
 //! tests check form-field interpolation and brace balance.
 
-#![allow(
-    clippy::unwrap_used,
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic,
-    reason = "tests intentionally use unwrap/indexing/panic"
-)]
-
 use crate::webview_js::{admin, domain, user};
 use mailgrit_core_domain::BulkOperationKind;
 
@@ -22,12 +13,15 @@ fn braces_balanced(s: &str) -> bool {
     let mut depth = 0i64;
     for ch in s.chars() {
         match ch {
-            '{' => depth += 1,
-            '}' => depth -= 1,
+            '{' => depth = depth.saturating_add(1),
+            '}' => {
+                // A closing brace without a matching opener → unbalanced.
+                if depth == 0 {
+                    return false;
+                }
+                depth = depth.saturating_sub(1);
+            }
             _ => {}
-        }
-        if depth < 0 {
-            return false;
         }
     }
     depth == 0

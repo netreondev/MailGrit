@@ -152,7 +152,7 @@ pub fn launch_op(state: &mut Signal<AppState>, target: OperationTarget, kind: Bu
                 s.screen = Screen::Login;
                 s.batch_result = None;
                 s.csv = None;
-                s.pending_delete = false;
+                s.modals.pending_delete = false;
                 return;
             }
 

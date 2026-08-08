@@ -5,16 +5,6 @@
 //! structured test cases and shrinks a found bug down to a minimal reproducible
 //! example (shrinking).
 
-// Documented exception (spec): unwrap/expect/panic are acceptable in tests —
-// a panic here is a meaningful test failure.
-#![allow(
-    clippy::unwrap_used,
-    clippy::expect_used,
-    clippy::indexing_slicing,
-    clippy::arithmetic_side_effects,
-    clippy::panic
-)]
-
 use mailgrit_core_csv::parse_csv_bytes;
 // prelude::* imports the proptest! macro and generation strategies.
 use proptest::prelude::*;
@@ -37,10 +27,14 @@ proptest! {
         quota in "(|[1-9][0-9]{0,5})"
     ) {
         let line = format!("{domain},{user},{pass},{display},{quota}\n");
-        let parsed = parse_csv_bytes(line.as_bytes()).expect("a valid row must parse");
+        let parsed = parse_csv_bytes(line.as_bytes());
+        prop_assert!(parsed.is_ok(), "a valid row must parse");
+        let Ok(parsed) = parsed else {
+            return Err(TestCaseError::fail("unreachable: is_ok asserted"));
+        };
         prop_assert_eq!(parsed.rows.len(), 1, "exactly 1 valid row expected");
         prop_assert!(parsed.failed.is_empty(), "there should be no failed rows");
-        prop_assert_eq!(parsed.rows[0].username.as_str(), user);
+        prop_assert_eq!(parsed.rows.first().map(|r| r.username.as_str()), Some(user.as_str()));
     }
 
     #[test]
@@ -49,7 +43,11 @@ proptest! {
         host in "[a-z]{1,10}"
     ) {
         let line = format!("{user}@{host},{user},pass,Name,100\n");
-        let parsed = parse_csv_bytes(line.as_bytes()).expect("parsing does not panic");
+        let parsed = parse_csv_bytes(line.as_bytes());
+        prop_assert!(parsed.is_ok(), "parsing does not panic");
+        let Ok(parsed) = parsed else {
+            return Err(TestCaseError::fail("unreachable: is_ok asserted"));
+        };
         prop_assert_eq!(parsed.rows.len(), 0, "a row with an email domain must not pass");
         prop_assert_eq!(parsed.failed.len(), 1, "the row must end up in failed");
     }
@@ -59,7 +57,11 @@ proptest! {
         data_row in "[a-z]{1,10},[a-z]{1,10},[A-Za-z0-9]{1,10},[A-Za-z]{1,10},100"
     ) {
         let input = format!("domain,username,password,display_name,quota_mb\n{data_row}\n");
-        let parsed = parse_csv_bytes(input.as_bytes()).expect("does not panic");
+        let parsed = parse_csv_bytes(input.as_bytes());
+        prop_assert!(parsed.is_ok(), "does not panic");
+        let Ok(parsed) = parsed else {
+            return Err(TestCaseError::fail("unreachable: is_ok asserted"));
+        };
         prop_assert_eq!(parsed.rows.len(), 1, "header skipped, one data row");
     }
 }

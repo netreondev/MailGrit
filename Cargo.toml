@@ -13,6 +13,11 @@ members = [
     "crates/core-security",
     "crates/app-desktop",
 ]
+# The fuzz crate builds under nightly with libfuzzer-sys (FFI/coverage), so it is
+# intentionally NOT a workspace member. Excluding it keeps `cargo +nightly fuzz`
+# self-contained: Cargo will not try to fold it into this workspace (which would
+# fail because the strict workspace lints forbid the fuzz crate's FFI code).
+exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.1.2"
@@ -30,17 +35,39 @@ categories = ["gui", "network-programming", "authentication"]
 publish = false           # internal workspace crates, not published to crates.io
 
 # ----------------------------------------------------------------------------
+# cargo-auditable — embed dependency info into the release binary
+# (https://github.com/rust-secure-tools/cargo-auditable).
+# `cargo auditable build` compiles `auditable-serde` data (crate names, versions,
+# RUSTSEC advisories at build time) into a `.dep-vices` section of the binary.
+# This lets a user run `cargo audit bin mailgrit-app-desktop` on a downloaded
+# binary to check it for known vulnerabilities — without source access.
+# Required for the release workflow (see .github/workflows/release.yml).
+# ----------------------------------------------------------------------------
+[workspace.metadata.auditable]
+# Strict mode: fail the build if the dependency list cannot be embedded.
+strict = true
+
+# ----------------------------------------------------------------------------
 # Unified workspace lint discipline.
 # These lints must not be silenced without a separate "lint-suppression" review tag.
 # ----------------------------------------------------------------------------
 [workspace.lints.rust]
 unsafe_code = "forbid"   # no exceptions: wry 0.53 returns HttpOnly cookies natively
-# missing_docs to be raised incrementally so it does not block scaffolding.
+# Release gate: every public API item must be documented, no dead/unused code,
+# and the 2018-idioms lint group keeps the crate modern. All deny (blocking).
+missing_docs = "deny"
+dead_code = "deny"
+# `unused` and `rust_2018_idioms` are lint GROUPS — they need a negative
+# priority so they apply at the group level (same pattern as the clippy groups
+# below), otherwise rustc errors on a group sharing the default priority.
+unused = { level = "deny", priority = -1 }
+rust_2018_idioms = { level = "deny", priority = -1 }
 
-# Register the custom cfg `kani` (activated by the Kani toolchain via cargo kani).
-# Without registration rustc warns about unexpected_cfgs for #[cfg(kani)] in
-# harness modules. See crates/*/src/kani_harnesses.rs.
-unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+# Register the custom cfgs `kani` (activated by the Kani toolchain via cargo
+# kani) and `miri` (activated by `cargo miri`). Without registration rustc warns
+# about unexpected_cfgs for `#[cfg(kani)]` / `#[cfg_attr(miri, ignore)]`.
+# See crates/*/src/kani_harnesses.rs and crates/core-storage/src/audit_tests.rs.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)', 'cfg(miri)'] }
 
 [workspace.lints.clippy]
 # Baseline — deny warnings (as in the mandatory clippy command).
@@ -82,3 +109,14 @@ wildcard_dependencies = "deny"     # forbid "*" versions — deny.toml rule dupl
 # Versions are added via cargo add with explicit pinning.
 # ----------------------------------------------------------------------------
 # (dependencies are declared per crate for isolated compilation)
+
+# ----------------------------------------------------------------------------
+# Internal crate dependencies — single source of truth for the version, so the
+# path-dependency versions cannot drift from the workspace package version.
+# Members reference these as `mailgrit-core-foo = { workspace = true }`.
+# ----------------------------------------------------------------------------
+[workspace.dependencies]
+mailgrit-core-csv = { version = "0.1.2", path = "crates/core-csv" }
+mailgrit-core-domain = { version = "0.1.2", path = "crates/core-domain" }
+mailgrit-core-storage = { version = "0.1.2", path = "crates/core-storage" }
+mailgrit-core-security = { version = "0.1.2", path = "crates/core-security" }

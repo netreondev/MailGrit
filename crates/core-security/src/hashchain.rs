@@ -81,25 +81,27 @@ mod tests {
     use super::*;
 
     #[test]
-    fn chain_is_deterministic_for_same_inputs() {
+    fn chain_is_deterministic_for_same_inputs() -> Result<(), Box<dyn std::error::Error>> {
         let key = EncryptionKey::generate();
-        let h1 = chain_hash(&key, &GENESIS_HASH, b"entry1").unwrap();
-        let h2 = chain_hash(&key, &GENESIS_HASH, b"entry1").unwrap();
+        let h1 = chain_hash(&key, &GENESIS_HASH, b"entry1")?;
+        let h2 = chain_hash(&key, &GENESIS_HASH, b"entry1")?;
         assert_eq!(h1, h2, "identical inputs → identical HMAC");
+        Ok(())
     }
 
     #[test]
-    fn chain_progresses_with_each_entry() {
+    fn chain_progresses_with_each_entry() -> Result<(), Box<dyn std::error::Error>> {
         let key = EncryptionKey::generate();
-        let h1 = chain_hash(&key, &GENESIS_HASH, b"entry1").unwrap();
-        let h2 = chain_hash(&key, &h1, b"entry2").unwrap();
+        let h1 = chain_hash(&key, &GENESIS_HASH, b"entry1")?;
+        let h2 = chain_hash(&key, &h1, b"entry2")?;
         assert_ne!(h1, h2, "each link differs from the previous one");
+        Ok(())
     }
 
     #[test]
-    fn chain_detects_tampered_message() {
+    fn chain_detects_tampered_message() -> Result<(), Box<dyn std::error::Error>> {
         let key = EncryptionKey::generate();
-        let h1 = chain_hash(&key, &GENESIS_HASH, b"entry1").unwrap();
+        let h1 = chain_hash(&key, &GENESIS_HASH, b"entry1")?;
         // Tamper with the message: compute the hash for "tampered", but the chain contains "entry1".
         let entries = vec![(b"entry1".to_vec(), h1)];
         assert!(verify_chain(&key, entries).is_ok());
@@ -110,14 +112,15 @@ mod tests {
             verify_chain(&key, tampered),
             Err(SecurityError::ChainBroken { entry_index: 0 })
         ));
+        Ok(())
     }
 
     #[test]
-    fn chain_detects_deleted_entry() {
+    fn chain_detects_deleted_entry() -> Result<(), Box<dyn std::error::Error>> {
         let key = EncryptionKey::generate();
-        let h1 = chain_hash(&key, &GENESIS_HASH, b"entry1").unwrap();
-        let h2 = chain_hash(&key, &h1, b"entry2").unwrap();
-        let h3 = chain_hash(&key, &h2, b"entry3").unwrap();
+        let h1 = chain_hash(&key, &GENESIS_HASH, b"entry1")?;
+        let h2 = chain_hash(&key, &h1, b"entry2")?;
+        let h3 = chain_hash(&key, &h2, b"entry3")?;
 
         // The full chain is valid.
         let full = vec![
@@ -137,6 +140,7 @@ mod tests {
             verify_chain(&key, deleted),
             Err(SecurityError::ChainBroken { entry_index: 1 })
         ));
+        Ok(())
     }
 
     #[test]
@@ -146,15 +150,16 @@ mod tests {
     }
 
     #[test]
-    fn chain_detects_wrong_key() {
+    fn chain_detects_wrong_key() -> Result<(), Box<dyn std::error::Error>> {
         let key1 = EncryptionKey::generate();
         let key2 = EncryptionKey::generate();
-        let h1 = chain_hash(&key1, &GENESIS_HASH, b"entry1").unwrap();
+        let h1 = chain_hash(&key1, &GENESIS_HASH, b"entry1")?;
         // Verification with a different key → violation.
         let entries = vec![(b"entry1".to_vec(), h1)];
         assert!(matches!(
             verify_chain(&key2, entries),
             Err(SecurityError::ChainBroken { entry_index: 0 })
         ));
+        Ok(())
     }
 }

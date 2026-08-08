@@ -22,3 +22,15 @@ zeroize = { version = "1.9.0", features = ["derive"] }
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+# criterion — micro-benchmarks for the crypto hot paths (AEAD, hash-chain).
+# Run locally: `cargo bench -p mailgrit-core-security`. CI only compiles
+# benches (cargo bench --no-run) to keep them buildable and catch compile
+# breakage; it does NOT time anything, so it cannot catch performance
+# regressions — those must be checked by a local `cargo bench` run.
+criterion = "0.8"
+
+[[bench]]
+name = "crypto"
+harness = false   # criterion provides its own main

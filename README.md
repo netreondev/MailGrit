@@ -79,12 +79,20 @@ JS `fetch()` **inside the same webview** that holds the legitimate session.
 
 ## Security model
 
-- **Encrypted hash-chained audit log** — every operation is appended to a
-  tamper-evident chain (HMAC-SHA256), encrypted at rest with streaming AEAD
-  (XChaCha20-Poly1305).
+- **Hash-chained audit log (tamper-evident)** — every operation is appended to a
+  tamper-evident chain (HMAC-SHA256) so any deletion/reordering/modification of a
+  past entry is detected by `verify`. The chain provides **integrity**, not
+  confidentiality: the action payload is stored in the local SQLite audit file
+  (`mailgrit-audit.sqlite`) as-is, **not** encrypted at rest. Confidentiality of
+  the log relies on the OS-protected per-user app-data directory. (Exports and
+  backups, in contrast, **are** encrypted with streaming AEAD
+  (XChaCha20-Poly1305) — see "Encrypted exports" below.)
+- **Encrypted exports/backups** — bulk exports and backups are encrypted at rest
+  with streaming AEAD (XChaCha20-Poly1305); the key is derived from the master
+  password.
 - **Master password** — derives the audit-log key and the export-encryption key
   via Argon2id (memory-hard KDF). The password is never stored; if lost, the
-  audit log and encrypted exports cannot be unlocked.
+  audit log cannot be **verified** and encrypted exports cannot be unlocked.
 - **`unsafe_code = "forbid"`** at the workspace level — no `unsafe` anywhere in
   the application crates (wry 0.53 returns HttpOnly cookies natively).
 
@@ -167,6 +175,40 @@ All clippy groups (`correctness`, `suspicious`, `complexity`, `perf`,
 
 Rust **1.97.1**, pinned via `rust-toolchain.toml` (edition 2024).
 
+### Verification & hardening
+
+Beyond the unit/integration tests, MailGrit runs a layered verification pipeline
+in CI. Items marked **CI gate** fail the build. See [`SECURITY.md`](SECURITY.md)
+for how to verify a release binary (SLSA provenance, cosign signatures, embedded
+SBOM).
+
+| Tool | Category | Status | Where |
+|------|----------|--------|-------|
+| cargo-deny | Supply chain | Installed, **CI gate** | `deny.toml` |
+| cargo-audit | Vulnerability | Installed, **CI gate** | `.github/workflows/ci.yml` |
+| cargo-vet | Supply chain | Installed, **CI gate** | `supply-chain/` |
+| cargo-auditable | Supply chain | Installed (release) | `release.yml` |
+| CycloneDX SBOM | Compliance | Installed (release) | `release.yml` |
+| SLSA provenance | Supply chain | Installed (release) | `release.yml` |
+| cosign signing | Supply chain | Installed (release) | `release.yml` |
+| Gitleaks | Secret scanning | Installed, **CI gate** | `.gitleaks.toml` |
+| Semgrep (SAST) | Security | Installed, **CI gate** | `.semgrepignore` |
+| Dependabot | Dependencies | Installed | `.github/dependabot.yml` |
+| cargo-fuzz | Fuzzing | Installed, **CI gate** (regression replay + exploratory) | `fuzz/` + seed corpus |
+| proptest | Testing | Installed | `crates/core-csv/tests/` |
+| Kani | Formal ver. | Installed, **CI gate** (every push) | `crates/*/src/kani_harnesses.rs` |
+| Miri | Formal ver. | Installed, **CI gate** (every push) | `ci.yml` |
+| cargo-mutants | Testing | Installed, **CI gate** (every push) | `ci.yml` |
+| cargo-semver-checks | API compat | Installed, **CI gate** | `ci.yml` |
+| criterion | Performance | Installed (bench, CI compiles) | `crates/*/benches/` |
+| cargo-bloat | Binary size | Installed (release) | `release.yml` |
+
+Items deliberately **not** adopted (not applicable to this project's threat
+model): JWT-testing (no JWT), HTTP/DAST/ZAP (no server, it is a desktop client),
+TLS/cert scanning (TLS is handled by the OS webview, no Rust TLS code), ReDoS
+scanning (no Rust `regex` in app code), and the research-stage formal tools
+(RefinedRust / rocq-of-rust / GillianRust / ESBMC-Rust).
+
 ## Platforms
 
 | Platform | Target |
@@ -178,7 +220,9 @@ Rust **1.97.1**, pinned via `rust-toolchain.toml` (edition 2024).
 CI runs the full quality gate (fmt, clippy, nextest, doc tests, cargo-deny,
 cargo-audit, cargo-machete, cargo-semver-checks) on all three, plus a release
 build matrix. Formal verification (Kani, Miri), mutation testing (cargo-mutants),
-and continuous fuzzing (cargo-fuzz) run nightly and are non-blocking.
+and continuous fuzzing (cargo-fuzz) run on every push/PR (Linux) and are
+**blocking CI gates** — a Miri/Kani/mutants failure or a newly-found fuzzer crash
+fails the build and blocks the PR.
 
 ## License
 

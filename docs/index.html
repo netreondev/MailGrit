@@ -1,22 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18376819119"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'AW-18376819119');
-  </script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b1020">
+  <meta name="theme-color" content="#08080C">
+
+  <!-- Apply persisted/system theme before first paint to avoid FOUC -->
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("mailgrit-theme");
+        var theme = saved || (window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    })();
+  </script>
 
   <title>MailGrit — Bulk iRedAdmin Automation Desktop App</title>
-  <meta name="description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.">
-  <meta name="keywords" content="iRedAdmin, bulk mail automation, desktop app, Rust, Dioxus, FortiWeb, WAF, mail server admin, mail account creation, encrypted audit log">
+  <meta name="description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Tamper-evident audit log, 9 languages.">
+  <meta name="keywords" content="iRedAdmin, bulk mail automation, desktop app, Rust, Dioxus, FortiWeb, WAF, mail server admin, mail account creation, tamper-evident audit log">
   <meta name="author" content="MailGrit Contributors">
   <meta name="robots" content="index, follow">
 
@@ -30,13 +33,17 @@
   <link rel="icon" type="image/png" sizes="512x512" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
   <link rel="icon" type="image/png" sizes="192x192" href="https://netreondev.github.io/MailGrit/assets/icon-192.png">
   <link rel="apple-touch-icon" href="https://netreondev.github.io/MailGrit/assets/icon-512.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="assets/style.css">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="MailGrit">
   <meta property="og:title" content="MailGrit — Bulk iRedAdmin Automation Desktop App">
-  <meta property="og:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.">
+  <meta property="og:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Tamper-evident audit log, 9 languages.">
   <meta property="og:url" content="https://netreondev.github.io/MailGrit/">
   <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta property="og:image:secure_url" content="https://netreondev.github.io/MailGrit/assets/og.png">
@@ -50,7 +57,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MailGrit — Bulk iRedAdmin Automation Desktop App">
-  <meta name="twitter:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.">
+  <meta name="twitter:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Tamper-evident audit log, 9 languages.">
   <meta name="twitter:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta name="twitter:image:alt" content="MailGrit — bulk iRedAdmin automation desktop app">
 
@@ -101,7 +108,7 @@
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "MailGrit — Bulk iRedAdmin Automation Desktop App",
-    "description": "Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Encrypted audit log, 9 languages.",
+    "description": "Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Tamper-evident audit log, 9 languages.",
     "url": "https://netreondev.github.io/MailGrit/",
     "inLanguage": "en",
     "isPartOf": {
@@ -160,7 +167,7 @@
         "name": "Is MailGrit secure? How is the audit log protected?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Every operation is appended to a tamper-evident hash chain (HMAC-SHA256) and encrypted at rest with streaming authenticated encryption (XChaCha20-Poly1305). The encryption keys are derived from a master password via Argon2id; the master password is never stored. The workspace enforces unsafe_code = forbid, so there is no unsafe code in the application crates."
+          "text": "Every operation is appended to a tamper-evident hash chain (HMAC-SHA256) that protects integrity: any deletion, reordering or modification of a past entry is detected on verify. Encrypted exports and backups are protected at rest with streaming authenticated encryption (XChaCha20-Poly1305), with keys derived from a master password via Argon2id; the master password is never stored. The workspace enforces unsafe_code = forbid, so there is no unsafe code in the application crates."
         }
       },
       {
@@ -177,20 +184,45 @@
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
+  <div class="progress-bar" aria-hidden="true"></div>
 
   <header class="site-header">
     <div class="container">
       <a class="brand" href="https://netreondev.github.io/MailGrit/" aria-label="MailGrit home">
-        <span class="brand-mark" aria-hidden="true">M</span>
+        <svg viewBox="0 0 64 64" role="img" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="hdr-bg" x1="5.33" y1="5.33" x2="58.67" y2="58.67" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#1D4ED8"/><stop offset="0.78" stop-color="#0EA5E9"/><stop offset="1" stop-color="#38BDF8"/>
+            </linearGradient>
+            <linearGradient id="hdr-m" x1="16" y1="16" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BAE6FD"/>
+            </linearGradient>
+          </defs>
+          <rect x="5.33" y="5.33" width="53.33" height="53.33" rx="16" fill="url(#hdr-bg)"/>
+          <path d="M16 46 L16 18 L32 34 L48 18 L48 46" fill="none" stroke="url(#hdr-m)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
         MailGrit
       </a>
+      <nav class="nav-links" aria-label="Sections">
+        <a href="#features">Features</a>
+        <a href="#security">Security</a>
+        <a href="#languages">Languages</a>
+        <a href="#faq">FAQ</a>
+      </nav>
       <div class="nav-actions">
+        <button class="icon-btn theme-toggle" type="button" aria-label="Toggle color theme" title="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </button>
         <nav class="lang-switch" aria-label="Language">
           <span class="cur">EN</span>
           <span class="sep" aria-hidden="true">|</span>
           <a href="https://netreondev.github.io/MailGrit/uk/" hreflang="uk" lang="uk">УК</a>
         </nav>
-        <a class="nav-cta" href="https://github.com/netreondev/MailGrit" rel="noopener">GitHub</a>
+        <a class="nav-cta" href="https://github.com/netreondev/MailGrit" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.73.5.5 5.73.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.71 1.26 3.37.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14 0 1.55-.01 2.8-.01 3.18 0 .31.21.68.8.56A11.51 11.51 0 0 0 23.5 12C23.5 5.73 18.27.5 12 .5z"/></svg>
+          <span class="label">GitHub</span>
+        </a>
       </div>
     </div>
   </header>
@@ -199,32 +231,115 @@
     <!-- Hero -->
     <section class="hero">
       <div class="container">
-        <span class="eyebrow">Open source &middot; Rust &middot; MIT / Apache-2.0</span>
-        <h1>Bulk <span class="grad">iRedAdmin</span> automation, from the desktop.</h1>
-        <p class="lead">
-          MailGrit is a cross-platform desktop app for creating, editing and deleting mail user accounts
-          on iRedAdmin servers in bulk &mdash; even behind FortiWeb / WAF &mdash; through an embedded
-          browser that performs a legitimate <code>fetch</code> inside the real session. No Node/JS
-          toolchain: native WebView2/wry via Dioxus 0.7.
-        </p>
-        <div class="hero-cta">
-          <a class="btn btn-primary" href="https://github.com/netreondev/MailGrit/releases" rel="noopener">Download</a>
-          <a class="btn btn-ghost" href="#quick-start">Quick start</a>
-          <a class="btn btn-ghost" href="https://github.com/netreondev/MailGrit" rel="noopener">View source</a>
-          <a class="btn btn-ghost" href="https://donatello.to/VladymyrM" target="_blank" rel="noopener">Donate</a>
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <span class="eyebrow">Open source &middot; Rust &middot; MIT / Apache-2.0</span>
+            <h1>Bulk <span class="grad">iRedAdmin</span> automation, from the desktop.</h1>
+            <p class="lead">
+              MailGrit is a cross-platform desktop app for creating, editing and deleting mail user
+              accounts on iRedAdmin servers in bulk &mdash; even behind FortiWeb / WAF &mdash; through
+              an embedded browser that performs a legitimate <code>fetch</code> inside the real session.
+              No Node/JS toolchain: native WebView2/wry via Dioxus 0.7.
+            </p>
+            <div class="hero-cta">
+              <a class="btn btn-primary" href="https://github.com/netreondev/MailGrit/releases" rel="noopener">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                Download
+              </a>
+              <a class="btn btn-ghost" href="#quick-start">Quick start</a>
+              <a class="btn btn-ghost" href="https://github.com/netreondev/MailGrit" rel="noopener">View source</a>
+              <a class="btn btn-ghost" href="https://donatello.to/VladymyrM" target="_blank" rel="noopener">Donate</a>
+            </div>
+            <div class="hero-meta" aria-label="At a glance">
+              <span>Windows</span><span class="dot">&bull;</span>
+              <span>Linux</span><span class="dot">&bull;</span>
+              <span>macOS ARM</span><span class="dot">&bull;</span>
+              <span>Dioxus 0.7</span><span class="dot">&bull;</span>
+              <span>Rust 1.97.1, edition 2024</span><span class="dot">&bull;</span>
+              <span>9 languages</span>
+            </div>
+            <p class="legal-microcopy">
+              For authorized administration only &mdash; operate solely on iRedAdmin servers you own or
+              administer. Not affiliated with iRedAdmin.
+            </p>
+          </div>
+          <div class="hero-visual" aria-hidden="true">
+            <div class="mockup-stage">
+            <div class="mockup">
+              <div class="mu-titlebar">
+                <span class="mu-brand">
+                  <svg viewBox="0 0 64 64" focusable="false"><rect x="6" y="6" width="52" height="52" rx="14" fill="#2563EB"/><path d="M17 46 L17 20 L32 34 L47 20 L47 46" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span class="mu-name">MailGrit</span><span class="mu-sub">Operations panel</span>
+                </span>
+                <span class="mu-win">
+                  <i title="Minimize"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/></svg></i>
+                  <i title="Maximize"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="5" width="14" height="14" rx="1"/></svg></i>
+                  <i class="close" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg></i>
+                </span>
+              </div>
+              <div class="mu-ctx">
+                <span class="mu-badge">Session active</span>
+                <span class="mu-url">https://mail.netreon.io/iredadmin</span>
+                <span class="mu-ctx-right">
+                  <span class="mu-seg"><span class="active">Operations</span><span>Audit</span></span>
+                </span>
+              </div>
+              <div class="mu-body">
+                <div class="mu-card">
+                  <div class="mu-card-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                    CSV loading &amp; editing
+                  </div>
+                  <div class="mu-card-body">
+                    <div class="mu-rows-count"><b>10</b> valid rows</div>
+                    <div class="mu-scroll">
+                    <table class="mu-table mu-rows">
+                      <thead><tr><th>Domain</th><th>Login</th><th>Password</th><th>Quota</th></tr></thead>
+                      <tbody>
+                        <tr><td class="mono">netreon.io</td><td class="mono">j.doe</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">a.kova</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>2048</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">m.lee</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>512</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">s.nova</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">p.garcia</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>512</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">t.bauer</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>2048</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">l.petrov</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">j.doe</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">a.kova</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>2048</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">m.lee</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>512</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">s.nova</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">p.garcia</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>512</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">t.bauer</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>2048</td></tr>
+                        <tr><td class="mono">netreon.io</td><td class="mono">l.petrov</td><td class="mono pw-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>&bull;&bull;&bull;&bull;</td><td>1024</td></tr>
+                      </tbody>
+                    </table>
+                    </div>
+                  </div>
+                </div>
+                <div class="mu-card">
+                  <div class="mu-card-head">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    Bulk operations
+                  </div>
+                  <div class="mu-card-body">
+                    <div class="mu-target"><span class="active">Users</span><span>Domains</span><span>Admins</span></div>
+                    <div class="mu-actions">
+                      <span class="mu-btn primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Create</span>
+                      <span class="mu-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Edit</span>
+                      <span class="mu-btn danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/></svg>Delete</span>
+                    </div>
+                    <div class="mu-running"><span class="spinner"></span> Running operation through iRedAdmin&hellip;</div>
+                    <div class="mu-track"><span class="mu-fill"></span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="mu-result">
+                <span class="mu-res-head"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Last operation</span>
+                <span class="ok">Succeeded: 10</span><span class="bad">Rejected: 0</span>
+              </div>
+            </div>
+            </div>
+          </div>
         </div>
-        <div class="hero-meta" aria-label="At a glance">
-          <span>Windows</span><span class="dot">&bull;</span>
-          <span>Linux</span><span class="dot">&bull;</span>
-          <span>macOS ARM</span><span class="dot">&bull;</span>
-          <span>Dioxus 0.7</span><span class="dot">&bull;</span>
-          <span>Rust 1.97.1, edition 2024</span><span class="dot">&bull;</span>
-          <span>9 languages</span>
-        </div>
-        <p class="legal-microcopy">
-          For authorized administration only &mdash; operate solely on iRedAdmin servers you own or administer.
-          Not affiliated with iRedAdmin.
-        </p>
       </div>
     </section>
 
@@ -232,10 +347,10 @@
     <section class="section" aria-label="By the numbers">
       <div class="container">
         <div class="stats">
-          <div class="stat"><div class="num">5</div><div class="label">Isolated workspace crates</div></div>
-          <div class="stat"><div class="num">9</div><div class="label">UI languages, embedded at compile time</div></div>
-          <div class="stat"><div class="num">0</div><div class="label">Bytes of <code>unsafe</code> (workspace forbid)</div></div>
-          <div class="stat"><div class="num">3</div><div class="label">Platforms in CI: Windows, Linux, macOS ARM</div></div>
+          <div class="stat reveal"><div class="num" data-count="5">5</div><div class="label">Isolated workspace crates</div></div>
+          <div class="stat reveal"><div class="num" data-count="9">9</div><div class="label">UI languages, embedded at compile time</div></div>
+          <div class="stat reveal"><div class="num" data-count="0">0</div><div class="label">Bytes of <code>unsafe</code> (workspace forbid)</div></div>
+          <div class="stat reveal"><div class="num" data-count="3">3</div><div class="label">Platforms in CI: Windows, Linux, macOS ARM</div></div>
         </div>
       </div>
     </section>
@@ -243,39 +358,39 @@
     <!-- Features -->
     <section class="section" id="features">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">01 / Features</span>
           <h2>Everything you need to manage mail accounts at scale.</h2>
           <p>A native panel on top of a real iRedAdmin session &mdash; no brittle cookie replay, no separate HTTP client that breaks behind a WAF.</p>
         </div>
         <div class="grid">
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#9881;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg></div>
             <h3>CSV-driven bulk operations</h3>
             <p>Drive mass create / edit / delete from a CSV. BOM is stripped automatically, headers map flexibly case-insensitively, and hard row and length limits guard against accidental huge inputs.</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#128274;</div>
-            <h3>Encrypted hash-chained audit log</h3>
-            <p>Every operation is appended to a tamper-evident HMAC-SHA256 chain, encrypted at rest with streaming AEAD (XChaCha20-Poly1305). Nothing is silently altered.</p>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+            <h3>Tamper-evident hash-chained audit log</h3>
+            <p>Every operation is appended to a tamper-evident HMAC-SHA256 chain, so any deletion, reordering, or modification of a past entry is detected on verify. Exports and backups are encrypted at rest with streaming AEAD (XChaCha20-Poly1305).</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#128737;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
             <h3>Master-password key protection</h3>
-            <p>Derives the audit-log key and export key via Argon2id (memory-hard KDF). The password is never stored; lose it and the audit log and encrypted exports stay locked.</p>
+            <p>Derives the audit-log key and export key via Argon2id (memory-hard KDF). The password is never stored; lose it and the audit log can no longer be verified and encrypted exports can no longer be unlocked.</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#127760;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
             <h3>Works behind FortiWeb / WAF</h3>
             <p>Requests run as a <code>fetch</code> inside the same webview that holds the legitimate session, so backend authentication held by the proxy just works &mdash; no cookie guessing.</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#127468;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
             <h3>9 languages, compiled in</h3>
             <p>English, Deutsch, Fran&ccedil;ais, Espa&ntilde;ol, Italiano, Portugu&ecirc;s, Nederlands, Polski and &Ucy;&kcy;&rcy;&acy;&yicy;&ncy;&scy;&softcy;&kcy;&acy;. Translations are embedded into the binary; your choice persists in <code>config.toml</code>.</p>
           </article>
-          <article class="card">
-            <div class="icon" aria-hidden="true">&#9728;</div>
+          <article class="card reveal">
+            <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></div>
             <h3>Frameless, themed UI</h3>
             <p>A home-grown design system on CSS tokens: custom titlebar, dark/light themes with a toggle, symmetric card grid, modal confirmation for destructive ops and live progress.</p>
           </article>
@@ -286,24 +401,24 @@
     <!-- Security -->
     <section class="section" id="security">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">02 / Security model</span>
           <h2>Built safe by default, enforced at compile time.</h2>
           <p>Security is a workspace policy, not a best effort: <code>unsafe_code = "forbid"</code>, strict clippy, and supply-chain checks run on every supported platform in CI.</p>
         </div>
         <div class="split">
-          <div class="panel">
+          <div class="panel reveal">
             <h3>Policy that cannot drift</h3>
             <ul class="checklist">
               <li><strong><code>unsafe_code = "forbid"</code></strong> workspace-wide &mdash; no <code>unsafe</code> anywhere in the application crates.</li>
               <li>Clippy <code>correctness</code>, <code>suspicious</code>, <code>complexity</code>, <code>perf</code>, <code>pedantic</code>, <code>nursery</code> and <code>cargo</code> groups all <code>deny</code>.</li>
               <li><code>panic</code>, <code>unwrap_used</code>, <code>expect_used</code>, <code>indexing_slicing</code>, <code>arithmetic_side_effects</code> all <code>deny</code>.</li>
               <li>Supply chain: <code>cargo-deny</code> (advisories, bans, licenses, sources) plus <code>cargo-audit</code>.</li>
-              <li>Audit log at rest: streaming XChaCha20-Poly1305 AEAD; HMAC-SHA256 hash chain for integrity.</li>
+              <li>Audit log integrity: HMAC-SHA256 hash chain. Encrypted exports &amp; backups: streaming XChaCha20-Poly1305 AEAD.</li>
               <li>Master password: Argon2id memory-hard KDF; never stored, never logged.</li>
             </ul>
           </div>
-          <div class="code-window" aria-label="Workspace lint policy excerpt">
+          <div class="code-window reveal" aria-label="Workspace lint policy excerpt">
             <div class="bar"><i></i><i></i><i></i><span class="title">Cargo.toml</span></div>
 <pre><span class="c"># No exceptions: wry 0.53 returns HttpOnly cookies natively.</span>
 <span class="c"># Every application crate is audited under this policy.</span>
@@ -326,12 +441,12 @@
     <!-- i18n -->
     <section class="section" id="languages">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">03 / Internationalization</span>
           <h2>Nine languages, shipped in the binary.</h2>
           <p>Translations are embedded at compile time with <code>rust-i18n</code> &mdash; no resource files to chase at runtime. Your selection is saved to <code>config.toml</code>.</p>
         </div>
-        <div class="langs">
+        <div class="langs reveal">
           <span class="lang-chip"><code>en</code> English <span class="end">English</span></span>
           <span class="lang-chip"><code>de</code> German <span class="end">Deutsch</span></span>
           <span class="lang-chip"><code>fr</code> French <span class="end">Fran&ccedil;ais</span></span>
@@ -348,12 +463,12 @@
     <!-- Quick start -->
     <section class="section" id="quick-start">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">04 / Quick start</span>
           <h2>One command to a release build.</h2>
           <p>MailGrit is a Cargo workspace; build the desktop app for your platform and run it directly.</p>
         </div>
-        <div class="code-window" aria-label="Build the desktop app">
+        <div class="code-window reveal" aria-label="Build the desktop app">
           <div class="bar"><i></i><i></i><i></i><span class="title">bash</span></div>
 <pre><span class="c"># Requires Rust 1.97.1 (pinned via rust-toolchain.toml, edition 2024)</span>
 <span class="p">$</span> <span class="k">cargo build</span> --release -p mailgrit-app-desktop
@@ -364,7 +479,7 @@
 <span class="c"># Linux / macOS</span>
 <span class="p">$</span> ./target/release/mailgrit-app-desktop</pre>
         </div>
-        <p style="margin-top:18px;color:var(--text-muted);font-size:0.95rem;max-width:62ch;">
+        <p class="reveal" style="margin-top:18px;color:var(--text-muted);font-size:0.95rem;max-width:62ch;">
           On first launch a <code>mailgrit-data/</code> folder is created next to the binary, holding all
           application files. Point it at your iRedAdmin URL, sign in once in the embedded browser, and the
           operations panel opens automatically.
@@ -375,13 +490,13 @@
     <!-- Architecture -->
     <section class="section" id="architecture">
       <div class="container">
-        <div class="section-head">
+        <div class="section-head reveal">
           <span class="section-num">05 / Architecture</span>
           <h2>Five crates, each testable in isolation.</h2>
           <p>A Cargo workspace where the domain, parsing, storage, security and UI layers are separated &mdash; <code>cargo test -p &lt;crate&gt;</code> runs each in isolation.</p>
         </div>
         <div class="split">
-          <div class="panel">
+          <div class="panel reveal">
             <h3>Workspace layout</h3>
             <ul class="checklist">
               <li><strong>core-domain</strong> &mdash; domain types (Newtype/Typestate), errors, limit constants, password policy.</li>
@@ -391,13 +506,50 @@
               <li><strong>app-desktop</strong> &mdash; Dioxus 0.7 desktop app: login window, cookie handling, native RSX panel.</li>
             </ul>
           </div>
-          <div class="code-window" aria-label="Workspace dependency graph">
+          <div class="code-window reveal" aria-label="Workspace dependency graph">
             <div class="bar"><i></i><i></i><i></i><span class="title">graph</span></div>
 <pre><span class="c"># each crate compiles / tests in isolation</span>
 core-domain ─┬─ core-csv ────┐
              ├─ core-storage ─┤
              └─ core-security ┴─ app-desktop</pre>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head reveal">
+          <span class="section-num">06 / FAQ</span>
+          <h2>Frequently asked questions.</h2>
+          <p>What MailGrit is, how it works, and how it stays safe.</p>
+        </div>
+        <div class="faq reveal">
+          <details class="faq-item">
+            <summary>What is MailGrit? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">MailGrit is a free, open-source cross-platform desktop application written in Rust that performs bulk create, edit and delete of mail user accounts on iRedAdmin mail servers. It is an administration tool, not a mail reader.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Which operating systems does MailGrit support? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">MailGrit runs on Windows, Linux (x86_64) and macOS on Apple Silicon (aarch64). It is built with the Dioxus desktop framework and uses the native system WebView, so there is no Node or JavaScript toolchain.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Does MailGrit work behind FortiWeb or a WAF? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">Yes. Bulk operations run as a JavaScript <code>fetch</code> POST of the real iRedAdmin create/edit HTML form (with a CSRF token) inside the same embedded webview that holds the legitimate session. Because the request originates from the authenticated browser session, it works even when the server is behind FortiWeb or another web application firewall.</div>
+          </details>
+          <details class="faq-item">
+            <summary>How does MailGrit authenticate against iRedAdmin? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">You sign in through the embedded browser using your real iRedAdmin credentials. The app detects a successful login data-driven, by the login webview navigating to <code>/dashboard</code>, rather than by guessing cookie names. It then executes operations as a <code>fetch</code> inside that same authenticated webview.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Is MailGrit secure? How is the audit log protected? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">Every operation is appended to a tamper-evident hash chain (HMAC-SHA256) that protects <strong>integrity</strong>: any deletion, reordering or modification of a past entry is detected on <code>verify</code>. Encrypted exports and backups are protected at rest with streaming authenticated encryption (XChaCha20-Poly1305), with keys derived from a master password via Argon2id; the master password is never stored. The workspace enforces <code>unsafe_code = "forbid"</code>, so there is no unsafe code in the application crates.</div>
+          </details>
+          <details class="faq-item">
+            <summary>Is MailGrit free and what is its license? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">MailGrit is free and open source, dual-licensed under the MIT License or the Apache License 2.0 at your option. The source code and prebuilt binaries are available on GitHub. iRedAdmin is a trademark of its respective owners; MailGrit is independent and not affiliated with or endorsed by iRedAdmin.</div>
+          </details>
         </div>
       </div>
     </section>
@@ -417,7 +569,18 @@ core-domain ─┬─ core-csv ────┐
       <div class="footer-grid">
         <div>
           <a class="brand" href="https://netreondev.github.io/MailGrit/" aria-label="MailGrit home">
-            <span class="brand-mark" aria-hidden="true">M</span>
+            <svg viewBox="0 0 64 64" role="img" aria-hidden="true" focusable="false">
+              <defs>
+                <linearGradient id="ftr-bg" x1="5.33" y1="5.33" x2="58.67" y2="58.67" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#1D4ED8"/><stop offset="0.78" stop-color="#0EA5E9"/><stop offset="1" stop-color="#38BDF8"/>
+                </linearGradient>
+                <linearGradient id="ftr-m" x1="16" y1="16" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+                  <stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BAE6FD"/>
+                </linearGradient>
+              </defs>
+              <rect x="5.33" y="5.33" width="53.33" height="53.33" rx="16" fill="url(#ftr-bg)"/>
+              <path d="M16 46 L16 18 L32 34 L48 18 L48 46" fill="none" stroke="url(#ftr-m)" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
             MailGrit
           </a>
           <p>An open-source, cross-platform desktop client for bulk iRedAdmin automation. Built with Dioxus 0.7 desktop &mdash; no Node/JS toolchain.</p>
@@ -459,5 +622,7 @@ core-domain ─┬─ core-csv ────┐
       </p>
     </div>
   </footer>
+
+  <script src="assets/app.js" defer></script>
 </body>
 </html>

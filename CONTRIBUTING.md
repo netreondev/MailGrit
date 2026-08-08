@@ -47,6 +47,38 @@ Key rules:
 - **No Russian** in comments, docs, or strings — the project is documented in
   **English and Ukrainian** only.
 
+### Verification & supply-chain tooling
+
+In addition to the table above, CI runs (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+
+- **`cargo audit`** + **`cargo vet`** — independent advisory check and audited /
+  imported dependency attestations. Adding a new dependency means it must be
+  either covered by a trusted import or recorded in `supply-chain/audits.toml`
+  / `supply-chain/config.toml`. Run `cargo vet suggest` to see what to review.
+  Honesty note: `cargo vet` distinguishes a real audit (in `audits.toml`, where
+  we have actually reviewed the crate — currently a small set of crypto/storage
+  crates) from a tracked **exemption** (in `config.toml`, which records that a
+  crate is *not* audited but is permitted anyway). The vast majority of the
+  transitive tree is currently covered by exemptions, not first-party audits;
+  the CI gate's real value is that it **blocks the introduction of a brand-new,
+  unaudited-and-unexempted dependency**, not that it attests every existing one.
+  When you add a security-relevant dependency (crypto, storage, network),
+  prefer adding a real entry to `audits.toml` over an exemption.
+- **Gitleaks** + **Semgrep** — secret scanning and SAST. Keep
+  `.gitleaks.toml` / `.semgrepignore` up to date if you add new generated /
+  vendored paths.
+- **Fuzz regression** — `fuzz/seeds/` holds committed regression inputs replayed
+  on every PR. If you fix a fuzz-found bug, add a seed under
+  `fuzz/seeds/<target>/`.
+- **Deterministic secret-leak test** — `crates/app-desktop/src/webview_secret_leak_tests.rs`
+  asserts passwords never reach `tracing` output. If you add new logging near
+  sensitive data, extend it.
+- **Blocking CI gates (every push/PR)** — Kani, Miri, cargo-mutants, cargo-fuzz
+  (these use the nightly Rust *toolchain* and run on every push/PR, not on a
+  schedule). They fail the PR on a finding: a Miri UB, a failed Kani proof, a
+  surviving mutant, or a fuzzer crash blocks the merge. Fix the root cause
+  (don't suppress) before merging.
+
 ## Commit messages
 
 Use the **Conventional Commits** format:

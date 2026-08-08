@@ -18,6 +18,14 @@ desktop.ini
 fuzz/artifacts/
 fuzz/corpus/
 
+# Ad-hoc verification/debug log files at the repo root
+# (output of manual clippy/miri/kani/bench/fuzz runs — never committed)
+/*.log
+
+# cargo-mutants output (mutation testing artifacts — never committed)
+mutants.out*/
+
+
 # Local databases / secrets (never committed)
 *.db
 *.db-journal

@@ -1,5 +1,11 @@
 # Builds native release binaries for Windows / Linux / macOS and publishes
-# them as a GitHub Release. Triggered manually or on version tags (v*).
+# them as a GitHub Release, with full supply-chain hardening:
+#   - cargo-auditable:  dependency list embedded into every binary.
+#   - CycloneDX SBOM:    one .cdx.json per release, attached as an asset.
+#   - SLSA provenance:   build-origin attestation (slsa-github-generator).
+#   - cosign (keyless):  detached signature per archive, verified via Rekor.
+#
+# Triggered manually or on version tags (v*).
 name: Release binaries
 
 on:
@@ -9,12 +15,17 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag (e.g. v0.1.0)"
+        description: "Release tag (e.g. v0.1.2)"
         required: true
-        default: "v0.1.0"
+        default: "v0.1.2"
 
+# id-token: write is REQUIRED for cosign keyless (OIDC) signing and for SLSA
+# provenance generation. contents: write is needed to attach assets to the
+# release and to upload provenance.
 permissions:
   contents: write
+  id-token: write
+  actions: read   # SLSA generator reads the build job's run metadata.
 
 env:
   CARGO_TERM_COLOR: always
@@ -23,6 +34,10 @@ jobs:
   build:
     name: Build (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
+    outputs:
+      # sha256sum lines ("<hash>  <file>") of every archive, consumed by the
+      # provenance job (SLSA subjects) and the sign job (cosign targets).
+      hashes: ${{ steps.hash.outputs.hashes }}
     strategy:
       fail-fast: false
       matrix:
@@ -51,6 +66,11 @@ jobs:
       - name: Add target
         run: rustup target add ${{ matrix.target }}
 
+      - name: Install cargo tools (cargo-auditable, cargo-cyclonedx, cargo-bloat)
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-auditable,cargo-cyclonedx,cargo-bloat
+
       - name: Install Linux system dependencies (Dioxus desktop / webkit2gtk)
         if: runner.os == 'Linux'
         run: |
@@ -64,45 +84,189 @@ jobs:
             libxdo-dev \
             mold
 
-      - name: Build release binary
-        run: cargo build --release -p mailgrit-app-desktop --target ${{ matrix.target }}
+      # cargo-auditable wraps `cargo build`: it injects a `.dep-vices` section
+      # into the binary with the full dependency list + known advisories at
+      # build time. A downloaded binary can then be scanned with
+      # `cargo audit bin <path>` without source access.
+      # --all-features matches the CI build/test gate (no feature-gated path
+      # ships without being compiled).
+      - name: Build release binary (auditable — deps embedded)
+        run: cargo auditable build --release -p mailgrit-app-desktop --all-features --target ${{ matrix.target }}
 
-      - name: Stage binary + README (Windows)
+      # CycloneDX SBOM for the desktop binary crate. Captures the resolved
+      # dependency tree (incl. versions + licenses) at release time.
+      - name: Generate CycloneDX SBOM
+        run: cargo cyclonedx --format json --output-cdx -p mailgrit-app-desktop
+
+      # Binary-size report (non-blocking diagnostic): which crates contribute
+      # most to the final binary. Uploaded as an artifact for trend tracking.
+      - name: Binary size report (cargo-bloat)
+        continue-on-error: true
+        shell: bash
+        run: |
+          cargo bloat --release -p mailgrit-app-desktop --target ${{ matrix.target }} --crates -n 50 > bloat-${{ matrix.name }}.txt || true
+          cat bloat-${{ matrix.name }}.txt || true
+
+      - name: Stage binary + SBOM + README (Windows)
         if: runner.os == 'Windows'
         shell: bash
         run: |
           mkdir -p stage
           cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" stage/
           cp README.md README.uk.md LICENSE-MIT LICENSE-APACHE stage/
+          # SBOM: cargo-cyclonedx writes <package>.cdx.json next to the manifest.
+          cp mailgrit-app-desktop.cdx.json stage/mailgrit-sbom-${{ matrix.name }}.cdx.json
           7z a "${{ matrix.archive }}" ./stage/*
           ls -la "${{ matrix.archive }}"
 
-      - name: Stage binary + README (Linux/macOS)
+      - name: Stage binary + SBOM + README (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           mkdir -p stage
           cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" stage/
           cp README.md README.uk.md LICENSE-MIT LICENSE-APACHE stage/
+          cp mailgrit-app-desktop.cdx.json stage/mailgrit-sbom-${{ matrix.name }}.cdx.json
           tar -czf "${{ matrix.archive }}" -C stage .
           ls -la "${{ matrix.archive }}"
 
-      - name: Upload build artifact
+      # Compute sha256 of the archive + SBOM, one "<hash>  <file>" per line.
+      # This is the input to SLSA provenance (subjects) and is reused by cosign.
+      - name: Compute sha256 subjects
+        id: hash
+        shell: bash
+        run: |
+          # sha256sum outputs "<hash>  <file>"; base64-encode the whole block for
+          # the SLSA generic generator's base64-subjects input.
+          sha256sum "${{ matrix.archive }}" > hashes-${{ matrix.name }}.txt
+          cat hashes-${{ matrix.name }}.txt
+          echo "hashes=$(cat hashes-${{ matrix.name }}.txt | base64 -w0)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build artifact (archive + SBOM + bloat + hashes)
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.archive }}
-          path: ${{ matrix.archive }}
+          path: |
+            ${{ matrix.archive }}
+            stage/mailgrit-sbom-${{ matrix.name }}.cdx.json
+            hashes-${{ matrix.name }}.txt
+            bloat-${{ matrix.name }}.txt
           retention-days: 7
+          if-no-files-found: error
 
+  # ==========================================================================
+  # SLSA build provenance — attest the build origin of every archive.
+  # Uses the SLSA generic generator (keyless, via GitHub OIDC). Produces a
+  # DSSE/in-toto attestation that the archives were built from this workflow
+  # run. Verified with `slsa-verifier`.
+  # ==========================================================================
+  provenance:
+    name: SLSA provenance
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      # The matrix jobs each produced a hashes-* artifact. Download them all and
+      # merge into a single subject list for the SLSA generator.
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Build merged subject list
+        id: subjects
+        run: |
+          # Concatenate every per-platform hashes file into one subjects list.
+          cat release-assets/hashes-*.txt > subjects.txt
+          echo "Merged subjects:"
+          cat subjects.txt
+          echo "base64=$(base64 -w0 < subjects.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Generate SLSA provenance attestation
+        id: slsa-provenance
+        uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+        with:
+          base64-subjects: "${{ steps.subjects.outputs.base64 }}"
+          upload-assets: true
+
+  # ==========================================================================
+  # cosign keyless signing — detached signature per archive.
+  # Signs each archive's sha256 with an ephemeral key issued via the GitHub OIDC
+  # identity. The signature + certificate are published to the Sigstore Rekor
+  # transparency log, so anyone can verify authenticity later without trusting
+  # GitHub. Output: <archive>.sig + <archive>.pem per platform.
+  # ==========================================================================
+  sign:
+    name: cosign sign (keyless)
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v4.1.2
+        with:
+          cosign-release: "v2.4.1"   # pinned for reproducibility
+
+      # Keyless (passwordless) signing: cosign requests an ephemeral certificate
+      # from Fulcio using the workflow's OIDC identity, signs each archive,
+      # uploads the signature + certificate to Rekor.
+      - name: Sign every archive (keyless, via Rekor)
+        env:
+          COSIGN_EXPERIMENTAL: "1"   # keyless mode
+        run: |
+          set -euo pipefail
+          for archive in release-assets/mailgrit-windows-x86_64.zip \
+                         release-assets/mailgrit-linux-x86_64.tar.gz \
+                         release-assets/mailgrit-macos-arm64.tar.gz; do
+            echo "Signing $archive ..."
+            # sign-blob: detached .sig + writes the signing cert to .pem.
+            cosign sign-blob --yes --output-signature "${archive}.sig" --output-certificate "${archive}.pem" "$archive"
+            echo "Signed: ${archive}.sig + ${archive}.pem"
+          done
+
+      - name: Upload signing artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: signatures
+          path: |
+            release-assets/mailgrit-windows-x86_64.zip.sig
+            release-assets/mailgrit-windows-x86_64.zip.pem
+            release-assets/mailgrit-linux-x86_64.tar.gz.sig
+            release-assets/mailgrit-linux-x86_64.tar.gz.pem
+            release-assets/mailgrit-macos-arm64.tar.gz.sig
+            release-assets/mailgrit-macos-arm64.tar.gz.pem
+          retention-days: 7
+          if-no-files-found: error
+
+  # ==========================================================================
+  # Publish — attach archives + SBOMs + signatures to the GitHub Release.
+  # Provenance is already attached by the provenance job (upload-assets: true).
+  # ==========================================================================
   release:
     name: Publish GitHub Release
-    needs: build
+    needs: [build, provenance, sign]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download all build artifacts
+      - name: Download all artifacts (archives, SBOMs, signatures)
         uses: actions/download-artifact@v4
         with:
           path: release-assets
@@ -120,7 +284,7 @@ jobs:
             echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Create / update release with all binaries
+      - name: Create / update release with binaries, SBOMs and signatures
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
@@ -135,10 +299,34 @@ jobs:
             - **Linux** (x86_64): `mailgrit-linux-x86_64.tar.gz`
             - **macOS** (Apple Silicon): `mailgrit-macos-arm64.tar.gz`
 
-            ### Requirements
-            - **Windows 10/11**: WebView2 Runtime (preinstalled on Windows 11).
-            - **Linux**: WebKit2GTK 4.1 (`libwebkit2gtk-4.1-0`), GTK 3 — install via your distro (e.g. `sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0`).
-            - **macOS 11+** (Apple Silicon): WebKit is bundled with the OS.
+            ### Supply-chain verification
+            Each archive is **signed** (`<archive>.sig` + `<archive>.pem`) and the
+            release carries a **SLSA build provenance** attestation plus a per-platform
+            **CycloneDX SBOM** (`mailgrit-sbom-*.cdx.json`). Every binary embeds its
+            full dependency list (cargo-auditable).
+
+            Verify a signature (requires [cosign](https://github.com/sigstore/cosign)):
+            ```bash
+            cosign verify-blob \
+              --certificate mailgrit-windows-x86_64.zip.pem \
+              --signature mailgrit-windows-x86_64.zip.sig \
+              --certificate-identity-regexp 'https://github.com/netreondev/MailGrit/.*' \
+              --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+              mailgrit-windows-x86_64.zip
+            ```
+
+            Verify provenance (requires [slsa-verifier](https://github.com/slsa-framework/slsa-verifier)):
+            ```bash
+            slsa-verifier verify-artifact mailgrit-windows-x86_64.zip \
+              --source-uri github.com/netreondev/MailGrit \
+              --provenance-path multiple.intoto.jsonl
+            ```
+
+            Scan a binary for known vulnerabilities (dependency list is embedded):
+            ```bash
+            cargo install cargo-audit cargo-auditable
+            cargo audit bin ./mailgrit-app-desktop.exe
+            ```
 
             See the [README](https://github.com/netreondev/MailGrit#readme) for usage and the [website](https://netreondev.github.io/MailGrit/) for an overview.
 
@@ -147,5 +335,14 @@ jobs:
             release-assets/mailgrit-windows-x86_64.zip
             release-assets/mailgrit-linux-x86_64.tar.gz
             release-assets/mailgrit-macos-arm64.tar.gz
+            release-assets/mailgrit-windows-x86_64.zip.sig
+            release-assets/mailgrit-windows-x86_64.zip.pem
+            release-assets/mailgrit-linux-x86_64.tar.gz.sig
+            release-assets/mailgrit-linux-x86_64.tar.gz.pem
+            release-assets/mailgrit-macos-arm64.tar.gz.sig
+            release-assets/mailgrit-macos-arm64.tar.gz.pem
+            release-assets/mailgrit-sbom-windows-x86_64.cdx.json
+            release-assets/mailgrit-sbom-linux-x86_64.cdx.json
+            release-assets/mailgrit-sbom-macos-arm64.cdx.json
           draft: false
           prerelease: false

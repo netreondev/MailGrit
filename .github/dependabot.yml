@@ -1,0 +1,62 @@
+# Dependabot — automated dependency-update PRs.
+# Keeps Cargo dependencies and GitHub Actions current. Closes the gap that
+# cargo-deny / cargo-audit only BLOCK on vulnerable versions but do not propose
+# upgrades. Combined with the CI supply-chain gates, an update PR must still pass
+# cargo-deny + cargo-audit + cargo-vet before it can merge.
+#
+# Schedule: weekly (Monday). Grouped to reduce PR noise.
+version: 2
+
+updates:
+  # ---------------------------------------------------------------------------
+  # Cargo workspace dependencies (crates.io).
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    # Group patch/minor updates together; major versions get isolated PRs so
+    # breaking changes are reviewed one crate at a time.
+    groups:
+      rust-patch:
+        update-types: ["patch"]
+        patterns: ["*"]
+      rust-minor:
+        update-types: ["minor"]
+        patterns: ["*"]
+    # Security-relevant crates: always open an isolated PR (not grouped) so they
+    # are reviewed with extra attention.
+    allow:
+      - dependency-name: "argon2"
+      - dependency-name: "chacha20poly1305"
+      - dependency-name: "hmac"
+      - dependency-name: "sha2"
+      - dependency-name: "subtle"
+      - dependency-name: "zeroize"
+      - dependency-name: "rusqlite"
+      - dependency-name: "*"        # plus everything else (grouped above)
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels: ["dependencies"]
+
+  # ---------------------------------------------------------------------------
+  # GitHub Actions used in workflows — keep them current to avoid
+  # action-request forgery / compromised-action risk.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      github-actions:
+        update-types: ["minor", "patch"]
+        patterns: ["*"]
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels: ["dependencies", "github-actions"]

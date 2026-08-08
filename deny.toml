@@ -78,7 +78,30 @@ deny = [
     { name = "chrono", use-instead = "time", reason = "time has no unsafe and is the recommended time crate." },
 ]
 # Allowed duplicates and transitive exceptions.
-skip = []
+#
+# `multiple-versions = "warn"` (above) flags every duplicate so a NEW, unexpected
+# duplicate is visible in CI without breaking the build. The unavoidable
+# duplicates here come from two sources we do not control:
+#   1. The GUI stack — dioxus 0.7 / wry 0.53 / tao 0.34 pull many low-level
+#      crates (bitflags, raw-window-handle, phf, ...) at two major versions.
+#   2. The RustCrypto split — hmac 0.13 is on digest 0.10 while our direct
+#      sha2 0.11 is on digest 0.11, so block-buffer/cpufeatures/crypto-common/
+#      digest itself appear twice.
+#
+# We keep these as `warn` (not `deny`) because:
+#   - Forcing `deny` would require listing all ~35 duplicate crates in `skip`,
+#     a brittle list that breaks on every dioxus/RustCrypto upgrade.
+#   - None of these duplicates is exploitable: a vulnerability in any version is
+#     still caught by the `advisories` check above.
+#   - The warning keeps NEW duplicates (e.g. accidentally depending on two
+#     versions of a crate WE control) visible during code review.
+#
+# `sha2` is the one DIRECT security dependency that is duplicated (0.10 via
+# hmac, 0.11 direct); it is explicitly skipped here with a reason so the warning
+# is silenced for it specifically, while other duplicates remain visible.
+skip = [
+    { name = "sha2", reason = "hmac 0.13 pulls digest 0.10 → sha2 0.10; we depend on sha2 0.11 directly. Both audited in supply-chain/audits.toml." },
+]
 # Transitive openssl via proc-macro-error → thiserror-impl (build-time proc-macro).
 # This is NOT a runtime dependency of the application: it is used only when compiling derive macros.
 # Removal condition: when thiserror-impl drops proc-macro-error (or migrates to a modern API).

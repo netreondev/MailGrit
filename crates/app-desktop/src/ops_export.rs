@@ -43,7 +43,7 @@ pub fn open_export_choice(state: &mut Signal<AppState>) {
         state.write().error_msg = Some(t!("export.nothing").to_string());
         return;
     }
-    state.write().pending_export_choice = true;
+    state.write().export.pending_export_choice = true;
 }
 
 /// Performs the export in the selected mode. When `encrypt == true`, the export
@@ -58,7 +58,7 @@ pub fn open_export_choice(state: &mut Signal<AppState>) {
 /// blocked by the `export_in_progress` flag.
 pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
     // Reentrancy guard: if an export is already running — ignore the click.
-    if state.read().export_in_progress {
+    if state.read().export.export_in_progress {
         return;
     }
 
@@ -89,13 +89,13 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
     // the intent was lost (the format-choice modal was already closed), and for
     // the user the export "did not work".
     if encrypt && master_password.is_none() {
-        state.write().pending_export_after_unlock = true;
-        state.write().pending_master_password = true;
+        state.write().export.pending_export_after_unlock = true;
+        state.write().modals.pending_master_password = true;
         state.write().error_msg = Some(t!("master_password.export_no_audit").to_string());
         return;
     }
 
-    state.write().export_in_progress = true;
+    state.write().export.export_in_progress = true;
     // Row count for the audit message: the credential snapshot takes precedence
     // (create); otherwise the editable table (edit/delete/before an operation).
     let row_count = result_snapshot
@@ -116,7 +116,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
             .await;
         let Some(handle) = handle else {
             // The user cancelled — reset the flag and exit quietly.
-            state_clone.write().export_in_progress = false;
+            state_clone.write().export.export_in_progress = false;
             return;
         };
         let path: PathBuf = handle.path().to_path_buf();
@@ -131,7 +131,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
             let Some(master_password) = master_password.as_deref() else {
                 // Unreachable: checked above, but fail-closed.
                 let mut s = state_clone.write();
-                s.export_in_progress = false;
+                s.export.export_in_progress = false;
                 s.error_msg = Some(t!("master_password.export_no_audit").to_string());
                 return;
             };
@@ -164,7 +164,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
             ),
             Err(e) => {
                 let mut s = state_clone.write();
-                s.export_in_progress = false;
+                s.export.export_in_progress = false;
                 s.error_msg = Some(t!("export.save_error", error = e).to_string());
             }
         }
@@ -325,7 +325,7 @@ fn record_export_success(
     // One write-scope at the end: update the audit list, the flag, and the message.
     let mut s = state.write();
     s.refresh_audit();
-    s.export_in_progress = false;
+    s.export.export_in_progress = false;
     s.error_msg = Some(msg);
 }
 
@@ -339,7 +339,7 @@ mod tests {
     /// from the original CSV snapshot. Here we check the pure builder on a
     /// fixture.
     #[test]
-    fn export_text_uses_edited_passwords() {
+    fn export_text_uses_edited_passwords() -> Result<(), mailgrit_core_domain::CsvRowError> {
         // Simulate an edited row with the new password "NewP@ss1!".
         let new_row = mailgrit_core_domain::RawCsvRow::new(vec![
             "example.com".into(),
@@ -348,8 +348,7 @@ mod tests {
             "Ivan Petrov".into(),
             "1024".into(),
         ])
-        .parse()
-        .expect("valid row");
+        .parse()?;
         let text = build_export_text_from(std::slice::from_ref(&new_row), None);
         assert!(
             text.contains("NewP@ss1!"),
@@ -357,6 +356,7 @@ mod tests {
         );
         assert!(text.contains("ivan.petrov"));
         assert!(text.contains("domain,username,password"));
+        Ok(())
     }
 
     /// With no rows and no result — an empty export text (only the header). The
@@ -432,7 +432,8 @@ mod tests {
     /// Source priority: if created_credentials are present, the rows from the
     /// editable table are NOT duplicated in the export.
     #[test]
-    fn export_text_does_not_duplicate_when_credentials_present() {
+    fn export_text_does_not_duplicate_when_credentials_present()
+    -> Result<(), mailgrit_core_domain::CsvRowError> {
         let row = mailgrit_core_domain::RawCsvRow::new(vec![
             "example.com".into(),
             "dup.user".into(),
@@ -440,8 +441,7 @@ mod tests {
             "Dup".into(),
             "1024".into(),
         ])
-        .parse()
-        .expect("valid row");
+        .parse()?;
         let result = BatchResult {
             succeeded: 1,
             failed: 0,
@@ -463,5 +463,6 @@ mod tests {
             !text.contains("dup.user"),
             "when created_credentials are present, the table rows are not duplicated: {text}"
         );
+        Ok(())
     }
 }

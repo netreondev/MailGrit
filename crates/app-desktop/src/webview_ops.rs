@@ -68,3 +68,7 @@ pub fn row_to_json(row: &SanitizedUserRow) -> serde_json::Value {
         "email": format!("{}@{}", row.username.as_str(), row.domain.as_str()),
     })
 }
+
+#[cfg(test)]
+#[path = "webview_secret_leak_tests.rs"]
+mod secret_leak_tests;

@@ -223,13 +223,8 @@ pub(super) struct DoOpSpec {
 /// `responseBodyFull` (up to 5000 characters) — matching the "Full operation
 /// dump" contract (README).
 //
-// Suppression rationale (spec §Clippy): a single doOp JS pipeline whose
-// fragments are interpolated into each other. Further splitting would break the
-// pipeline's locality.
-#[allow(
-    clippy::too_many_lines,
-    reason = "single doOp JS pipeline; splitting harms readability"
-)]
+// A single doOp JS pipeline whose fragments are interpolated into each other.
+// Further splitting would break the pipeline's locality.
 pub(super) fn build_do_op_js(spec: &DoOpSpec) -> String {
     let DoOpSpec {
         path_fn,

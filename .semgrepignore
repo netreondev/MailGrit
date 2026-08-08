@@ -1,0 +1,31 @@
+# Semgrep ignore list — paths excluded from SAST scanning.
+# CI: see .github/workflows/ci.yml (semgrep job).
+#
+# Rationale: third-party code and build artifacts are out of scope for our SAST
+# review; scanning them adds noise and false positives. Semgrep's own defaults
+# already skip .git/, node_modules/; we add project-specific exclusions below.
+
+# Build output (all crates' compiled artifacts + the workspace target dir).
+target/
+**/target/
+
+# The fuzz crate uses libfuzzer-sys FFI (inherently unsafe by design) and does
+# not inherit workspace lints. Its quality is enforced separately.
+fuzz/
+
+# Playwright e2e suite is TypeScript, out of the Rust SAST scope (gitleaks covers
+# secret scanning there).
+e2e/node_modules/
+e2e/
+
+# Generated GitHub Pages site assets (static HTML/CSS) — not audited Rust.
+docs/
+site/
+
+# Lockfiles are machine-generated; scanning them produces deterministic noise.
+Cargo.lock
+**/package-lock.json
+**/yarn.lock
+
+# Supply-chain config (TOML with rule URLs that trip generic rules).
+supply-chain/
