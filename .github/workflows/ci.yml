@@ -107,14 +107,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: supply-chain
     timeout-minutes: 45
-    # sccache is wired via a RESILIENCE WRAPPER (.github/sccache-wrapper.sh), not
-    # directly as RUSTC_WRAPPER=sccache. Plain sccache is a hard single point of
-    # failure: when GitHub's Actions Cache backend (ghac) is unavailable, sccache
-    # aborts the compiler ("cache storage failed to read") and fails the whole
-    # gate. The wrapper probes sccache once per job and, if it is unhealthy,
-    # falls through to plain rustc — so a ghac outage costs cache hits but never
-    # breaks the build. Enabled on Linux/macOS (bash); Windows compiles uncached
-    # (sccache+MSVC is less effective, and the wrapper needs bash).
+    # No sccache. It is a build-speed optimization, but sccache routes its cache
+    # through GitHub's Actions Cache backend (ghac), which has been persistently
+    # unstable for this repo: both a direct RUSTC_WRAPPER=sccache AND a probe-and
+    # -fallback wrapper (.github/sccache-wrapper.sh, retained as a reference)
+    # failed the build when ghac was unavailable — the wrapper added its own
+    # failure mode on cargo's startup version-probe. Build correctness must not
+    # depend on ghac availability; CI compiles deterministically uncached.
     strategy:
       fail-fast: false
       matrix:
@@ -138,18 +137,6 @@ jobs:
 
       - name: Add target
         run: rustup target add ${{ matrix.target }}
-
-      - name: Configure sccache (resilient, Linux/macOS only)
-        if: runner.os != 'Windows'
-        uses: mozilla-actions/sccache-action@v0.0.7
-
-      - name: Enable resilient sccache wrapper (Linux/macOS only)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          chmod +x "$GITHUB_WORKSPACE/.github/sccache-wrapper.sh"
-          echo "RUSTC_WRAPPER=$GITHUB_WORKSPACE/.github/sccache-wrapper.sh" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
 
       - name: Install Linux system dependencies (mold linker + Dioxus desktop / webkit2gtk)
         # On Linux the app-desktop crate (Dioxus desktop via wry/webkit2gtk) needs
@@ -229,8 +216,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: quality
     timeout-minutes: 45
-    # sccache via the resilience wrapper (.github/sccache-wrapper.sh) — see the
-    # quality job note. Cache hits when ghac is up; plain rustc when it is down.
+    # No sccache — see the quality job note (ghac instability). Build correctness
+    # must not depend on the cache backend's availability.
     strategy:
       fail-fast: false
       matrix:
@@ -252,16 +239,6 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal
       - name: Add target
         run: rustup target add ${{ matrix.target }}
-      - name: Configure sccache (resilient, Linux/macOS only)
-        if: runner.os != 'Windows'
-        uses: mozilla-actions/sccache-action@v0.0.7
-      - name: Enable resilient sccache wrapper (Linux/macOS only)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          chmod +x "$GITHUB_WORKSPACE/.github/sccache-wrapper.sh"
-          echo "RUSTC_WRAPPER=$GITHUB_WORKSPACE/.github/sccache-wrapper.sh" >> "$GITHUB_ENV"
-          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
       # Same Linux GTK/webkit deps as the quality job: app-desktop (Dioxus
       # desktop / webkit2gtk) needs gdk-3.0 & friends to compile on Linux.
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
