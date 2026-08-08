@@ -288,8 +288,11 @@ fn unmapped_optional_field_uses_its_own_profile_default() -> Result<(), Box<dyn 
     // quota_mb is optional with default DEFAULT_QUOTA_MB — that exact default
     // must be substituted (the `f.name == canonical` lookup must pick quota_mb's
     // FieldSpec, not any other).
-    let header: Vec<String> =
-        ["domain", "username", "password", "display_name"].iter().copied().map(String::from).collect();
+    let header: Vec<String> = ["domain", "username", "password", "display_name"]
+        .iter()
+        .copied()
+        .map(String::from)
+        .collect();
     let profile = OperationProfile::for_user_create();
     let mapping = detect_mapping(&header, &profile);
     assert_eq!(mapping.bindings.len(), 4, "quota_mb is not mapped");
@@ -314,8 +317,11 @@ fn unmapped_optional_field_uses_its_own_profile_default() -> Result<(), Box<dyn 
 #[test]
 fn unmapped_empty_default_field_parses() -> Result<(), Box<dyn std::error::Error>> {
     // display_name is optional with default "" — unmapped, it must become "".
-    let header: Vec<String> =
-        ["domain", "username", "password", "quota_mb"].iter().copied().map(String::from).collect();
+    let header: Vec<String> = ["domain", "username", "password", "quota_mb"]
+        .iter()
+        .copied()
+        .map(String::from)
+        .collect();
     let profile = OperationProfile::for_user_create();
     let mapping = detect_mapping(&header, &profile);
     assert_eq!(mapping.bindings.len(), 4, "display_name is not mapped");
@@ -324,6 +330,10 @@ fn unmapped_empty_default_field_parses() -> Result<(), Box<dyn std::error::Error
     let parsed = parse_csv_bytes_with_mapping(csv.as_bytes(), &mapping)?;
     assert_eq!(parsed.rows.len(), 1);
     let row = parsed.rows.first().ok_or("missing row 0")?;
-    assert_eq!(row.display_name.as_str(), "", "unmapped display_name defaults to empty");
+    assert_eq!(
+        row.display_name.as_str(),
+        "",
+        "unmapped display_name defaults to empty"
+    );
     Ok(())
 }
