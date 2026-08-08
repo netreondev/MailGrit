@@ -9,9 +9,19 @@
 # The actual logic these harnesses verify (parsers, crypto) IS covered by unit
 # tests + Miri + Kani proofs; mutants in the real source files are caught there.
 #
+# app-desktop is the Dioxus GUI layer: its functions are view/event handlers
+# that return RSX or mutate a Signal<AppState>, exercised by the Playwright E2E
+# suite (e2e/), not by unit tests. cargo-mutants reports every GUI mutation
+# (replace == with !=, delete !) as MISSED because no unit test can observe the
+# rendered output. Scanning it produces pure noise and fails CI. The core crates
+# (core-domain/csv/storage/security) carry the real testable business logic and
+# ARE mutation-tested. Exclude app-desktop entirely.
+#
 # Run: `cargo +nightly mutants --workspace --in-place`
 
 exclude_globs = [
     # Formal-verification harnesses — not executed by `cargo test` (cfg(kani)).
     "crates/*/src/kani_harnesses.rs",
+    # GUI layer — covered by E2E (Playwright), not unit tests (see header).
+    "crates/app-desktop/**",
 ]
