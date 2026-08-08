@@ -284,6 +284,7 @@ fn column_mapping_is_clone_and_holds_profile() {
 #[test]
 fn unmapped_optional_field_uses_its_own_profile_default() -> Result<(), Box<dyn std::error::Error>>
 {
+    use mailgrit_core_domain::limits::DEFAULT_QUOTA_MB;
     // Header maps domain/username/password/display_name but NOT quota_mb.
     // quota_mb is optional with default DEFAULT_QUOTA_MB — that exact default
     // must be substituted (the `f.name == canonical` lookup must pick quota_mb's
@@ -303,7 +304,6 @@ fn unmapped_optional_field_uses_its_own_profile_default() -> Result<(), Box<dyn 
     let row = parsed.rows.first().ok_or("missing row 0")?;
     // The unmapped quota_mb must receive its OWN default (1024 = DEFAULT_QUOTA_MB),
     // proving the lookup matched canonical == "quota_mb", not another field.
-    use mailgrit_core_domain::limits::DEFAULT_QUOTA_MB;
     assert_eq!(
         row.quota.mb(),
         DEFAULT_QUOTA_MB,
