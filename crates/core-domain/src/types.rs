@@ -397,4 +397,114 @@ mod tests {
         assert_eq!(d.as_str(), "IvanPetrov");
         Ok(())
     }
+
+    // ---- Boundary-value coverage (mutation-killing) -------------------------
+    // Each parser guards with `if len > MAX_*_LEN { Err }`. Without a test at
+    // the exact boundary (len == MAX, which must succeed), the mutants
+    // `replace > with ==` and `replace > with >=` survive. Pin every boundary.
+
+    #[test]
+    fn username_accepts_max_length_boundary() -> Result<(), UsernameError> {
+        // Exactly MAX_USERNAME_LEN chars — must succeed (the `>` guard rejects only above).
+        let max = "a".repeat(MAX_USERNAME_LEN);
+        let u = SanitizedUsername::parse(&max)?;
+        assert_eq!(u.as_str().chars().count(), MAX_USERNAME_LEN);
+        // One more char — must be rejected as TooLong.
+        let over = "a".repeat(MAX_USERNAME_LEN + 1);
+        assert!(matches!(
+            SanitizedUsername::parse(&over),
+            Err(UsernameError::TooLong { .. })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn domain_accepts_max_length_boundary() -> Result<(), DomainError> {
+        // Exactly MAX_DOMAIN_LEN chars, built from labels each ≤63 (RFC 1035):
+        // 63 + '.' + 62 + '.' + 62 + '.' + 63 = 253 = MAX_DOMAIN_LEN.
+        let max = format!(
+            "{}.{}.{}.{}",
+            "a".repeat(63),
+            "a".repeat(62),
+            "a".repeat(62),
+            "a".repeat(63)
+        );
+        assert_eq!(max.len(), MAX_DOMAIN_LEN);
+        let d = ValidatedDomain::parse(&max)?;
+        assert_eq!(d.as_str().len(), MAX_DOMAIN_LEN);
+        // MAX_DOMAIN_LEN + 1 = 254, with every label still ≤63
+        // (63 + '.' + 63 + '.' + 63 + '.' + 62 = 254). This isolates the
+        // total-length guard: the input is refused ONLY for exceeding 253.
+        let over = format!(
+            "{}.{}.{}.{}",
+            "a".repeat(63),
+            "a".repeat(63),
+            "a".repeat(63),
+            "a".repeat(62)
+        );
+        assert_eq!(over.len(), MAX_DOMAIN_LEN + 1);
+        assert!(matches!(
+            ValidatedDomain::parse(&over),
+            Err(DomainError::TooLong { .. })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn quota_accepts_max_boundary_and_rejects_above() {
+        // Exactly MAX_QUOTA_MB — must succeed.
+        assert!(ValidatedQuota::parse(&MAX_QUOTA_MB.to_string()).is_ok());
+        // One above — rejected as OutOfRange.
+        let over = MAX_QUOTA_MB + 1;
+        assert!(matches!(
+            ValidatedQuota::parse(&over.to_string()),
+            Err(QuotaError::OutOfRange { .. })
+        ));
+    }
+
+    #[test]
+    fn display_name_accepts_max_length_boundary() -> Result<(), DisplayNameError> {
+        let max = "a".repeat(MAX_DISPLAY_NAME_LEN);
+        let d = SanitizedDisplayName::parse(&max)?;
+        assert_eq!(d.as_str().chars().count(), MAX_DISPLAY_NAME_LEN);
+        let over = "a".repeat(MAX_DISPLAY_NAME_LEN + 1);
+        assert!(matches!(
+            SanitizedDisplayName::parse(&over),
+            Err(DisplayNameError::TooLong { .. })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn password_accepts_max_length_boundary() -> Result<(), PasswordError> {
+        let max = "x".repeat(MAX_PASSWORD_LEN);
+        let p = ValidatedPassword::parse(&max)?;
+        assert_eq!(p.as_secret_str().chars().count(), MAX_PASSWORD_LEN);
+        let over = "x".repeat(MAX_PASSWORD_LEN + 1);
+        assert!(matches!(
+            ValidatedPassword::parse(&over),
+            Err(PasswordError::TooLong { .. })
+        ));
+        Ok(())
+    }
+
+    #[test]
+    fn username_rejects_leading_and_trailing_dot_and_hyphen() {
+        // Each of the four BadEdges conditions independently must trigger — if
+        // any `||` is mutated to `&&`, one of these would slip through.
+        assert!(matches!(
+            SanitizedUsername::parse("-ivan"),
+            Err(UsernameError::BadEdges)
+        ));
+        assert!(matches!(
+            SanitizedUsername::parse("ivan."),
+            Err(UsernameError::BadEdges)
+        ));
+    }
+
+    #[test]
+    fn max_quota_mb_constant_is_one_tib() {
+        // `replace * with +` on the constant would change the value — pin it.
+        assert_eq!(MAX_QUOTA_MB, 1_048_576);
+    }
 }

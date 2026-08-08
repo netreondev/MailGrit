@@ -19,9 +19,16 @@ use crate::types::{
 use crate::typestate::RawCsvRow;
 
 /// Buffer size for modeling arbitrary parser input.
-/// Large enough to cover boundary cases (empty, long strings, invalid
-/// characters), but bounded for bounded model-checking.
-const INPUT_BUF_LEN: usize = 16;
+///
+/// Kept small (8 bytes) deliberately: Kani's bounded model checker scales
+/// exponentially with loop-iteration counts, and the parsers call std `str`
+/// operations (`trim`, `chars`, `split`, `contains`) whose internal pattern
+/// searchers (e.g. `MultiCharEqSearcher` for whitespace) unwind per input
+/// byte. A 16-byte buffer made several harnesses not converge within the CI
+/// time budget. 8 bytes still covers the relevant boundary cases (empty,
+/// short, invalid chars, edge whitespace) while keeping the state space
+/// tractable. Each harness also carries an explicit `#[kani::unwind(N)]` bound.
+const INPUT_BUF_LEN: usize = 8;
 
 /// Generates an arbitrary string from the byte buffer (Kani nondeterministic).
 fn any_string() -> String {
@@ -39,6 +46,11 @@ fn any_string() -> String {
 // ============================================================================
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_domain_parse_no_panic() {
     // Contract: the domain parser must return a Result rather than panic
     // on arbitrary UTF-8 input.
@@ -47,6 +59,11 @@ fn verify_domain_parse_no_panic() {
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_domain_parse_deterministic() {
     // Same input → same result (parse is a pure function).
     let input = any_string();
@@ -59,6 +76,11 @@ fn verify_domain_parse_deterministic() {
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_domain_parse_normalizes_lowercase() {
     // Invariant: a successful parse always returns the domain in lowercase.
     let input = any_string();
@@ -75,12 +97,22 @@ fn verify_domain_parse_normalizes_lowercase() {
 // ============================================================================
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_username_parse_no_panic() {
     let input = any_string();
     let _ = SanitizedUsername::parse(&input);
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_username_parse_deterministic() {
     let input = any_string();
     let r1 = SanitizedUsername::parse(&input);
@@ -93,12 +125,22 @@ fn verify_username_parse_deterministic() {
 // ============================================================================
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_password_parse_no_panic() {
     let input = any_string();
     let _ = ValidatedPassword::parse(&input);
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_password_parse_rejects_comma() {
     // Invariant: a password containing a comma is always rejected (breaks CSV).
     let base = any_string();
@@ -114,6 +156,11 @@ fn verify_password_parse_rejects_comma() {
 // ============================================================================
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_display_name_parse_no_panic() {
     let input = any_string();
     let _ = SanitizedDisplayName::parse(&input);
@@ -124,12 +171,22 @@ fn verify_display_name_parse_no_panic() {
 // ============================================================================
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_quota_parse_no_panic() {
     let input = any_string();
     let _ = ValidatedQuota::parse(&input);
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_quota_parse_empty_defaults() {
     // Invariant: empty string → default quota (not an error).
     let parsed = ValidatedQuota::parse("");
@@ -140,6 +197,11 @@ fn verify_quota_parse_empty_defaults() {
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_quota_parse_range_invariant() {
     // Invariant: a successful parse → quota within [1, MAX_QUOTA_MB].
     let input = any_string();
@@ -163,6 +225,11 @@ fn row_with_n_empty_fields<const N: usize>() -> RawCsvRow {
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_raw_csv_row_parse_zero_fields() {
     // 0 fields → ColumnCount (0 ≠ EXPECTED_CSV_COLUMNS).
     assert!(matches!(
@@ -172,6 +239,11 @@ fn verify_raw_csv_row_parse_zero_fields() {
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_raw_csv_row_parse_one_field() {
     assert!(matches!(
         row_with_n_empty_fields::<1>().parse(),
@@ -180,6 +252,11 @@ fn verify_raw_csv_row_parse_one_field() {
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_raw_csv_row_parse_two_fields() {
     assert!(matches!(
         row_with_n_empty_fields::<2>().parse(),
@@ -188,6 +265,11 @@ fn verify_raw_csv_row_parse_two_fields() {
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_raw_csv_row_parse_three_fields() {
     assert!(matches!(
         row_with_n_empty_fields::<3>().parse(),
@@ -196,6 +278,11 @@ fn verify_raw_csv_row_parse_three_fields() {
 }
 
 #[kani::proof]
+// Explicit per-harness unwind bound: the parsers iterate over an ≤8-byte input
+// via std str operations whose internal loops (chars/trim/contains) need room
+// for the iteration + slack for break/continue control flow. 12 keeps the
+// state space tractable while covering the bounded input fully.
+#[kani::unwind(12)]
 fn verify_raw_csv_row_parse_four_fields() {
     // EXPECTED_CSV_COLUMNS - 1 = 4 → still rejected.
     assert!(matches!(

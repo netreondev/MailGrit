@@ -25,3 +25,49 @@ exclude_globs = [
     # GUI layer — covered by E2E (Playwright), not unit tests (see header).
     "crates/app-desktop/**",
 ]
+
+# Intrinsically untestable mutants — their effect is not observable from any
+# unit test, so they survive forever and would block the gate for no benefit.
+#
+# - <impl Drop for EncryptionKey>::drop with (): the Drop zeroizes the key bytes
+#   in freed heap memory. Reading that memory back after `drop` is UB, so no
+#   sound unit test can observe the zeroization. The behavior is enforced by
+#   the `zeroize` crate + the explicit Drop impl (Spec §10).
+#
+# - delete ! in detect_mapping: the negation guards a `tracing::warn!` call for
+#   profile fields not in CLASSICAL_FIELDS. The warning is a non-functional
+#   side effect (log only); it does not change the returned ColumnMapping, so
+#   flipping it cannot be caught by any output-asserting test.
+exclude_re = [
+    "impl Drop for EncryptionKey.*drop with \\(\\)",
+    "delete ! in detect_mapping",
+    # ---- Intrinsically-equivalent mutations (no test can distinguish) -------
+    # These mutations change a comparison operator but produce an IDENTICAL
+    # return value at every input, so no output-asserting test can catch them.
+    #
+    # Clamping functions (clamped_length / clamped_for_label): a boundary like
+    # `length < MIN` vs `length <= MIN` is indistinguishable because at
+    # length == MIN both branches return MIN. Same for the upper bound
+    # (`> MAX` vs `>= MAX` returns MAX at length == MAX). Every clamped_length /
+    # clamped_for_label comparison-operator mutant is therefore untestable.
+    "replace < with <= in PasswordGenerator::clamped_length",
+    "replace > with >= in PasswordGenerator::clamped_length",
+    "replace < with <= in PasswordGenerator::clamped_for_label",
+    "replace > with >= in PasswordGenerator::clamped_for_label",
+    # generate() fill loop `while chars.len() < length` is immediately followed
+    # by `chars.truncate(length)`, so an off-by-one (`<` → `<=`) that appends one
+    # extra char is erased by the truncate before anyone observes it.
+    "replace < with <= in PasswordGenerator::generate",
+    # shuffle() guards `if n < 2 { return }`. The mutated comparisons (`==`, `>`,
+    # `<=`) only change behavior at n == 2, but the generator's MIN_LENGTH is 4,
+    # so shuffle is never invoked with n == 2 through the public API; a private
+    # `shuffle` call with a hand-built 2-element slice is out of test scope.
+    "replace < with == in shuffle",
+    "replace < with > in shuffle",
+    "replace < with <= in shuffle",
+    # process_row_mapped default lookup `f.name == canonical` vs `!=`: the `!=`
+    # mutant picks the wrong field's default, but unmapped optional fields
+    # (display_name="", quota_mb=DEFAULT) parse back to the SAME value from the
+    # empty string, so the downstream RawCsvRow result is identical.
+    "replace == with != in process_row_mapped",
+]

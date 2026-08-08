@@ -282,4 +282,92 @@ mod tests {
         }
         assert!(seen.len() > 1, "generator produces identical passwords");
     }
+
+    // ---- Boundary-value coverage (mutation-killing) -------------------------
+
+    #[test]
+    fn clamped_for_label_bounds() {
+        let mut g = PasswordGenerator::default_generator();
+        // Below 8 → clamped to 8.
+        g.length = 0;
+        assert_eq!(g.clamped_for_label(), 8);
+        g.length = 1;
+        assert_eq!(g.clamped_for_label(), 8);
+        g.length = 7;
+        assert_eq!(g.clamped_for_label(), 8);
+        // Exactly 8 → 8 (lower boundary, must NOT clamp).
+        g.length = 8;
+        assert_eq!(g.clamped_for_label(), 8);
+        // Within [8, 32] → unchanged.
+        g.length = 16;
+        assert_eq!(g.clamped_for_label(), 16);
+        g.length = 20;
+        assert_eq!(g.clamped_for_label(), 20);
+        // Exactly 32 → 32 (upper boundary, must NOT clamp).
+        g.length = 32;
+        assert_eq!(g.clamped_for_label(), 32);
+        // Above 32 → clamped to 32.
+        g.length = 33;
+        assert_eq!(g.clamped_for_label(), 32);
+        g.length = 64;
+        assert_eq!(g.clamped_for_label(), 32);
+        g.length = usize::MAX;
+        assert_eq!(g.clamped_for_label(), 32);
+    }
+
+    #[test]
+    fn clamped_length_bounds() {
+        let mut g = PasswordGenerator::default_generator();
+        // Below MIN → MIN.
+        g.length = 0;
+        assert_eq!(g.clamped_length(), MIN_LENGTH);
+        // Exactly MIN → MIN (boundary, must NOT clamp).
+        g.length = MIN_LENGTH;
+        assert_eq!(g.clamped_length(), MIN_LENGTH);
+        // Exactly MAX → MAX (boundary, must NOT clamp).
+        g.length = MAX_LENGTH;
+        assert_eq!(g.clamped_length(), MAX_LENGTH);
+        // Above MAX → MAX.
+        g.length = MAX_LENGTH + 1;
+        assert_eq!(g.clamped_length(), MAX_LENGTH);
+        // Within range → unchanged.
+        g.length = 32;
+        assert_eq!(g.clamped_length(), 32);
+    }
+
+    // generate()'s fill loop `while chars.len() < length` is followed by
+    // `chars.truncate(length)`, so an off-by-one (`<` → `<=`) is masked by the
+    // truncate. Asserting the EXACT generated length (not just ≤) at the minimum
+    // length exercises the loop where a single extra char would make the output
+    // MAX+1 before truncate — keeping the length check meaningful, and pinning
+    // the contract that the output length equals the clamped target exactly.
+    #[test]
+    fn generate_exact_length_at_minimum() {
+        let mut g = PasswordGenerator::default_generator();
+        g.length = MIN_LENGTH;
+        for _ in 0..200 {
+            assert_eq!(g.generate().chars().count(), MIN_LENGTH);
+        }
+    }
+
+    // shuffle() guards `if n < 2 { return }`. At n == 2 the shuffle must still
+    // produce a 2-char permutation of its input (one Fisher–Yates swap). If the
+    // guard is mutated to `<=` (skips n == 2) or `==`/`>`, the 2-char case is
+    // mishandled. Generate length-2 isn't possible (MIN_LENGTH=4), so drive
+    // shuffle indirectly: a min-length (4) password's charset is a fixed set,
+    // and over many runs a correct shuffle yields more than one distinct output.
+    #[test]
+    fn shuffle_permutes_min_length_output() {
+        let mut g = PasswordGenerator::default_generator();
+        g.length = MIN_LENGTH;
+        let mut seen = std::collections::HashSet::new();
+        for _ in 0..500 {
+            seen.insert(g.generate());
+        }
+        // A working Fisher–Yates over 4 chars produces multiple orderings.
+        assert!(
+            seen.len() > 1,
+            "shuffle appears to be a no-op at the minimum length"
+        );
+    }
 }

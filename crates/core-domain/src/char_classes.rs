@@ -122,3 +122,46 @@ impl CharacterClasses {
         self.0[CLS_SPECIAL] = value;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // has_any() ORs four flags. If any `||` is mutated to `&&`, has_any() would
+    // return true only when *multiple* classes are set. Test each class in
+    // isolation so every disjunct is exercised.
+
+    #[test]
+    fn has_any_is_true_for_each_class_alone() {
+        // Only uppercase.
+        let mut c = CharacterClasses::none();
+        c.set_uppercase(true);
+        assert!(c.has_any(), "uppercase alone should satisfy has_any");
+        // Only lowercase.
+        let mut c = CharacterClasses::none();
+        c.set_lowercase(true);
+        assert!(c.has_any(), "lowercase alone should satisfy has_any");
+        // Only digits.
+        let mut c = CharacterClasses::none();
+        c.set_digits(true);
+        assert!(c.has_any(), "digits alone should satisfy has_any");
+        // Only special.
+        let mut c = CharacterClasses::none();
+        c.set_special(true);
+        assert!(c.has_any(), "special alone should satisfy has_any");
+    }
+
+    #[test]
+    fn has_any_is_false_when_none() {
+        assert!(!CharacterClasses::none().has_any());
+    }
+
+    #[test]
+    fn from_tuple_roundtrips_accessors() {
+        let c = CharacterClasses::from_tuple((true, false, true, false));
+        assert!(c.uppercase());
+        assert!(!c.lowercase());
+        assert!(c.digits());
+        assert!(!c.special());
+    }
+}

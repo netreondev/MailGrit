@@ -107,14 +107,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: supply-chain
     timeout-minutes: 45
-    # NOTE: sccache (RUSTC_WRAPPER=sccache + SCCACHE_GHA_ENABLED) was removed.
-    # It is a build-speed optimization, not a correctness requirement, but as
-    # RUSTC_WRAPPER it is a hard single point of failure: when GitHub's Actions
-    # Cache backend (ghac) is unavailable, sccache aborts the compiler with a
-    # *permanent* "cache storage failed to read" error, failing the entire gate
-    # on all platforms even though the code compiles fine. ghac proved unstable
-    # for this repo (repeated 101/1 exits). Re-enable only with a wrapper that
-    # gracefully degrades (e.g. compile uncached when the cache server is down).
+    # sccache is wired via a RESILIENCE WRAPPER (.github/sccache-wrapper.sh), not
+    # directly as RUSTC_WRAPPER=sccache. Plain sccache is a hard single point of
+    # failure: when GitHub's Actions Cache backend (ghac) is unavailable, sccache
+    # aborts the compiler ("cache storage failed to read") and fails the whole
+    # gate. The wrapper probes sccache once per job and, if it is unhealthy,
+    # falls through to plain rustc — so a ghac outage costs cache hits but never
+    # breaks the build. Enabled on Linux/macOS (bash); Windows compiles uncached
+    # (sccache+MSVC is less effective, and the wrapper needs bash).
     strategy:
       fail-fast: false
       matrix:
@@ -138,6 +138,18 @@ jobs:
 
       - name: Add target
         run: rustup target add ${{ matrix.target }}
+
+      - name: Configure sccache (resilient, Linux/macOS only)
+        if: runner.os != 'Windows'
+        uses: mozilla-actions/sccache-action@v0.0.7
+
+      - name: Enable resilient sccache wrapper (Linux/macOS only)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          chmod +x "$GITHUB_WORKSPACE/.github/sccache-wrapper.sh"
+          echo "RUSTC_WRAPPER=$GITHUB_WORKSPACE/.github/sccache-wrapper.sh" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
 
       - name: Install Linux system dependencies (mold linker + Dioxus desktop / webkit2gtk)
         # On Linux the app-desktop crate (Dioxus desktop via wry/webkit2gtk) needs
@@ -217,8 +229,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: quality
     timeout-minutes: 45
-    # No sccache here either — see the quality job note. Build correctness must
-    # not depend on the availability of GitHub's Actions Cache backend.
+    # sccache via the resilience wrapper (.github/sccache-wrapper.sh) — see the
+    # quality job note. Cache hits when ghac is up; plain rustc when it is down.
     strategy:
       fail-fast: false
       matrix:
@@ -240,6 +252,16 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal
       - name: Add target
         run: rustup target add ${{ matrix.target }}
+      - name: Configure sccache (resilient, Linux/macOS only)
+        if: runner.os != 'Windows'
+        uses: mozilla-actions/sccache-action@v0.0.7
+      - name: Enable resilient sccache wrapper (Linux/macOS only)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          chmod +x "$GITHUB_WORKSPACE/.github/sccache-wrapper.sh"
+          echo "RUSTC_WRAPPER=$GITHUB_WORKSPACE/.github/sccache-wrapper.sh" >> "$GITHUB_ENV"
+          echo "SCCACHE_GHA_ENABLED=true" >> "$GITHUB_ENV"
       # Same Linux GTK/webkit deps as the quality job: app-desktop (Dioxus
       # desktop / webkit2gtk) needs gdk-3.0 & friends to compile on Linux.
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
@@ -294,25 +316,21 @@ jobs:
           done
 
   # ==========================================================================
-  # Formal verification & hardening (nightly-only).
+  # Formal verification & hardening (nightly-only, BLOCKING).
   # Tools: cargo-mutants, Miri.
-  # Currently best-effort (continue-on-error): cargo-mutants now runs on the
-  # core crates only (app-desktop excluded — GUI, E2E-covered), but it still
-  # reports boundary-value coverage gaps in the core-domain parsers /
-  # password_gen / core-security aead (length comparisons like `len > MAX` not
-  # exercised at the exact boundary). These are real test-coverage gaps to
-  # close in a dedicated pass (add boundary-value tests for each MAX_*_LEN),
-  # not CI/infra defects — they were hidden until the earlier blockers
-  # (cargo-vet, sccache) were fixed and this job first ran to completion.
-  # Miri (UB detection) runs in the same job and is likewise best-effort.
-  # Remove continue-on-error once the mutation suite is green.
+  # cargo-mutants runs on the core crates only (app-desktop is excluded via
+  # .cargo/mutants.toml — GUI/RSX is E2E-covered, not unit-tested). The core
+  # mutation suite is green: boundary-value tests cover every MAX_*_LEN parser
+  # guard, and intrinsically-untestable mutants (clamping boundary equivalence,
+  # truncate-masked off-by-one, heap zeroize in Drop, log-only warnings) are
+  # excluded with documented justification in .cargo/mutants.toml.
+  # Miri (UB detection) runs in the same job.
   # ==========================================================================
   formal-verification:
     name: Formal verification (Miri + cargo-mutants)
     runs-on: ubuntu-latest
     needs: quality
     timeout-minutes: 90
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
@@ -353,14 +371,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: quality
     timeout-minutes: 60
-    # Kani runs as best-effort, not a hard gate. Its bounded model checker
-    # (CBMC) unwinds loops exponentially; the proof harnesses currently pull in
-    # std str-pattern loops (MultiCharEqSearcher / is_whitespace) that exhaust
-    # the runner before converging, causing "runner shutdown signal" timeouts.
-    # This is a proof-harness tuning problem (separate effort), not a code or
-    # infra defect. Let the job run and report, but don't fail the whole CI on
-    # its timeout. Remove continue-on-error once the harnesses converge.
-    continue-on-error: true
+    # Kani bounded model-checking (BLOCKING). Each proof harness carries an
+    # explicit #[kani::unwind(N)] bound, and the parser harnesses use a small
+    # INPUT_BUF_LEN (8 bytes) to keep the std str-pattern loops (chars/trim/
+    # contains → MultiCharEqSearcher) tractable. --default-unwind 20 below is a
+    # fallback for any harness lacking an attribute.
     steps:
       - uses: actions/checkout@v4
       # Kani pins its own nightly Rust toolchain (e.g. nightly-2025-11-21 =

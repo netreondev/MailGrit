@@ -31,6 +31,8 @@ use crate::hashchain::{GENESIS_HASH, chain_hash, verify_chain};
 // ============================================================================
 
 #[kani::proof]
+// vec![0u8; len] allocates and zero-fills `len` bytes (0..=40); bound the loop.
+#[kani::unwind(41)]
 fn verify_encryption_key_from_bytes_length_validation() {
     // Invariant: from_bytes accepts exactly 32 bytes, rejects any other number.
     let len: usize = kani::any();
@@ -50,6 +52,8 @@ fn verify_encryption_key_from_bytes_length_validation() {
 // ============================================================================
 
 #[kani::proof]
+// message init loop (8 bytes) + HMAC internals; bound well above the data size.
+#[kani::unwind(16)]
 fn verify_chain_hash_deterministic() {
     // Invariant: identical (key, prev_hash, message) → identical HMAC.
     let key = EncryptionKey::generate();
@@ -76,6 +80,8 @@ fn verify_verify_chain_empty_is_ok() {
 }
 
 #[kani::proof]
+// message init loop (4 bytes) + single verify_chain iteration.
+#[kani::unwind(12)]
 fn verify_verify_chain_single_well_formed_entry() {
     // Invariant: a chain of a single entry with a correctly computed hash is valid.
     let key = EncryptionKey::generate();
@@ -105,6 +111,8 @@ fn verify_verify_chain_single_well_formed_entry() {
 // does not gate PRs.
 
 #[kani::proof]
+// 3 message-init loops (4 bytes each) + verify_chain over 3 entries.
+#[kani::unwind(12)]
 fn verify_verify_chain_multi_element_loop_contract() {
     // Build a deterministically-correct 3-link chain, then assert the verifier
     // accepts it. This forces Kani through the verify_chain loop body 3 times,
@@ -156,6 +164,8 @@ fn verify_verify_chain_multi_element_loop_contract() {
 // ============================================================================
 
 #[kani::proof]
+// 2 message-init loops (4 bytes each) + verify_chain over 2 entries.
+#[kani::unwind(12)]
 fn verify_verify_chain_detects_tamper_at_index_one() {
     let key = EncryptionKey::generate();
 
@@ -272,6 +282,8 @@ fn verify_aead_rejects_wrong_aad() {
 // ============================================================================
 
 #[kani::proof]
+// vec![0u8; len] with len < NONCE_LEN (24); bound above the max allocation.
+#[kani::unwind(24)]
 fn verify_aead_rejects_short_ciphertext() {
     use crate::aead::{NONCE_LEN, decrypt};
     let key = EncryptionKey::generate();

@@ -153,6 +153,18 @@ mod tests {
         assert!(e.password_is_empty());
     }
 
+    // `replace password_is_empty -> bool with true` survived because no test
+    // checked the non-empty case. Pin both branches.
+    #[test]
+    fn password_is_empty_is_false_for_nonempty_password() {
+        let e = valid_row(); // password = "S3cur3P@ss1"
+        assert!(!e.password_is_empty());
+        // Whitespace-only password is still "empty" (trims before checking).
+        let mut ws = valid_row();
+        ws.password = "   ".into();
+        assert!(ws.password_is_empty());
+    }
+
     #[test]
     fn to_sanitized_round_trips_back_to_editable() -> Result<(), CsvRowError> {
         let original = valid_row();
