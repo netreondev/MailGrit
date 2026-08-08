@@ -158,18 +158,20 @@ jobs:
   # Uses the SLSA generic generator (keyless, via GitHub OIDC). Produces a
   # DSSE/in-toto attestation that the archives were built from this workflow
   # run. Verified with `slsa-verifier`.
+  #
+  # The SLSA generator is a *reusable workflow* — GitHub Actions requires it to
+  # be referenced at the job level (`provenance.uses`), NOT inside `steps`.
+  # A reusable-workflow job cannot contain its own steps, so the subject list
+  # (base64 of the merged sha256 hashes) is prepared in a separate job
+  # (`provenance-subjects`) and passed via outputs.
   # ==========================================================================
-  provenance:
-    name: SLSA provenance
+  provenance-subjects:
+    name: Collect SLSA subjects
     needs: [build]
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      id-token: write
-      contents: write
+    outputs:
+      base64: ${{ steps.subjects.outputs.base64 }}
     steps:
-      - uses: actions/checkout@v4
-
       # The matrix jobs each produced a hashes-* artifact. Download them all and
       # merge into a single subject list for the SLSA generator.
       - name: Download all build artifacts
@@ -187,12 +189,18 @@ jobs:
           cat subjects.txt
           echo "base64=$(base64 -w0 < subjects.txt)" >> "$GITHUB_OUTPUT"
 
-      - name: Generate SLSA provenance attestation
-        id: slsa-provenance
-        uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
-        with:
-          base64-subjects: "${{ steps.subjects.outputs.base64 }}"
-          upload-assets: true
+  provenance:
+    name: SLSA provenance
+    needs: [provenance-subjects]
+    permissions:
+      actions: read
+      id-token: write
+      contents: write
+    # Reusable workflow — MUST be at the job level (not inside steps).
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    with:
+      base64-subjects: ${{ needs.provenance-subjects.outputs.base64 }}
+      upload-assets: true
 
   # ==========================================================================
   # cosign keyless signing — detached signature per archive.
