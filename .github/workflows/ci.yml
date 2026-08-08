@@ -136,7 +136,29 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Configure sccache
+        id: sccache
         uses: mozilla-actions/sccache-action@v0.0.7
+
+      # sccache is a speed optimization, not a correctness requirement. When
+      # GitHub's Actions Cache backend (ghac) is unavailable, sccache fails to
+      # start its server with a *permanent* "cache storage failed to read" error
+      # and — because it sits in RUSTC_WRAPPER — takes down every cargo/clippy
+      # invocation with it. Probe the server; if it is not healthy, drop the
+      # wrapper and compile directly. CI stays green; only caching is lost.
+      - name: Verify sccache server (disable wrapper on failure)
+        shell: bash
+        env:
+          SCCACHE_GHA_ENABLED: "true"
+        run: |
+          set +e
+          sccache --stop-server >/dev/null 2>&1 || true
+          sccache --start-server
+          if sccache --show-stats >/dev/null 2>&1; then
+            echo "sccache server healthy — keeping RUSTC_WRAPPER=sccache"
+          else
+            echo "::warning::sccache server unavailable; disabling RUSTC_WRAPPER and compiling uncached."
+            echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          fi
 
       - name: Install mold linker (Linux only)
         if: runner.os == 'Linux'
@@ -221,6 +243,22 @@ jobs:
         run: rustup target add ${{ matrix.target }}
       - name: Configure sccache
         uses: mozilla-actions/sccache-action@v0.0.7
+      # See quality job: probe sccache; if the server won't start (ghac down),
+      # compile uncached rather than failing the whole build.
+      - name: Verify sccache server (disable wrapper on failure)
+        shell: bash
+        env:
+          SCCACHE_GHA_ENABLED: "true"
+        run: |
+          set +e
+          sccache --stop-server >/dev/null 2>&1 || true
+          sccache --start-server
+          if sccache --show-stats >/dev/null 2>&1; then
+            echo "sccache server healthy — keeping RUSTC_WRAPPER=sccache"
+          else
+            echo "::warning::sccache server unavailable; disabling RUSTC_WRAPPER and compiling uncached."
+            echo "RUSTC_WRAPPER=" >> "$GITHUB_ENV"
+          fi
       - name: Build release (--all-features, warnings-as-errors)
         run: cargo build --release --workspace --all-features --target ${{ matrix.target }}
 
