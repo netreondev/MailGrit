@@ -240,6 +240,20 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal
       - name: Add target
         run: rustup target add ${{ matrix.target }}
+      # Same Linux GTK/webkit deps as the quality job: app-desktop (Dioxus
+      # desktop / webkit2gtk) needs gdk-3.0 & friends to compile on Linux.
+      - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            libxdo-dev \
+            mold
       - name: Build release (--all-features, warnings-as-errors)
         run: cargo build --release --workspace --all-features --target ${{ matrix.target }}
 
@@ -293,6 +307,19 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+      # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
+      # needs the GTK/webkit headers on Linux (same as quality/build-release).
+      - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libssl-dev \
+            libxdo-dev \
+            mold
       - name: Install nightly Rust
         run: rustup toolchain install nightly --component miri
       - name: Install cargo-mutants
