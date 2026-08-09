@@ -141,10 +141,23 @@ jobs:
         id: hash
         shell: bash
         run: |
-          # Use `shasum -a 256` (POSIX, available on Linux AND macOS) instead of
-          # `sha256sum` (GNU-coreutils only — absent on macOS runners). It outputs
-          # the same "<hash>  <file>" format the SLSA generator / cosign consume.
-          shasum -a 256 "${{ matrix.archive }}" > hashes-${{ matrix.name }}.txt
+          # Cross-OS sha256: no single tool exists on all three runners.
+          #   Linux:  sha256sum  (GNU coreutils)
+          #   macOS:  shasum -a 256
+          #   Windows (Git Bash): neither — use PowerShell Get-FileHash.
+          # Detect the first available one and emit the standard
+          # "<hash>  <file>" line (the SLSA generator + cosign format).
+          file="${{ matrix.archive }}"
+          if command -v sha256sum >/dev/null 2>&1; then
+            sha256sum "$file" > hashes-${{ matrix.name }}.txt
+          elif command -v shasum >/dev/null 2>&1; then
+            shasum -a 256 "$file" > hashes-${{ matrix.name }}.txt
+          else
+            # Windows Git Bash fallback: PowerShell writes "<hash>" on its own
+            # line; reformat into the "<hash>  <file>" shape the consumers expect.
+            h=$(powershell -NoProfile -Command "(Get-FileHash -Algorithm SHA256 -LiteralPath '$file').Hash.ToLower()")
+            printf '%s  %s\n' "$h" "$file" > hashes-${{ matrix.name }}.txt
+          fi
           cat hashes-${{ matrix.name }}.txt
           # base64-encode the whole block for the SLSA generic generator's
           # base64-subjects input. Avoid `base64 -w0` (GNU-only); BSD base64 on
