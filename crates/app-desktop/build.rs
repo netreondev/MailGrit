@@ -28,7 +28,7 @@ fn main() {
         res.set("OriginalFilename", "mailgrit-app-desktop.exe");
         res.set(
             "LegalCopyright",
-            "(c) 2026 MailGrit contributors (MIT OR Apache-2.0)",
+            "(c) 2026 netreon and contributors (MIT OR Apache-2.0)",
         );
         if let Err(err) = res.compile() {
             // winres requires the Windows SDK (rc.exe / windres). If the toolchain
