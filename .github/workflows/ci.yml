@@ -293,21 +293,21 @@ jobs:
           done
 
   # ==========================================================================
-  # ==========================================================================
-  # Formal verification (nightly-only, BLOCKING) — cargo-mutants.
-  # Runs on the core crates only (app-desktop excluded via .cargo/mutants.toml
-  # — GUI/RSX is E2E-covered, not unit-tested). The suite is green: boundary-
-  # value tests cover every MAX_*_LEN parser guard, and intrinsically-untestable
-  # mutants (clamping boundary equivalence, truncate-masked off-by-one, heap
-  # zeroize in Drop, log-only warnings) are excluded with documented
-  # justification in .cargo/mutants.toml. Verified on CI: 212 mutants, 0 missed.
-  # Miri (UB detection) is intentionally NOT here — see the NOTE in the job.
+  # Formal verification (nightly-only, BLOCKING) — cargo-mutants + Miri.
+  # - cargo-mutants: runs on the core crates only (app-desktop excluded via
+  #   .cargo/mutants.toml). Green: 212 mutants, 0 missed (boundary-value tests
+  #   cover every MAX_*_LEN parser guard; intrinsically-untestable mutants are
+  #   excluded in .cargo/mutants.toml with justification).
+  # - Miri (UB detection): interprets the four core crates (~1 min total). The
+  #   two expensive cases (proptest, password_gen) are compiled out under Miri
+  #   via #[cfg(not(miri))]; KDF/storage-audit already use cfg_attr(miri,ignore).
+  #   What remains is the real UB-relevant surface: parsers, AEAD, hash chain.
   # ==========================================================================
   formal-verification:
-    name: Formal verification (cargo-mutants)
+    name: Formal verification (Miri + cargo-mutants)
     runs-on: ubuntu-latest
     needs: quality
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
@@ -323,21 +323,31 @@ jobs:
             libssl-dev \
             libxdo-dev \
             mold
-      - name: Install nightly Rust
-        run: rustup toolchain install nightly
+      - name: Install nightly Rust (with Miri)
+        run: rustup toolchain install nightly --component miri
       - name: Install cargo-mutants
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-mutants
       - name: Mutation testing (unit-test effectiveness)
         run: cargo +nightly mutants --workspace --in-place
-      # NOTE: Miri (UB detection) was removed from this job. A full `cargo +nightly
-      # miri test` over storage/csv/domain/security exceeds any reasonable per-push
-      # CI budget (core-security's manual byte handling + AEAD is the bottleneck),
-      # and a job timeout cancels the ENTIRE run (GitHub Actions cancels in-flight
-      # jobs when one is cancelled by timeout — continue-on-error does not help).
-      # UB in the pure-logic crates is also caught by unit tests + cargo-mutants.
-      # Miri belongs in a separate scheduled (cron) workflow with a large budget.
+      # Miri (UB detection) over the four core crates. Runs in ~1 min total now:
+      # the two expensive cases are compiled out under Miri —
+      #   - core-csv proptest (thousands of proptest iterations under the
+      #     interpreter → #![cfg(not(miri))] in proptest_csv.rs),
+      #   - core-domain password_gen tests (100-500 OsRng generations per case,
+      #     pure safe Rust, no UB signal → #[cfg(not(miri))] on the test module).
+      # KDF (Argon2) and storage-audit tests already carry cfg_attr(miri, ignore).
+      # What remains is the real UB-relevant surface: parsers, AEAD glue, the
+      # hash chain, CSV mapping — all interpreted by Miri here.
+      - name: Miri (UB detection — storage, csv, domain, security)
+        env:
+          MIRIFLAGS: "-Zmiri-disable-isolation"
+        run: |
+          cargo +nightly miri test -p mailgrit-core-storage
+          cargo +nightly miri test -p mailgrit-core-csv
+          cargo +nightly miri test -p mailgrit-core-domain
+          cargo +nightly miri test -p mailgrit-core-security
 
   # NOTE: Kani formal verification is in .github/workflows/kani.yml (scheduled,
   # weekly). It was removed from this per-push CI because kani-github-action's

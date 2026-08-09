@@ -169,6 +169,13 @@ fn shuffle(chars: &mut [char], rng: &mut impl Rng) {
 }
 
 #[cfg(test)]
+// Not compiled under Miri: these tests run the generator 100-500 times per
+// case (OsRng + Fisher–Yates shuffle). Password generation is pure safe Rust
+// with no unsafe/FFI, so Miri adds no UB signal here, and the iteration count
+// makes each case take minutes under the interpreter. The generator's
+// correctness is covered natively (these tests) + cargo-mutants; Miri focuses
+// on the parsers.
+#[cfg(not(miri))]
 mod tests {
     use super::*;
 

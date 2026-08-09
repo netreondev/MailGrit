@@ -4,6 +4,14 @@
 //! classifies valid/invalid rows. proptest generates thousands of random but
 //! structured test cases and shrinks a found bug down to a minimal reproducible
 //! example (shrinking).
+//
+// Not compiled under Miri: proptest runs thousands of iterations and Miri
+// interprets each byte of std code per iteration — a single proptest case here
+// was observed running >90 min under Miri without finishing. Property-based
+// coverage under Miri adds no UB signal beyond the unit tests (mapping_tests,
+// parser::tests) which Miri DOES run. UB hunting is covered by those; proptest
+// stays for native-test coverage only.
+#![cfg(not(miri))]
 
 use mailgrit_core_csv::parse_csv_bytes;
 // prelude::* imports the proptest! macro and generation strategies.
