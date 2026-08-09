@@ -243,6 +243,7 @@ made under the same dual license (inbound = outbound); see
 | [DISCLAIMER.md](DISCLAIMER.md) | Authorized-use policy, no-warranty, and limitation of liability |
 | [PRIVACY.md](PRIVACY.md) | Data handling — local-only storage, PII masking, no telemetry |
 | [SECURITY.md](SECURITY.md) | Vulnerability reporting and security posture |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Community standards (Contributor Covenant 2.1) |
 | [NOTICE.md](NOTICE.md) | Copyright, licensing, and trademark attribution |
 
 **Trademarks:** "iRedAdmin" is a trademark of its respective owners. MailGrit is

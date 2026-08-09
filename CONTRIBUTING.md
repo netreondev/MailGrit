@@ -170,4 +170,4 @@ All contributions are made under the **MIT OR Apache-2.0** dual license
 ## Code of conduct
 
 Be respectful and constructive. Harassment or discrimination of any kind is not
-tolerated.
+tolerated. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for the full text.
