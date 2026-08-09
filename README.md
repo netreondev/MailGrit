@@ -37,7 +37,8 @@ holding all application files.
 2. Sign in to iRedAdmin — **you do not need to press anything else**: the app
    detects the login automatically (a hybrid predicate — see *How authentication
    works*) and switches to the operations panel on its own.
-3. Load a CSV (`domain,username,password,display_name,quota_mb`).
+3. Load a CSV (`domain,username,password,display_name,quota_mb`) — see
+   [CSV format](#csv-format) or start from [`docs/assets/example.csv`](docs/assets/example.csv).
 4. Run bulk **create / edit / delete**.
 
 ### Operation mode
@@ -98,16 +99,59 @@ JS `fetch()` **inside the same webview** that holds the legitimate session.
 
 ## CSV format
 
+Bulk input is a plain CSV. Grab a ready-to-edit sample and adapt it:
+
+- [`docs/assets/example.csv`](docs/assets/example.csv) — 6 valid rows you can load
+  as-is.
+
 ```
 domain,username,password,display_name,quota_mb
-example.com,john,S3cret!,John Doe,512
+example.com,john,S3cret!23,John Doe,512
+example.com,bob,Passw0rd!9,,1024
+corp.example.net,alice_lee,Qx7$mK2v,Аліса Лі,
 ```
 
-- BOM is stripped automatically; encoding must be UTF-8.
-- Flexible column mapping: header names are matched case-insensitively against
-  canonical fields, so localized or renamed headers still map.
-- Hard limits (rows, line length, field length) protect against accidental huge
-  inputs; see `core-domain` limit constants.
+### Columns
+
+| Column | Required | Format | Default |
+|--------|----------|--------|---------|
+| `domain` | yes | DNS domain, no `@` (e.g. `example.com`, not `john@example.com`) | — |
+| `username` | yes | mailbox local-part: `a–z A–Z 0–9 . _ -`, 1–64 chars; must not start/end with `.` or `-` | — |
+| `password` | yes | plaintext; **must not contain a comma** (the CSV has no quoting); leading/trailing spaces are kept | — |
+| `display_name` | no | free text, up to 256 chars (control chars stripped) | empty |
+| `quota_mb` | no | integer, MiB, range `1`–`1 048 576` (1 TiB) | `1024` |
+
+The mailbox address created in iRedAdmin is `username@domain`.
+
+### Rules
+
+- **Delimiter:** comma only — there is no quoting/escaping. Any comma inside a
+  field splits it, so keep passwords comma-free.
+- **Header:** recommended but optional. If the first non-empty line matches the
+  five names above (case-insensitive), it is treated as a header. **Column order
+  is flexible when a header is present** — names are matched, not positions, so
+  localized or renamed headers still map. Without a header, columns must be in
+  the exact order `domain,username,password,display_name,quota_mb`.
+- **Encoding:** UTF-8. A leading UTF-8 BOM is stripped automatically.
+- **Blank lines** are skipped.
+- **Hard limits** guard against accidental huge inputs: at most **50 000 rows**,
+  **16 KiB** per line, **4096 bytes** per field. See the limit constants in
+  `core-domain`.
+
+### Common mistakes
+
+- Putting a full email (`john@example.com`) in the `domain` column — use just
+  the domain (`example.com`).
+- A comma inside the `password` — there is no quoting to escape it; pick a
+  comma-free password.
+- Quota units — the value is a bare MiB integer (`512`), not `512MB`.
+- Wrong column count when there is no header — every row must be exactly five
+  fields in canonical order.
+- Username with spaces or non-Latin characters — only `a–z A–Z 0–9 . _ -`.
+
+Rows that fail validation are reported individually and do **not** stop the
+import — valid rows still go through, and each failed row shows its line number
+and the reason.
 
 ## Internationalization (i18n)
 

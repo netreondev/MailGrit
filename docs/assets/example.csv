@@ -1,0 +1,7 @@
+domain,username,password,display_name,quota_mb
+example.com,john,S3cret!23,John Doe,512
+example.com,jane.smith,Str0ng#Pwd2,Jane Smith,2048
+example.com,bob,Passw0rd!9,,1024
+corp.example.net,alice_lee,Qx7$mK2v,Аліса Лі,
+corp.example.net,mike.wilson,W1lson&Co,Mike Wilson,4096
+mail.example.org,sara-jones,9bTg+Zp1,Sara Jones,1024
