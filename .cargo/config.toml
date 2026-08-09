@@ -20,9 +20,13 @@ rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 # linker overrides: the system link.exe and ld64 are used respectively.
 # This is a deliberate choice: local-dev reliability outweighs a marginal speedup.
 
-# sccache — required for CI caching of artifacts across runs.
-# In local development it may be absent — cargo works without it
-# (in CI it is enabled via RUSTC_WRAPPER in .github/workflows/ci.yml).
+# sccache is NOT used in CI. It was tried as RUSTC_WRAPPER=sccache (routing
+# through GitHub's Actions Cache backend), but the backend proved persistently
+# unstable for this repo and a failed cache read aborted the build. A resilience
+# wrapper (.github/sccache-wrapper.sh) was attempted too, but it broke on cargo's
+# startup compiler version-probe. CI now compiles uncached. sccache remains
+# usable locally (set RUSTC_WRAPPER=sccache + SCCACHE_GHA_ENABLED=false) but is
+# intentionally not wired into the workflows.
 
 # Profile settings: dev — fast iteration, release — deterministic build.
 [profile.dev]

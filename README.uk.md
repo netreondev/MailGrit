@@ -185,10 +185,16 @@ Rust **1.97.1**, закріплений через `rust-toolchain.toml` (editio
 | macOS (Apple Silicon) | `aarch64-apple-darwin` |
 
 CI проганяє повний гейт якості (fmt, clippy, nextest, док-тести, cargo-deny,
-cargo-audit, cargo-machete, cargo-semver-checks) на усіх трьох, плюс матриця
-release-збірок. Формальна верифікація (Kani, Miri), мутаційне тестування
-(cargo-mutants) та безперервний фаззинг (cargo-fuzz) запускаються щодня і не
-блокують PR.
+cargo-audit, cargo-machete, cargo-semver-checks) на усіх трьох, плюс матрицю
+release-збірок. Miri (виявлення UB), мутаційне тестування (cargo-mutants) та
+безперервний фаззинг (cargo-fuzz) запускаються на кожному пуші/PR (Linux) і є
+**блокуючими CI-гейтами** — Miri-UB, мутант, що вижив, або знайдений фаззером
+краш провалює збірку та блокує PR. Kani (bounded model-checking парсерів
+core-domain) працює в окремому **плановому** воркфлоу
+(`.github/workflows/kani.yml`, щотижня + на вимогу): її kani-github-action
+bootstrap займає ~90 хв і не вкладається у бюджет на пуш (таймаут джобу
+скасовує весь GitHub Actions run). Гартфеси справді верифікуються (0 із 358
+перевірок провалено); відрізняється лише тригер.
 
 ## Ліцензія
 

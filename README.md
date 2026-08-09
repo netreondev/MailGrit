@@ -196,7 +196,7 @@ SBOM).
 | Dependabot | Dependencies | Installed | `.github/dependabot.yml` |
 | cargo-fuzz | Fuzzing | Installed, **CI gate** (regression replay + exploratory) | `fuzz/` + seed corpus |
 | proptest | Testing | Installed | `crates/core-csv/tests/` |
-| Kani | Formal ver. | Installed, **CI gate** (every push) | `crates/*/src/kani_harnesses.rs` |
+| Kani | Formal ver. | Installed, **scheduled** (weekly + on-demand) | `crates/*/src/kani_harnesses.rs`, `kani.yml` |
 | Miri | Formal ver. | Installed, **CI gate** (every push) | `ci.yml` |
 | cargo-mutants | Testing | Installed, **CI gate** (every push) | `ci.yml` |
 | cargo-semver-checks | API compat | Installed, **CI gate** | `ci.yml` |
@@ -219,10 +219,15 @@ scanning (no Rust `regex` in app code), and the research-stage formal tools
 
 CI runs the full quality gate (fmt, clippy, nextest, doc tests, cargo-deny,
 cargo-audit, cargo-machete, cargo-semver-checks) on all three, plus a release
-build matrix. Formal verification (Kani, Miri), mutation testing (cargo-mutants),
-and continuous fuzzing (cargo-fuzz) run on every push/PR (Linux) and are
-**blocking CI gates** — a Miri/Kani/mutants failure or a newly-found fuzzer crash
-fails the build and blocks the PR.
+build matrix. Miri (UB detection), mutation testing (cargo-mutants), and
+continuous fuzzing (cargo-fuzz) run on every push/PR (Linux) and are
+**blocking CI gates** — a Miri/mutants failure or a newly-found fuzzer crash
+fails the build and blocks the PR. Kani (bounded model-checking of the
+core-domain parsers) runs in a separate **scheduled** workflow
+(`.github/workflows/kani.yml`, weekly + on-demand): its kani-github-action
+bootstrap takes ~90 min and cannot fit a per-push budget without cancelling
+the run (a job timeout cancels the whole GitHub Actions run). The harnesses do
+verify (0 of 358 checks failed); only the trigger differs.
 
 ## License
 

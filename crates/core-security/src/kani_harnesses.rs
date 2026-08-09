@@ -6,9 +6,14 @@
 //! detection), and the AEAD boundary/roundtrip paths.
 //!
 //! IMPORTANT — scope and CI status, read before relying on these:
-//! - Kani runs in CI as a BLOCKING job (no `continue-on-error`, see
-//!   `.github/workflows/ci.yml`, the `kani` job). A failed/timeout proof
-//!   fails the build and blocks the PR; treat these as a hard verification gate.
+//! - Kani does NOT run on core-security in CI. The scheduled Kani workflow
+//!   (`.github/workflows/kani.yml`) targets core-domain only: these
+//!   core-security harnesses call into the opaque `chacha20poly1305` / HMAC
+//!   crates, which Kani models as uninterpreted functions, and CBMC does not
+//!   converge on them within a reasonable budget (timed out at ~60 min). They
+//!   are retained for local/manual `cargo kani` runs, but the correctness of
+//!   core-security is covered by Miri (UB), unit tests (roundtrip / wrong-key /
+//!   AAD / length boundaries), and cargo-mutants.
 //! - The AEAD harnesses call into the `chacha20poly1305` crate, which Kani
 //!   models as an opaque (uninterpreted) function — it cannot see inside the
 //!   cipher. Therefore `verify_aead_roundtrip` / `verify_aead_rejects_wrong_aad`

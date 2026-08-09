@@ -73,11 +73,16 @@ In addition to the table above, CI runs (see [`.github/workflows/ci.yml`](.githu
 - **Deterministic secret-leak test** — `crates/app-desktop/src/webview_secret_leak_tests.rs`
   asserts passwords never reach `tracing` output. If you add new logging near
   sensitive data, extend it.
-- **Blocking CI gates (every push/PR)** — Kani, Miri, cargo-mutants, cargo-fuzz
-  (these use the nightly Rust *toolchain* and run on every push/PR, not on a
-  schedule). They fail the PR on a finding: a Miri UB, a failed Kani proof, a
-  surviving mutant, or a fuzzer crash blocks the merge. Fix the root cause
-  (don't suppress) before merging.
+- **Blocking CI gates (every push/PR)** — Miri, cargo-mutants, cargo-fuzz (these
+  use the nightly Rust *toolchain* and run on every push/PR). They fail the PR
+  on a finding: a Miri UB, a surviving mutant, or a fuzzer crash blocks the
+  merge. Fix the root cause (don't suppress) before merging.
+- **Kani (scheduled, not per-push)** — bounded model-checking of the core-domain
+  parsers lives in `.github/workflows/kani.yml` (weekly cron + on-demand
+  `workflow_dispatch`), NOT in the per-push `ci.yml`. The harnesses verify
+  (0 of 358 checks failed), but `kani-github-action`'s bootstrap takes ~90 min,
+  which a GitHub Actions job timeout would turn into a whole-run cancellation.
+  Run it manually (`gh workflow run kani.yml`) when changing the parsers.
 
 ## Commit messages
 
