@@ -141,11 +141,15 @@ jobs:
         id: hash
         shell: bash
         run: |
-          # sha256sum outputs "<hash>  <file>"; base64-encode the whole block for
-          # the SLSA generic generator's base64-subjects input.
-          sha256sum "${{ matrix.archive }}" > hashes-${{ matrix.name }}.txt
+          # Use `shasum -a 256` (POSIX, available on Linux AND macOS) instead of
+          # `sha256sum` (GNU-coreutils only — absent on macOS runners). It outputs
+          # the same "<hash>  <file>" format the SLSA generator / cosign consume.
+          shasum -a 256 "${{ matrix.archive }}" > hashes-${{ matrix.name }}.txt
           cat hashes-${{ matrix.name }}.txt
-          echo "hashes=$(cat hashes-${{ matrix.name }}.txt | base64 -w0)" >> "$GITHUB_OUTPUT"
+          # base64-encode the whole block for the SLSA generic generator's
+          # base64-subjects input. Avoid `base64 -w0` (GNU-only); BSD base64 on
+          # macOS has no -w flag, so strip newlines with tr instead.
+          echo "hashes=$(cat hashes-${{ matrix.name }}.txt | base64 | tr -d '\n')" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact (archive + SBOM + bloat + hashes)
         uses: actions/upload-artifact@v4
