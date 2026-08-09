@@ -95,8 +95,14 @@ jobs:
 
       # CycloneDX SBOM for the desktop binary crate. Captures the resolved
       # dependency tree (incl. versions + licenses) at release time.
+      # cargo-cyclonedx 0.5.x has no --output-cdx/-p flags; target a crate via
+      # --manifest-path. It writes <package>.cdx.json next to that manifest.
       - name: Generate CycloneDX SBOM
-        run: cargo cyclonedx --format json --output-cdx -p mailgrit-app-desktop
+        run: |
+          cargo cyclonedx --format json --manifest-path crates/app-desktop/Cargo.toml
+          # Copy the generated SBOM to the workspace root so the staging steps
+          # find it at a single known path regardless of crate dir layout.
+          cp crates/app-desktop/mailgrit-app-desktop.cdx.json mailgrit-app-desktop.cdx.json
 
       # Binary-size report (non-blocking diagnostic): which crates contribute
       # most to the final binary. Uploaded as an artifact for trend tracking.
