@@ -13,11 +13,11 @@ on:
     tags:
       - "v*"
   workflow_dispatch:
-    inputs:
-      tag:
-        description: "Release tag (e.g. v0.1.2)"
-        required: true
-        default: "v0.1.2"
+      inputs:
+        tag:
+          description: "Release tag (e.g. v0.1.3)"
+          required: true
+          default: "v0.1.3"
 
 # id-token: write is REQUIRED for cosign keyless (OIDC) signing and for SLSA
 # provenance generation. contents: write is needed to attach assets to the
