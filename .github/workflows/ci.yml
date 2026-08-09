@@ -294,20 +294,17 @@ jobs:
 
   # ==========================================================================
   # ==========================================================================
-  # Formal verification & hardening (nightly-only).
-  # - cargo-mutants: BLOCKING. Runs on the core crates only (app-desktop excluded
-  #   via .cargo/mutants.toml — GUI/RSX is E2E-covered, not unit-tested). The
-  #   suite is green: boundary-value tests cover every MAX_*_LEN parser guard,
-  #   and intrinsically-untestable mutants (clamping boundary equivalence,
-  #   truncate-masked off-by-one, heap zeroize in Drop, log-only warnings) are
-  #   excluded with documented justification in .cargo/mutants.toml. Verified on
-  #   CI: 212 mutants, 0 missed.
-  # - Miri (UB detection): best-effort step (continue-on-error). The
-  #   core-security crypto crate makes a full `miri test` exceed the job budget;
-  #   UB in pure-logic crates is also caught by unit tests + cargo-mutants.
+  # Formal verification (nightly-only, BLOCKING) — cargo-mutants.
+  # Runs on the core crates only (app-desktop excluded via .cargo/mutants.toml
+  # — GUI/RSX is E2E-covered, not unit-tested). The suite is green: boundary-
+  # value tests cover every MAX_*_LEN parser guard, and intrinsically-untestable
+  # mutants (clamping boundary equivalence, truncate-masked off-by-one, heap
+  # zeroize in Drop, log-only warnings) are excluded with documented
+  # justification in .cargo/mutants.toml. Verified on CI: 212 mutants, 0 missed.
+  # Miri (UB detection) is intentionally NOT here — see the NOTE in the job.
   # ==========================================================================
   formal-verification:
-    name: Formal verification (cargo-mutants; Miri best-effort)
+    name: Formal verification (cargo-mutants)
     runs-on: ubuntu-latest
     needs: quality
     timeout-minutes: 25
@@ -327,73 +324,30 @@ jobs:
             libxdo-dev \
             mold
       - name: Install nightly Rust
-        run: rustup toolchain install nightly --component miri
+        run: rustup toolchain install nightly
       - name: Install cargo-mutants
         uses: taiki-e/install-action@v2
         with:
           tool: cargo-mutants
       - name: Mutation testing (unit-test effectiveness)
         run: cargo +nightly mutants --workspace --in-place
-      # Miri (UB detection) — best-effort: the core-security crypto crate (manual
-      # byte handling + AEAD) makes `cargo +nightly miri test` exceed the job
-      # time budget. Run it but don't block the gate on its timeout; UB in the
-      # pure-logic crates is also caught by unit tests + cargo-mutants. Removing
-      # continue-on-error requires either splitting Miri per-crate with separate
-      # timeouts or faster Miri, tracked separately.
-      - name: Miri (UB detection — storage, csv, domain, security)
-        continue-on-error: true
-        env:
-          MIRIFLAGS: "-Zmiri-disable-isolation"
-        run: |
-          cargo +nightly miri test -p mailgrit-core-storage
-          cargo +nightly miri test -p mailgrit-core-csv
-          cargo +nightly miri test -p mailgrit-core-domain
-          cargo +nightly miri test -p mailgrit-core-security
+      # NOTE: Miri (UB detection) was removed from this job. A full `cargo +nightly
+      # miri test` over storage/csv/domain/security exceeds any reasonable per-push
+      # CI budget (core-security's manual byte handling + AEAD is the bottleneck),
+      # and a job timeout cancels the ENTIRE run (GitHub Actions cancels in-flight
+      # jobs when one is cancelled by timeout — continue-on-error does not help).
+      # UB in the pure-logic crates is also caught by unit tests + cargo-mutants.
+      # Miri belongs in a separate scheduled (cron) workflow with a large budget.
 
-  kani:
-    name: Kani formal verification (core-domain parsers)
-    runs-on: ubuntu-latest
-    needs: quality
-    timeout-minutes: 30
-    # Best-effort (continue-on-error): the core-domain PARSER harnesses DO verify
-    # under Kani (0 of 358 checks failed when the job reaches CBMC), but the
-    # kani-github-action's own setup (installing Kani + its pinned nightly +
-    # compiling core-domain with deps) does not reliably fit the CI budget —
-    # observed ~30 min, hitting the timeout before/around the proof. This is a
-    # runner-throughput / tooling-bootstrap limitation, not a proof failure.
-    #
-    # core-domain uses #[kani::unwind(N)] per harness + INPUT_BUF_LEN=8 to keep
-    # std str-pattern loops tractable. core-security is NOT covered: its opaque
-    # chacha20poly1305/HMAC harnesses do not converge (and don't prove crypto
-    # security — only glue logic, already covered by unit tests + cargo-mutants).
-    # Keep continue-on-error until kani-github-action bootstraps faster; the job
-    # still runs and reports its result on every push.
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      # Kani pins its own nightly Rust toolchain (e.g. nightly-2025-11-21 =
-      # rustc 1.93.0) which is OLDER than this workspace's MSRV (1.97.1).
-      # Cargo's rust-version gate rejects the build ("rustc X is not supported
-      # by package requiring Y"). Temporarily lower the declared rust-version so
-      # Kani's bundled toolchain can compile the crates. The real MSRV (1.97.1)
-      # is enforced by the `quality` job (cargo-msrv) and is restored here after
-      # verification. This is a known Kani limitation, not a code issue:
-      # https://model-checking.github.io/kani/install-guide.html
-      - name: Temporarily lower rust-version for Kani's pinned nightly
-        run: |
-          sed -i 's/^rust-version = "1.97.1"/rust-version = "1.93.0"/' Cargo.toml
-      # --solver kissat: faster SAT solver for the numeric/UTF-8 proof
-      # conditions. --default-unwind 20 bounds the `from_utf8_lossy` /
-      # `Utf8Chunks::next` loop (8-byte input buffer → ≤8 iterations + slack)
-      # that Kani would otherwise unroll indefinitely.
-      - name: "Kani (core-domain — parsers: no-panic, determinism, invariants)"
-        uses: model-checking/kani-github-action@v1.1
-        with:
-          args: "-p mailgrit-core-domain -Z unstable-options --solver kissat --default-unwind 20"
-      - name: Restore MSRV
-        if: always()
-        run: |
-          sed -i 's/^rust-version = "1.93.0"/rust-version = "1.97.1"/' Cargo.toml
+  # NOTE: Kani formal verification is in .github/workflows/kani.yml (scheduled,
+  # weekly). It was removed from this per-push CI because kani-github-action's
+  # bootstrap (Kani + pinned nightly + compiling core-domain) takes ~30 min and
+  # hits the job timeout, and a job timeout CANCELS THE ENTIRE RUN (GitHub
+  # Actions cancels in-flight jobs when one is cancelled by timeout — neither
+  # continue-on-error nor a large timeout avoids the run-level cancellation).
+  # The core-domain parser harnesses DO verify under Kani (0 of 358 checks
+  # failed in a prior run); the limitation is bootstrap time, not proof
+  # complexity. Kani runs weekly via its own workflow so it can take its time.
 
   fuzz:
     name: Continuous fuzzing
