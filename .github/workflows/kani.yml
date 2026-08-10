@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Kani pins its own nightly Rust toolchain (e.g. nightly-2025-11-21 =
       # rustc 1.93.0) which is OLDER than this workspace's MSRV (1.97.1).

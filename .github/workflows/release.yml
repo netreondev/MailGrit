@@ -58,7 +58,7 @@ jobs:
             binary: mailgrit-app-desktop
             archive: mailgrit-macos-arm64.tar.gz
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Rust toolchain (pinned 1.97.1)
         run: rustup toolchain install 1.97.1 --profile minimal
@@ -240,7 +240,7 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
@@ -295,7 +295,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download all artifacts (archives, SBOMs, signatures)
         uses: actions/download-artifact@v4

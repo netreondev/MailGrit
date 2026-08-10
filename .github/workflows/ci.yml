@@ -45,7 +45,7 @@ jobs:
     name: Supply chain, SAST & secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Full history so gitleaks can scan all commits, not just the PR tip.
           fetch-depth: 0
@@ -130,7 +130,7 @@ jobs:
             target: aarch64-apple-darwin
             name: macos-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install Rust toolchain (pinned)
         run: rustup show active-toolchain || rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
@@ -234,7 +234,7 @@ jobs:
             target: aarch64-apple-darwin
             name: macos-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Rust toolchain (pinned)
         run: rustup toolchain install 1.97.1 --profile minimal
       - name: Add target
@@ -270,7 +270,7 @@ jobs:
     needs: supply-chain
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install nightly Rust
         run: rustup toolchain install nightly
       - name: Install cargo-fuzz
@@ -309,7 +309,7 @@ jobs:
     needs: quality
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
       # needs the GTK/webkit headers on Linux (same as quality/build-release).
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
@@ -365,7 +365,7 @@ jobs:
     needs: quality
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install nightly Rust
         run: rustup toolchain install nightly
       - name: Install cargo-fuzz
