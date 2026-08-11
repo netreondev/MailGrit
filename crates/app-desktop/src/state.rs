@@ -1,4 +1,6 @@
 //! Application state: the current screen, session data, and bulk operation data.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::audit_ui::AuditWriter;
 use crate::batch::BatchResult;

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
+
 /**
  * Fixture: launches the MailGrit desktop application and connects Playwright to
  * its WebView2 via the Chrome DevTools Protocol (CDP).

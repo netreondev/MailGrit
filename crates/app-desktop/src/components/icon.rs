@@ -1,5 +1,7 @@
 //! Inline SVG icons (Lucide style). No external crates — lightweight.
 //! All icons use `currentColor` and stroke 1.75 (see `.icon` in components.css).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use dioxus::prelude::*;
 

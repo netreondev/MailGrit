@@ -1,5 +1,8 @@
 # MailGrit UI translations — Deutsch (German).
 # Platzhalter: %{name} (rust-i18n 4.x). Struktur 1:1 mit app.en.yml.
+# SPDX-License-Identifier: MIT OR Apache-2.0
+# Copyright (c) 2026 netreon and contributors
+
 _version: 1
 
 # ── Navigation / Bereiche ───────────────────────────────────────────────────

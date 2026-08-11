@@ -5,6 +5,8 @@
 //! strings) and always returns a `Result`. The parser must also uphold its
 //! invariant: a successful parse always yields a quota within the documented
 //! range. Compiled under nightly via libfuzzer-sys (see fuzz/Cargo.toml).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 #![no_main]
 

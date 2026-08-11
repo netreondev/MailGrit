@@ -4,6 +4,8 @@
 //! A pure description of the field schema (canonical name, requiredness, default,
 //! length limit) — with no value logic or validation. Provides `core-csv` with the
 //! data to auto-detect column mapping.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::limits::{
     DEFAULT_QUOTA_MB_STR, MAX_DISPLAY_NAME_LEN, MAX_DOMAIN_LEN, MAX_PASSWORD_LEN, MAX_USERNAME_LEN,

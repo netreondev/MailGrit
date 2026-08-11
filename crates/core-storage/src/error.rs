@@ -1,4 +1,6 @@
 //! Storage domain errors (spec §19).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use mailgrit_core_security::SecurityError;
 

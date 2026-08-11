@@ -7,6 +7,8 @@
 //! Translations live in `locales/app.<lang>.yml` and are embedded into the binary
 //! by the `rust_i18n::i18n!` macro (compile-time, with no runtime files — matching
 //! the project convention of `include_str!`/`const`).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 /// Available UI languages.
 ///

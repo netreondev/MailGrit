@@ -13,6 +13,8 @@
 //! benchmark setup bug, not a runtime failure. Where the harness calls into the
 //! parser under measurement, the result is asserted (never silently dropped) so
 //! a benchmark cannot be optimized away into a no-op.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use std::fmt::Write as _;
 use std::hint::black_box;

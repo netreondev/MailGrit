@@ -14,6 +14,8 @@
 //! warning icon and tooltip) rows whose password is weaker — this informs rather
 //! than blocks the operation. Enforcing the required character classes in the
 //! generator settings guarantees that generated passwords always pass the policy.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 /// Password policy: minimum length and required character classes.
 ///

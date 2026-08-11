@@ -4,6 +4,8 @@
 //! input and always returns a `Result`. A panic here would be a DoS vector when
 //! processing a malicious bulk-import CSV. Compiled under nightly via
 //! libfuzzer-sys (see fuzz/Cargo.toml).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 #![no_main]
 

@@ -18,6 +18,8 @@
 //! iRedAdmin returns HTTP 200 even on error (ALREADY_EXISTS, etc.), so the status
 //! code alone is insufficient. See the target modules ([`user`], [`domain`],
 //! [`admin`]) for verdict details.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use mailgrit_core_domain::{BulkOperationKind, OperationTarget, SanitizedUserRow};
 

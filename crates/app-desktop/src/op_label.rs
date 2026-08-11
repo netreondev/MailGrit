@@ -7,6 +7,8 @@
 //!
 //! Labels are taken from the translation catalog (`locales/app.<lang>.yml`, keys
 //! `op_label.<target>.<kind>`), so they change together with the UI language.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use mailgrit_core_domain::{BulkOperationKind, OperationTarget};
 

@@ -3,6 +3,8 @@
 //! Extracted from [`dashboard`](super) to keep each file under the 400-line
 //! limit (the RSX screen is structurally large). This file handles native file
 //! picking, auto column mapping, and CSV parsing.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::csv_summary::CsvSummary;
 use crate::state::AppState;

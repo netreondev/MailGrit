@@ -8,6 +8,8 @@
 //! fixed `[bool; 4]` array (the established pattern in the app-desktop settings
 //! config types) and are read/written through named accessors so the call sites
 //! stay self-documenting.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 /// Indexes into the [`CharacterClasses`] `[bool; 4]` storage.
 const CLS_UPPER: usize = 0;

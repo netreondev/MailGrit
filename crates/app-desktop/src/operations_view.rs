@@ -3,6 +3,8 @@
 //! Contains the CSV-load + editable-table card, the bulk-operations card (a
 //! User/Domain/Admin target switch, Create/Edit/Delete/export/diagnostics
 //! buttons, a delete-confirmation Modal) and the result of the last operation.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::components::button::{Button, ButtonKind, ButtonSize};
 use crate::components::card::Card;

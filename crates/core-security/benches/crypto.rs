@@ -15,6 +15,8 @@
 //! Benchmark harness code is non-production: a failing `assert_*` here is a
 //! benchmark setup bug, not a runtime failure. Results are asserted (never
 //! silently dropped) so a benchmark cannot be optimized away into a no-op.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use std::hint::black_box;
 

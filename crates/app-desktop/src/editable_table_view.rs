@@ -12,6 +12,8 @@
 //!   (manual/loaded passwords are preserved).
 //! - "Regenerate all" replaces the password in all rows (with a confirmation
 //!   Modal, since it is irreversible).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::components::button::{Button, ButtonKind, ButtonSize};
 use crate::components::icon::{Icon, IconSize, IconView};

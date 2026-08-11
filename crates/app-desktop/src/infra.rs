@@ -1,4 +1,6 @@
 //! Application infrastructure: the data directory and the global tokio runtime.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 /// Application data directory — **next to the binary** (portability).
 /// All files (logs, config, audit, dumps, cookie-store) live in the `mailgrit-data`

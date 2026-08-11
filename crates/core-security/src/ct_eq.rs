@@ -6,6 +6,8 @@
 //! channel, albeit a weak one for a local application. [`subtle::ConstantTimeEq`]
 //! compares in a fixed number of cycles regardless of the position of the
 //! first discrepancy.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use subtle::ConstantTimeEq;
 

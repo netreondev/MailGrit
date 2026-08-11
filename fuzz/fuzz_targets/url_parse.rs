@@ -10,6 +10,8 @@
 //! without pulling the entire GUI stack (dioxus/wry) into the fuzz crate. A
 //! panic from `url::Url::parse` on pathological input would itself be a bug
 //! worth knowing about; we assert it does not happen.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 #![no_main]
 

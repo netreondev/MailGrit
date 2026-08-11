@@ -8,6 +8,8 @@
 //!
 //! Argon2id is chosen as a trade-off between resistance to GPU/ASIC attacks
 //! (d>0) and side-channel resistance (t>0); recommended by RFC 9106.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::error::SecurityError;
 use argon2::{Algorithm, Argon2, Params, Version};

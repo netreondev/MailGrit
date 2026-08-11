@@ -4,6 +4,8 @@
 //! context (which requires Send). `thread_local!` stores !Send values and is
 //! reachable from UI components and the event handler (both on the main Dioxus
 //! thread).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::ipc::PendingMap;
 use crate::login_types::{BatchOpResult, DiagRequest, LoginRequest, OpRequest};

@@ -1,4 +1,6 @@
 //! Segmented control (switch between mutually exclusive options).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use super::icon::{Icon, IconView};
 use dioxus::prelude::*;

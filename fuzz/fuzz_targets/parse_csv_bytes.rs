@@ -3,6 +3,8 @@
 //! Goal: confirm through coverage-guided fuzzing that the parser never panics and
 //! does not cause undefined behavior on arbitrary byte inputs.
 //! Compiled under nightly via libfuzzer-sys (see fuzz/Cargo.toml).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 #![no_main]
 

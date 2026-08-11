@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
+
 import { testDashboard as test, expect } from '../fixtures/app';
 import { DASH } from '../helpers/selectors';
 

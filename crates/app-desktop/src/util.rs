@@ -1,4 +1,6 @@
 //! Auxiliary pure functions for the application.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use time::OffsetDateTime;
 

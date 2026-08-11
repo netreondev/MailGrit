@@ -7,6 +7,8 @@
 //!   itself is zeroed in memory when it goes out of scope (`EncryptionKey::Drop`
 //!   via `zeroize`).
 //! - **Hash-chained audit** (§III.6): an `HMAC-SHA256` chain for the operations log.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 #![forbid(unsafe_code)]
 // Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny) is set

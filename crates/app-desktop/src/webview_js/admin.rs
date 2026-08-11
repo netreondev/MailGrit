@@ -18,6 +18,8 @@
 //! # Success verdict
 //! The universal iRedAdmin markers from [`crate::webview_markers`] are reused
 //! (`?msg=CREATED/UPDATED/DELETED`, `note-error/note-success`).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use mailgrit_core_domain::{BulkOperationKind, SanitizedUserRow};
 

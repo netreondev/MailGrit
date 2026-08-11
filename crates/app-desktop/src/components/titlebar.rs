@@ -5,6 +5,8 @@
 //! a brandmark, and window control buttons (minimize/maximize/close).
 //!
 //! Window control is done via `dioxus::desktop::use_window()` (an accessor to the wry/tao window).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use super::icon::{Icon, IconView};
 use dioxus::prelude::*;

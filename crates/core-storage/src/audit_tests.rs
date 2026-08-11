@@ -11,6 +11,8 @@
 //! detection, and entry framing — lives in `core-security::hashchain` and is
 //! fully covered by Miri there (no FFI); `core-storage` is the SQLite
 //! persistence layer on top.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use super::*;
 // Connection/params are available via the glob import `use super::*` (audit.rs

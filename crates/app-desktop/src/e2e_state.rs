@@ -13,6 +13,8 @@
 //! Reuses the canonical CSV parser (`parse_csv_bytes_auto` + `detect_mapping`)
 //! so the pre-filled data goes through the same sanitization/validation as
 //! user data — with no separate test branch of the logic.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::state::{AppState, AuthStatus, Screen};
 use dioxus::prelude::*;

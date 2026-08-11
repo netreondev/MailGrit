@@ -5,6 +5,8 @@
 //! `app-desktop` physically refuse to accept this type — the only way to obtain
 //! a `SanitizedUserRow` is to pass the data through the canonical
 //! parser-sanitizer. This eliminates logical drift between validation layers.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::error::CsvRowError;
 use crate::types::{

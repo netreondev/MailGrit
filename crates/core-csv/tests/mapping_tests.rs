@@ -4,6 +4,8 @@
 //! streaming parse with a mapping, and the **backward-compatibility criterion** —
 //! `parse_csv_bytes_auto` must produce a result identical to the classic
 //! `parse_csv_bytes` for a canonical 5-column CSV.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use mailgrit_core_csv::{
     ColumnMapping, detect_mapping, parse_csv_bytes, parse_csv_bytes_auto,

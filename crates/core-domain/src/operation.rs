@@ -4,6 +4,8 @@
 //! limited to the entities that OSE can create/edit/delete through forms: domain,
 //! user, administrator. The pair
 //! ([`OperationTarget`], [`BulkOperationKind`]) uniquely identifies an operation.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 /// Bulk operation target — the iRedAdmin entity the operation acts upon.
 /// The pair (OperationTarget, BulkOperationKind) uniquely identifies an operation.

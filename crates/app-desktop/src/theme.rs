@@ -3,6 +3,8 @@
 //! The theme is stored in `AppState.theme` and applied to `<html>` via the
 //! `data-theme="dark"|"light"` attribute (see tokens.css). The browser engine
 //! itself substitutes the corresponding set of semantic tokens.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 /// Available themes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]

@@ -8,6 +8,8 @@
 //! or deletion of rows by an attacker breaks the chain on the next check.
 //!
 //! Initial value H_0 = zeros (or a fixed genesis hash).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::aead::EncryptionKey;
 use crate::error::SecurityError;

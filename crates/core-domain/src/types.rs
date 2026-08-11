@@ -3,6 +3,8 @@
 //! Validation is encapsulated in the constructor; the type cannot be created
 //! except through the canonical parser-sanitizer. All parsers return `Result`
 //! and never panic.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::error::{DisplayNameError, DomainError, PasswordError, QuotaError, UsernameError};
 use crate::limits::{

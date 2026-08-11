@@ -5,6 +5,8 @@
 //! [`crate::webview_js`]; here is only the non-operation builder: form
 //! diagnostics (`build_diag_js`). It follows the same pattern: IIFE → fetch →
 //! `window.ipc.postMessage`.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 /// JS for diagnostics: GET the user-creation form page and return the HTML.
 /// Shows the real field names, action URL, and CSRF — to know exactly which

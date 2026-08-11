@@ -4,6 +4,8 @@
 //! HMAC key is generated in memory at startup (for chain verification within a
 //! session). Each bulk operation is recorded via
 //! [`AuditWriter::append_op`].
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::batch::BatchResult;
 use mailgrit_core_security::EncryptionKey;

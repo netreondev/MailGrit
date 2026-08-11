@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
+
 import { test, expect } from '../fixtures/app';
 import { SEL, LANGUAGES, I18N_MARKERS } from '../helpers/selectors';
 

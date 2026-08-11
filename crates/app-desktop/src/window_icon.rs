@@ -8,6 +8,8 @@
 //! wry/tao shows it for the webview window itself, while the PE resource is for
 //! shortcuts and Explorer. 64x64 is chosen as a balance of quality and RGBA
 //! buffer weight (16 KB): tao scales it for the needed DPI itself.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use dioxus::desktop::tao::window::{BadIcon, Icon};
 

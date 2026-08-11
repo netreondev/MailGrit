@@ -3,6 +3,8 @@
 //! MailGrit is focused on two sections: Operations (load CSV -> editable table
 //! -> password generation -> execute -> result) and Audit (a hash-chained
 //! operation log for accountability).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::components::icon::Icon;
 use crate::components::segmented::SegmentedOption;

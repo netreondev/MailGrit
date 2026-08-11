@@ -7,6 +7,8 @@
 //!
 //! The returned [`LogGuard`] must be kept alive until the end of the program
 //! (drop drops the non-blocking writer and flushes the buffer).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use std::path::PathBuf;
 use tracing_appender::non_blocking::WorkerGuard;

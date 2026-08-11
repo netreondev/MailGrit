@@ -2,6 +2,8 @@
 //!
 //! Wire the UI state (`Signal<AppState>`) to the webview operations
 //! (`login_window`), the audit log, and the local encrypted export.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::batch::{BatchResult, CredentialRow, RowFailure};
 use crate::login_window;

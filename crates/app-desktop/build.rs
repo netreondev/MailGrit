@@ -11,6 +11,8 @@
 //!
 //! Note: Cargo runs build.rs with CWD = crate root, so paths are relative
 //! (`assets/icons/mailgrit.ico`).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 fn main() {
     // Rebuild when the icon/resource changes.

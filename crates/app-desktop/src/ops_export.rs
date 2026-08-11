@@ -16,6 +16,8 @@
 //! KDF+`std::fs::write` run via `spawn_blocking` on the tokio runtime, and the
 //! audit record is written on an already-cloned `Arc<AuditWriter>` without
 //! borrowing the signal.
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::audit_ui::AuditWriter;
 use crate::batch::BatchResult;

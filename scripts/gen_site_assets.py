@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT OR Apache-2.0
+# Copyright (c) 2026 netreon and contributors
+
 """Generate placeholder site assets (favicon icons + OG image) for MailGrit.
 
 Produces clean, on-brand placeholders so referenced assets are no longer 404:

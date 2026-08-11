@@ -4,6 +4,9 @@
 //! classifies valid/invalid rows. proptest generates thousands of random but
 //! structured test cases and shrinks a found bug down to a minimal reproducible
 //! example (shrinking).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
+
 //
 // Not compiled under Miri: proptest runs thousands of iterations and Miri
 // interprets each byte of std code per iteration — a single proptest case here

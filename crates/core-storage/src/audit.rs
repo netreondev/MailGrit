@@ -3,6 +3,8 @@
 //! Each entry stores an action, a payload, and `HMAC-SHA256(payload ‖ prev_hash, key)`.
 //! Integrity is checked by [`AuditLog::verify`]: any tampering breaks the chain.
 //! H_n = HMAC(Message_n ‖ H_{n-1}, K).
+// SPDX-License-Identifier: MIT OR Apache-2.0
+// Copyright (c) 2026 netreon and contributors
 
 use crate::error::StorageError;
 use mailgrit_core_security::{EncryptionKey, GENESIS_HASH, HMAC_LEN, chain_hash, verify_chain};
