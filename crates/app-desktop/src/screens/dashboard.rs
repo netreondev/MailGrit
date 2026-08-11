@@ -5,7 +5,7 @@
 //! → password generation → target → execution → result; the "Audit" section is
 //! the hash-chained operations log. Default section is `Operations`.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use crate::components::badge::{Badge, BadgeKind, Dot, DotKind};
 use crate::components::button::{Button, ButtonKind, ButtonSize};

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT OR Apache-2.0
-# Copyright (c) 2026 netreon and contributors
+# Copyright (c) 2026 Netreon™ and contributors
 
 """Generate placeholder site assets (favicon icons + OG image) for MailGrit.
 

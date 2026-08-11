@@ -1,6 +1,6 @@
 //! Premium login screen: a hero composition with auth auto-polling.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use crate::components::button::{Button, ButtonKind, ButtonSize};
 use crate::components::card::Card;

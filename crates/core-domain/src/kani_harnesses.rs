@@ -8,7 +8,7 @@
 //! UTF-8 via `String::from_utf8_lossy` (as with real CSV after BOM cleanup in
 //! core-csv). This covers any invariant-relevant content without an unsized `&str`.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![cfg(kani)]
 // Kani proof harnesses are verification entry points: their signatures and

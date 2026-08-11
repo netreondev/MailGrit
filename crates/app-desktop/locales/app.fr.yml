@@ -1,7 +1,7 @@
 # MailGrit UI translations — Français (French).
 # Placeholders: %{name} (rust-i18n 4.x). Structure 1:1 avec app.en.yml.
 # SPDX-License-Identifier: MIT OR Apache-2.0
-# Copyright (c) 2026 netreon and contributors
+# Copyright (c) 2026 Netreon™ and contributors
 
 _version: 1
 

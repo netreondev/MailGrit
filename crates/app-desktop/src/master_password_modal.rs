@@ -7,7 +7,7 @@
 //! NOT persisted — it lives only in memory for the duration of the session
 //! (`AppState::master_password`).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use crate::components::button::{Button, ButtonKind};
 use crate::components::icon::Icon;

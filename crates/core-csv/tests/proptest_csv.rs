@@ -5,7 +5,7 @@
 //! structured test cases and shrinks a found bug down to a minimal reproducible
 //! example (shrinking).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 //
 // Not compiled under Miri: proptest runs thousands of iterations and Miri

@@ -9,7 +9,7 @@
 //! shortcuts and Explorer. 64x64 is chosen as a balance of quality and RGBA
 //! buffer weight (16 KB): tao scales it for the needed DPI itself.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use dioxus::desktop::tao::window::{BadIcon, Icon};
 

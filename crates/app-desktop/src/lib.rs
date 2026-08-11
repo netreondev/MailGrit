@@ -7,7 +7,7 @@
 //! removed; the endpoint configuration was removed as unused. The library part is
 //! empty — all application code lives in the binary crate (`main.rs`).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![forbid(unsafe_code)]
 // Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny, plus the

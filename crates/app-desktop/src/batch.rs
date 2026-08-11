@@ -7,7 +7,7 @@
 //! [`crate::ops::launch_op`]. The types were moved here as the live part; the
 //! dead `core-bulk` crate was removed.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 /// Result of bulk processing a batch of rows.
 #[derive(Debug, Clone)]

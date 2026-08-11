@@ -4,7 +4,7 @@
 //! (RSX screens are structurally large). The root component `app()` in
 //! `main.rs` routes between [`login::login_screen`] and [`dashboard::dashboard_screen`].
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 pub mod csv_load;
 pub mod dashboard;

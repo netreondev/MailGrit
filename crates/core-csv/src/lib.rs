@@ -4,7 +4,7 @@
 //! [`SanitizedUserRow`](mailgrit_core_domain::SanitizedUserRow) (typestate) — raw
 //! `String` does not propagate further. Failed rows accumulate in [`ParsedCsv::failed`].
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![forbid(unsafe_code)]
 // Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny) is set

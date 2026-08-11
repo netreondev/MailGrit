@@ -4,7 +4,7 @@
 //! duplicated in [`crate::parser`] and [`crate::mapping`] (the additive layer). Here
 //! they share a single source of truth, so changing a limit or rule affects both parsers.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use mailgrit_core_domain::MAX_CSV_FIELD_BYTES;
 

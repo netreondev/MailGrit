@@ -5,7 +5,7 @@
 //! bulk operations run as JS `fetch()` inside the same webview (FortiWeb/WAF
 //! does not authenticate the backend when reqwest replays the cookie).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![forbid(unsafe_code)]
 // Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny, plus the

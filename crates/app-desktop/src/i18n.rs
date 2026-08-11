@@ -20,7 +20,7 @@
 //! change. In practice this is a single line `let _ = state.read().language;` at
 //! the top of the component (similar to reading `theme`).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![forbid(unsafe_code)]
 

@@ -25,7 +25,7 @@
 //!   - [`crate::webview_parse`]   — parsing of JSON responses
 //!     (`parse_batch_result`).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use mailgrit_core_domain::SanitizedUserRow;
 

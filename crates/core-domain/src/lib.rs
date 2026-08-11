@@ -2,7 +2,7 @@
 //! wrappers that cannot be constructed except through the canonical parser-sanitizer.
 //! The crate has no network/system dependencies (only `thiserror` and `rand`).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![forbid(unsafe_code)]
 // Lint policy (missing_docs/dead_code/unused/rust_2018_idioms deny) is set

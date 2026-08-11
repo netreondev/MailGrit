@@ -1,6 +1,6 @@
 //! Modal window / dialog (a replacement for the one-off confirm-box).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use super::icon::{Icon, IconView};
 use dioxus::prelude::*;

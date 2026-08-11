@@ -6,7 +6,7 @@
 //! Imports in main.rs go directly to submodules (e.g. `use components::button::Button`),
 //! so this file contains only module declarations without aggregate `pub use`.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 pub mod badge;
 pub mod button;

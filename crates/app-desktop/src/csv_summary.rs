@@ -5,7 +5,7 @@
 //! FortiWeb/WAF keeps the backend session at the browser. These types only
 //! describe the operation parameters.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use mailgrit_core_csv::ParsedCsv;
 

@@ -3,7 +3,7 @@
 //! Goal: confirm that the domain parser does not panic on arbitrary UTF-8 strings.
 //! Compiled under nightly via libfuzzer-sys.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![no_main]
 

@@ -4,7 +4,7 @@
 //! [`crate::webview_ops`]. Here are the parsers for JS operation results
 //! (`parse_batch_result`).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use crate::webview_ops::OpResult;
 

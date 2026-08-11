@@ -1,7 +1,7 @@
 //! Request/result types for the login-webview. See the lifecycle overview in
 //! the root of [`crate::login_window`].
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 /// A single cookie for display in the diagnostics panel (Send — for oneshot).
 #[derive(Debug, Clone)]

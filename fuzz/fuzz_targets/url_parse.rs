@@ -11,7 +11,7 @@
 //! panic from `url::Url::parse` on pathological input would itself be a bug
 //! worth knowing about; we assert it does not happen.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![no_main]
 

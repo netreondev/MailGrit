@@ -8,7 +8,7 @@
 //! [`RawCsvRow`](mailgrit_core_domain::RawCsvRow) (Unverified); field validation
 //! happens in `core-domain` via the typestate.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use crate::util::{split_cells, strip_bom};
 use mailgrit_core_domain::{CsvRowError, EXPECTED_CSV_COLUMNS, MAX_CSV_ROWS};

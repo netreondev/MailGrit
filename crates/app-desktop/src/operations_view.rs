@@ -4,7 +4,7 @@
 //! User/Domain/Admin target switch, Create/Edit/Delete/export/diagnostics
 //! buttons, a delete-confirmation Modal) and the result of the last operation.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use crate::components::button::{Button, ButtonKind, ButtonSize};
 use crate::components::card::Card;

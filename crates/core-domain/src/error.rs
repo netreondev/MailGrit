@@ -4,7 +4,7 @@
 //! designed so that the caller handles every boundary case at compile time. The
 //! UI receives structured codes for message localization.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use std::num::ParseIntError;
 

@@ -15,7 +15,7 @@
 //! This module is a thin wrapper for requesting the login window and reading
 //! cookies (for the panel).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use crate::login_window::{CookieInfo, LoginWindowState};
 

@@ -15,7 +15,7 @@
 //! DOM structure (critical for positioning): the overlay and dropdown are
 //! siblings (children of `.lang-menu`) — see the comment in the component body.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use super::icon::{Icon, IconSize, IconView};
 use crate::language::Language;

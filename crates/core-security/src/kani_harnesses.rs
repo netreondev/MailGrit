@@ -22,7 +22,7 @@
 //!   cryptographic security. The `verify_aead_rejects_short_ciphertext` and
 //!   `EncryptionKey` length harnesses, by contrast, check our own pure logic.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 #![cfg(kani)]
 // Kani proof harnesses are verification entry points and follow workspace

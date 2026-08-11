@@ -4,7 +4,7 @@
 
 ## MailGrit
 
-Copyright © 2026 netreon and contributors.
+Copyright © 2026 Netreon™ and contributors.
 
 Licensed under the **MIT License** or the **Apache License, Version 2.0**, at
 your option (the "License"). You may not use this file except in compliance with

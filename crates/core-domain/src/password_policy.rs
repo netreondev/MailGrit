@@ -15,7 +15,7 @@
 //! than blocks the operation. Enforcing the required character classes in the
 //! generator settings guarantees that generated passwords always pass the policy.
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 /// Password policy: minimum length and required character classes.
 ///

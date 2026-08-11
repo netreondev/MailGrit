@@ -12,7 +12,7 @@
 //! Note: Cargo runs build.rs with CWD = crate root, so paths are relative
 //! (`assets/icons/mailgrit.ico`).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 fn main() {
     // Rebuild when the icon/resource changes.
@@ -30,7 +30,7 @@ fn main() {
         res.set("OriginalFilename", "mailgrit-app-desktop.exe");
         res.set(
             "LegalCopyright",
-            "(c) 2026 netreon and contributors (MIT OR Apache-2.0)",
+            "(c) 2026 Netreon™ and contributors (MIT OR Apache-2.0)",
         );
         if let Err(err) = res.compile() {
             // winres requires the Windows SDK (rc.exe / windres). If the toolchain

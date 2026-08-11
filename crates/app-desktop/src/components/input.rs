@@ -1,6 +1,6 @@
 //! Input fields: the Field wrapper (label + hint) and TextField (with icon).
 // SPDX-License-Identifier: MIT OR Apache-2.0
-// Copyright (c) 2026 netreon and contributors
+// Copyright (c) 2026 Netreon™ and contributors
 
 use super::icon::{Icon, IconView};
 use dioxus::prelude::*;
