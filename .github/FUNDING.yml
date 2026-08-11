@@ -1,0 +1,5 @@
+# GitHub Sponsors / funding button configuration.
+# Displays the "Sponsor" button in the repository sidebar.
+# https://docs.github.com/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
+custom: ["https://donatello.to/VladymyrM"]

@@ -297,8 +297,15 @@ developers; the name is used solely to indicate compatibility. See
 
 ## Support the project
 
-MailGrit is free and open source. If it saves you time, consider supporting its
-development:
+MailGrit is free and open source. Support the development and research behind
+this project — your contribution helps cover continued development, computing
+infrastructure, testing, and further research related to MailGrit.
 
 - [Donate](https://donatello.to/VladymyrM)
+
+> **Note:** Donations are **voluntary support** for the project. A donation does
+> **not** grant the donor any goods, services, guarantees, priority support,
+> warranties, or any obligation on the part of the author. MailGrit remains
+> distributed under the [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE)
+> licenses, with no warranty — see [DISCLAIMER.md](DISCLAIMER.md).
 
