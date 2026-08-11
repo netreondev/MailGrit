@@ -1,3 +1,6 @@
+/* SPDX-License-Identifier: MIT OR Apache-2.0
+   Copyright (c) 2026 netreon and contributors */
+
 /* MailGrit landing — vanilla JS, no dependencies. GitHub-Pages-friendly.
    Features: reading progress bar, scroll-reveal, animated stat counters,
    sticky-header shadow, theme toggle (persisted). Respects prefers-reduced-motion. */
