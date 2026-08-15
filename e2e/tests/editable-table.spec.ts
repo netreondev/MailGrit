@@ -102,11 +102,9 @@ test.describe('Dashboard — editable table', () => {
 
     // Click the password generation button in the row.
     await page.locator(`${DASH.editableTable} tbody tr`).nth(0).locator(DASH.genPwButton).click();
-    await expect.poll(() => pwCell.inputValue(), { message: 'password generated (non-empty)' }).not.toBe('');
-
-    // The password changed (a new random value).
-    const after = await pwCell.inputValue();
-    expect(after, 'the generated password differs from the original').not.toBe(before);
+    // Poll until the value has actually CHANGED: the Dioxus re-render after the
+    // click is asynchronous, and an immediate read can observe the old value.
+    await expect.poll(() => pwCell.inputValue(), { message: 'password regenerated (differs from the original)' }).not.toBe(before);
   });
 
   test('row action buttons do not overlap and are within the viewport', async ({ app }) => {

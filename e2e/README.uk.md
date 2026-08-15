@@ -11,20 +11,33 @@ Protocol** — без окремого браузера; тестується р
 
 ## Передумови
 
-- **Node.js >= 20** (на машині розробника; у Rust-збірці/CI не потрібен)
+- **Лише Windows** — суіт керує реальним `.exe` та його WebView2 через CDP
+  (на інших ОС нема WebView2; суіт у такому вигляді не переносний).
+- **Node.js >= 20** (на машині розробника; у Rust-збірці не потрібен)
 - **WebView2 Runtime** (у Windows 11 передстановлений)
-- Зібраний `.exe`: `cargo build -p mailgrit-app-desktop` (debug достатньо)
+- Зібраний `.exe` **із E2E-хуками**: `cargo build -p mailgrit-app-desktop --features e2e`
+  (debug достатньо). Саме cargo-фича `e2e` вмикає `e2e_state.rs` та перевизначення
+  `MAILGRIT_LOGIN_URL` — у release-збірках цього коду нема взагалі.
+
+Суіт запускається в CI на кожен push (джоба `e2e` у `.github/workflows/ci.yml`,
+`windows-latest`): збірка з `--features e2e`, `npm ci` і `npx playwright test`.
 
 ## Запуск
 
 ```bash
+cargo build -p mailgrit-app-desktop --features e2e   # з кореня репозиторія
 cd e2e
 npm ci
-npx playwright install chromium   # один раз — встановлює CDP-клієнт Playwright
-npm test                          # усі тести
+npm test                          # усі тести (підключення до власного WebView2 застосунку)
 npm run test:headed               # з видимим вікном (зручно під час дебагу)
 npm run report                    # HTML-звіт останнього прогону
 ```
+
+Завантажувати браузери Playwright не потрібно: `chromium.connectOverCDP`
+підключається до власного WebView2 застосунку — НЕ запускайте
+`npx playwright install chromium` (він завантажує браузер, який суіт не використовує).
+stdout/stderr застосунку кожного прогону пишуться в `app-stdio.log`
+у тимчасовому каталозі прогону.
 
 ## Як це працює
 

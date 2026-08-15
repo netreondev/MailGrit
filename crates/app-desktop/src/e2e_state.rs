@@ -1,14 +1,15 @@
 //! E2E hook to start directly in the dashboard state (bypassing the iRedAdmin login flow).
 //!
-//! Activated ONLY by the `MAILGRIT_E2E_DASHBOARD` environment variable — in a
-//! production build (without the env) this module does nothing (see the guard in
-//! [`apply_e2e_overrides`]). Purpose: Playwright/CDP E2E tests cannot flip the
-//! Dioxus `Signal<AppState>` to `Screen::Dashboard` from the outside (the state
-//! lives in the Rust runtime, unreachable from JS/CDP), and a real iRedAdmin
-//! login requires a live server. So when the flag is set, the application starts
-//! directly on the dashboard with pre-filled valid test table rows — this lets
-//! E2E evaluate the UI/UX of every screen (modals, table, password controls,
-//! theme, i18n, a11y) without a network round-trip.
+//! Compiled ONLY with the `e2e` cargo feature (test builds; the CI e2e job
+//! builds with `--features e2e`) AND activated only by the
+//! `MAILGRIT_E2E_DASHBOARD` environment variable — release binaries do not
+//! contain this module at all. Purpose: Playwright/CDP E2E tests cannot flip
+//! the Dioxus `Signal<AppState>` to `Screen::Dashboard` from the outside (the
+//! state lives in the Rust runtime, unreachable from JS/CDP), and a real
+//! iRedAdmin login requires a live server. So when the flag is set, the
+//! application starts directly on the dashboard with pre-filled valid test
+//! table rows — this lets E2E evaluate the UI/UX of every screen (modals,
+//! table, password controls, theme, i18n, a11y) without a network round-trip.
 //!
 //! Reuses the canonical CSV parser (`parse_csv_bytes_auto` + `detect_mapping`)
 //! so the pre-filled data goes through the same sanitization/validation as

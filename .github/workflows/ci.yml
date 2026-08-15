@@ -214,6 +214,47 @@ jobs:
           name: nextest-${{ matrix.name }}
           path: target/nextest/ci/junit.xml
 
+  # ============================================================================
+  # E2E — Playwright over CDP against the real WebView2 UI.
+  # ============================================================================
+  # The GUI layer (app-desktop, the largest crate) has no unit-test coverage;
+  # mutation testing excludes it precisely because THIS suite exercises it
+  # (see .cargo/mutants.toml). Windows-only by construction: the suite drives
+  # the built .exe through WebView2's DevTools endpoint.
+  e2e:
+    name: E2E — Playwright (CDP over WebView2)
+    runs-on: windows-latest
+    needs: quality
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+
+      - name: Install Rust toolchain (pinned)
+        run: rustup show active-toolchain || rustup toolchain install 1.97.1 --profile minimal
+
+      # Debug profile: fast to build, same RSX/CSS as release. --features e2e
+      # compiles the dashboard-override startup hook (crates/app-desktop/src/e2e_state.rs).
+      - name: Build the app (with E2E hooks)
+        run: cargo build -p mailgrit-app-desktop --features e2e
+
+      # windows-latest ships Node 20; the suite connects to the app's own
+      # WebView2 over CDP, so no Playwright browser download is needed.
+      - name: Install npm dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: Run Playwright suite
+        working-directory: e2e
+        run: npx playwright test
+
+      - name: Upload Playwright report (on failure)
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-report
+          path: e2e/playwright-report
+          retention-days: 7
+
   build-release:
     name: Release build (${{ matrix.name }})
     runs-on: ${{ matrix.os }}

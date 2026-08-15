@@ -274,10 +274,12 @@ fn build_login_window<T: 'static>(
 ) -> Result<(), String> {
     tracing::info!("building the raw wry login window on the Dioxus event-loop");
 
-    // Test mode: MAILGRIT_LOGIN_URL overrides the URL (diagnostics without iRedAdmin).
-    // The URL goes through the same validation as the main base_url (https + host):
-    // iRedAdmin over HTTP would leak the session cookie (see util::validate_base_url),
-    // so the env override must not bypass this requirement.
+    // Test mode (only compiled with the `e2e` cargo feature): MAILGRIT_LOGIN_URL
+    // overrides the URL (diagnostics without iRedAdmin). The URL goes through
+    // the same validation as the main base_url (https + host): iRedAdmin over
+    // HTTP would leak the session cookie (see util::validate_base_url), so the
+    // env override must not bypass this requirement.
+    #[cfg(feature = "e2e")]
     let url = std::env::var("MAILGRIT_LOGIN_URL").map_or_else(
         |_| req.base_url.clone(),
         |env_url| {
@@ -293,6 +295,8 @@ fn build_login_window<T: 'static>(
             }
         },
     );
+    #[cfg(not(feature = "e2e"))]
+    let url = req.base_url.clone();
 
     // 1. A tao window on the same event-loop. The title is localized (rust_i18n).
     let window = Arc::new(

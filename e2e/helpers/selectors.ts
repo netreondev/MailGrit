@@ -21,17 +21,18 @@
 
 /** Titlebar + login screen + shared elements. */
 export const SEL = {
-  // Brand
+  // Brand — exact selectors (an OR-fallback would silently retarget onto a
+  // wrong element after a refactor instead of failing).
   titlebar: '.titlebar',
-  titlebarLogo: '.titlebar-logo.logo, svg.titlebar-logo',
+  titlebarLogo: 'svg.logo.titlebar-logo',
   titlebarName: '.titlebar-name',
   loginScreen: '.login-screen',
-  loginLogo: '.login-logo.logo, svg.login-logo',
+  loginLogo: 'svg.logo.login-logo',
   brandName: 'h1', // on the login screen — the only h1 with "MailGrit"
 
   // Login screen
   serverInput: '.login-screen input[type="url"]',
-  openFormButton: '.login-screen .btn-primary, .login-screen .btn',
+  openFormButton: '.login-screen .btn-primary',
 
   // Language selector
   langMenu: '.lang-menu',

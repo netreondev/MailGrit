@@ -44,6 +44,12 @@ rust-i18n = "4.2.1"
 # Zeroizing/zeroize so the secret is wiped on drop/clear.
 zeroize = "1.9.0"
 
+[features]
+# E2E test hooks (dashboard-override startup state, MAILGRIT_LOGIN_URL override).
+# Enabled ONLY for test builds (cargo build --features e2e + the CI e2e job);
+# release binaries never contain this code.
+e2e = []
+
 [lints]
 workspace = true
 
