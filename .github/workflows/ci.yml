@@ -45,13 +45,13 @@ jobs:
     name: Supply chain, SAST & secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
           # Full history so gitleaks can scan all commits, not just the PR tip.
           fetch-depth: 0
 
       - name: Install cargo tools
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
         with:
           # cargo-vet pinned: the @v2 manifest resolves "cargo-vet" (unpinned)
           # to v0.10.0 from GitHub Releases, but supply-chain/imports.lock was
@@ -65,7 +65,7 @@ jobs:
       # Scans the full git history + the diff for accidentally-committed secrets.
       # Config: .gitleaks.toml (extends the default rule set).
       - name: Secret scanning — gitleaks
-        uses: gitleaks/gitleaks-action@v2.3.9
+        uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Fail on any finding (no baseline / allowlist beyond .gitleaks.toml).
@@ -75,10 +75,13 @@ jobs:
       # Rule set: Rust security, secret-detection, common audit findings.
       # Focus: format!-built JS strings (injection into the privileged webview)
       # and secret values reaching tracing logs.
+      # returntocorp/semgrep-action@v1 is deprecated/unmaintained; the CLI is
+      # version-pinned via pipx instead (no third-party action code runs with
+      # the job's token).
       - name: SAST — Semgrep
-        uses: returntocorp/semgrep-action@v1
-        with:
-          config: "p/rust p/secret-detection p/security-audit p/owasp-top-ten"
+        run: |
+          pipx install semgrep==1.173.0
+          semgrep scan --error             --config p/rust             --config p/secret-detection             --config p/security-audit             --config p/owasp-top-ten
 
       # --- Supply-chain: cargo-deny + cargo-audit + cargo-vet -----------------
       - name: Supply-chain — cargo-deny (advisories, bans, licenses, sources)
@@ -130,7 +133,7 @@ jobs:
             target: aarch64-apple-darwin
             name: macos-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Install Rust toolchain (pinned)
         run: rustup show active-toolchain || rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
@@ -158,7 +161,7 @@ jobs:
             mold
 
       - name: Install cargo tools
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
         with:
           tool: cargo-nextest,cargo-semver-checks,cargo-msrv
 
@@ -206,7 +209,7 @@ jobs:
 
       - name: Upload nextest results (degradation metric)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: nextest-${{ matrix.name }}
           path: target/nextest/ci/junit.xml
@@ -234,7 +237,7 @@ jobs:
             target: aarch64-apple-darwin
             name: macos-arm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Install Rust toolchain (pinned)
         run: rustup toolchain install 1.97.1 --profile minimal
       - name: Add target
@@ -270,7 +273,7 @@ jobs:
     needs: supply-chain
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Install nightly Rust
         run: rustup toolchain install nightly
       - name: Install cargo-fuzz
@@ -309,7 +312,7 @@ jobs:
     needs: quality
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
       # needs the GTK/webkit headers on Linux (same as quality/build-release).
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
@@ -326,7 +329,7 @@ jobs:
       - name: Install nightly Rust (with Miri)
         run: rustup toolchain install nightly --component miri
       - name: Install cargo-mutants
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
         with:
           tool: cargo-mutants
       - name: Mutation testing (unit-test effectiveness)
@@ -365,7 +368,7 @@ jobs:
     needs: quality
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Install nightly Rust
         run: rustup toolchain install nightly
       - name: Install cargo-fuzz

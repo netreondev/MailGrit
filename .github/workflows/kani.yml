@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       # Kani pins its own nightly Rust toolchain (e.g. nightly-2025-11-21 =
       # rustc 1.93.0) which is OLDER than this workspace's MSRV (1.97.1).
@@ -49,7 +49,7 @@ jobs:
       # from_utf8_lossy / Utf8Chunks::next loop (8-byte input buffer → ≤8
       # iterations + slack) that Kani would otherwise unroll indefinitely.
       - name: "Kani (core-domain — parsers: no-panic, determinism, invariants)"
-        uses: model-checking/kani-github-action@v1.1
+        uses: model-checking/kani-github-action@f838096619a707b0f6b2118cf435eaccfa33e51f # v1.1
         with:
           args: "-p mailgrit-core-domain -Z unstable-options --solver kissat --default-unwind 20"
 
