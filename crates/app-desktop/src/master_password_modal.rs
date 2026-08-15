@@ -14,7 +14,7 @@ use crate::components::icon::Icon;
 use crate::components::modal::{Modal, ModalFooter};
 use crate::state::AppState;
 use dioxus::prelude::*;
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 /// Minimum master password length.
 const MIN_PASSWORD_LEN: usize = 8;
@@ -34,6 +34,9 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
     let is_create = !audit_key_exists();
     let input = state.read().master_password_input.clone();
     let confirm = state.read().master_password_confirm.clone();
+    // While the Argon2id unlock task is running, both footer buttons are
+    // disabled (a second submission would race the task).
+    let pending_unlock = state.read().unlock_pending;
 
     rsx! {
         Modal {
@@ -88,6 +91,7 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
                 Button {
                     kind: ButtonKind::Primary,
                     icon_left: Some(Icon::Lock),
+                    disabled: pending_unlock,
                     onclick: move |_| {
                         confirm_master_password(&mut state, is_create);
                     },
@@ -99,6 +103,7 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
                 }
                 Button {
                     kind: ButtonKind::Ghost,
+                    disabled: pending_unlock,
                     onclick: move |_| {
                         let mut s = state.write();
                         s.modals.pending_master_password = false;
@@ -113,16 +118,24 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
     }
 }
 
-/// Master password confirmation handler: validation (length, match on create)
-/// → audit unlock → on a deferred export, resumes `do_export`. Extracted from
-/// `master_password_modal` so the render function stays within the pedantic
-/// 100-line limit and for the sake of testable logic.
+/// Master password confirmation handler: validation (length, match on create) →
+/// audit unlock in a background task → on success applies the result and, for a
+/// deferred export, resumes `do_export`. Extracted from `master_password_modal`
+/// so the render function stays within the pedantic 100-line limit.
+///
+/// The Argon2id KDF inside `AuditWriter::open` is memory-hard (64 MiB, t=3) —
+/// hundreds of milliseconds. It runs in `spawn_blocking` on the tokio runtime
+/// so the UI event loop never freezes (the same pattern as the export pipeline
+/// in `ops_export`); `unlock_pending` blocks a repeated submission while the
+/// task is in flight.
 fn confirm_master_password(state: &mut Signal<AppState>, is_create: bool) {
     let pw;
-    let resume;
     {
         let mut s = state.write();
-        pw = s.master_password_input.clone();
+        if s.unlock_pending {
+            return;
+        }
+        pw = Zeroizing::new(s.master_password_input.clone());
         // Validate length in CHARACTERS (not bytes): an 8-character Cyrillic
         // password is 16 bytes in UTF-8, and a byte-based threshold would pass it
         // incorrectly. Same convention as in password_policy.rs.
@@ -131,32 +144,51 @@ fn confirm_master_password(state: &mut Signal<AppState>, is_create: bool) {
             return;
         }
         // On create — check that the passwords match.
-        if is_create && pw != s.master_password_confirm {
+        if is_create && pw.as_str() != s.master_password_confirm {
             s.error_msg = Some(t!("master_password.mismatch").to_string());
             return;
         }
-        // Audit unlock (key creation on first run).
-        match s.unlock_audit(&pw) {
-            Ok(()) => {
-                s.error_msg = None;
-                // Resume the deferred encrypted export: `do_export` set
-                // `pending_export_after_unlock` when there was no master password
-                // yet. Now there is — launch the export (encrypt=true, since that
-                // encrypted mode is exactly what the password was needed for).
-                resume = s.export.pending_export_after_unlock;
-                s.export.pending_export_after_unlock = false;
+        s.unlock_pending = true;
+    }
+    // A second zeroized copy travels into the task result and is stored in
+    // AppState for the encrypted export (complete_unlock).
+    let pw_for_state = pw.clone();
+    let mut state_clone = *state;
+    spawn(async move {
+        let join = crate::tokio_runtime()
+            .spawn_blocking(move || crate::audit_ui::AuditWriter::open(pw.as_str()));
+        let opened = match join.await {
+            Ok(opened) => opened,
+            Err(e) => Err(crate::audit_ui::AuditError::Storage(format!(
+                "unlock task failed: {e}"
+            ))),
+        };
+        match opened {
+            Ok(audit) => {
+                let resume = {
+                    let mut s = state_clone.write();
+                    s.complete_unlock(pw_for_state, audit);
+                    // Resume the deferred encrypted export: `do_export` set
+                    // `pending_export_after_unlock` when there was no master password
+                    // yet. Now there is — launch the export (encrypt=true, since that
+                    // encrypted mode is exactly what the password was needed for).
+                    let resume = s.export.pending_export_after_unlock;
+                    s.export.pending_export_after_unlock = false;
+                    resume
+                };
+                // Release the write-scope BEFORE re-entering do_export — otherwise
+                // there would be a reentrant borrow of the signal in the dialog.
+                if resume {
+                    crate::ops_export::do_export(&mut state_clone, true);
+                }
             }
             Err(e) => {
-                s.error_msg = Some(e);
-                return;
+                let mut s = state_clone.write();
+                s.unlock_pending = false;
+                s.error_msg = Some(crate::state::AppState::map_unlock_error(e));
             }
         }
-    }
-    // Release the write-scope BEFORE re-entering do_export — otherwise there would
-    // be a reentrant borrow of the signal in the dialog/KDF.
-    if resume {
-        crate::ops_export::do_export(state, true);
-    }
+    });
 }
 
 /// Checks whether an audit key file of the correct length exists

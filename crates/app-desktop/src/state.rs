@@ -66,6 +66,9 @@ pub struct AppState {
     /// `None` until the user enters it via the modal; stored only in memory,
     /// wrapped in [`Zeroizing`] so it is wiped when replaced/cleared.
     pub master_password: Option<Zeroizing<String>>,
+    /// An unlock attempt (Argon2id in a background task) is in flight. Blocks
+    /// repeated submissions from the modal and disables its buttons.
+    pub unlock_pending: bool,
     /// Master password input fields in the modal (twice, for confirmation on creation).
     pub master_password_input: String,
     /// Confirmation field for the master password (must match `master_password_input`).
@@ -155,8 +158,9 @@ impl AppState {
     /// Creates the initial state on the login screen.
     ///
     /// The audit log is NOT opened here: the audit key is protected by the master
-    /// password (Argon2id), which has not been entered yet. Unlocking happens via
-    /// [`unlock_audit`](Self::unlock_audit) after the password is entered in the UI modal.
+    /// password (Argon2id), which has not been entered yet. Unlocking happens in
+    /// a background task after the password is entered in the UI modal (see
+    /// [`complete_unlock`](Self::complete_unlock)).
     #[must_use]
     pub fn new() -> Self {
         // Configuration from TOML (no recompilation); defaults when absent.
@@ -207,6 +211,7 @@ impl AppState {
             password_policy,
             password_generator,
             master_password: None,
+            unlock_pending: false,
             master_password_input: String::new(),
             master_password_confirm: String::new(),
             export: ExportState::default(),
@@ -214,35 +219,36 @@ impl AppState {
         }
     }
 
-    /// Unlocks the audit log with the master password. On success, stores the
-    /// password in memory (for export) and populates `audit`/`audit_entries`.
+    /// Applies a successful audit unlock: stores the password in memory (for
+    /// export), closes the modal, wipes the input fields, and populates
+    /// `audit`/`audit_entries`.
     ///
-    /// # Errors
-    ///
-    /// Returns a localized reason on a database error or an incorrect password.
-    pub fn unlock_audit(&mut self, master_password: &str) -> Result<(), String> {
-        match AuditWriter::open(master_password) {
-            Ok(audit) => {
-                self.master_password = Some(Zeroizing::new(master_password.to_string()));
-                self.modals.pending_master_password = false;
-                self.master_password_input.zeroize();
-                self.master_password_confirm.zeroize();
-                let audit = Arc::new(audit);
-                // Load recent entries for display.
-                if let Err(e) = audit.recent(10) {
-                    tracing::warn!("reading audit after unlock: {e}");
-                }
-                self.audit = Some(audit);
-                self.refresh_audit();
-                Ok(())
+    /// Split out of the old synchronous `unlock_audit`: the Argon2id KDF inside
+    /// `AuditWriter::open` is memory-hard (64 MiB, t=3) and now runs in a
+    /// `spawn_blocking` task (see `confirm_master_password`); this method only
+    /// applies the result on the UI thread.
+    pub fn complete_unlock(&mut self, master_password: Zeroizing<String>, audit: AuditWriter) {
+        self.master_password = Some(master_password);
+        self.modals.pending_master_password = false;
+        self.unlock_pending = false;
+        self.master_password_input.zeroize();
+        self.master_password_confirm.zeroize();
+        self.audit = Some(Arc::new(audit));
+        self.refresh_audit();
+    }
+
+    /// Maps an audit-open failure to a localized, user-facing message
+    /// (wrong password / damaged key file are named explicitly).
+    #[must_use]
+    pub fn map_unlock_error(e: crate::audit_ui::AuditError) -> String {
+        match e {
+            crate::audit_ui::AuditError::WrongMasterPassword => {
+                t!("master_password.wrong").to_string()
             }
-            Err(crate::audit_ui::AuditError::WrongMasterPassword) => {
-                Err(t!("master_password.wrong").to_string())
+            crate::audit_ui::AuditError::CorruptedKeyFile { .. } => {
+                t!("master_password.corrupt_key").to_string()
             }
-            Err(crate::audit_ui::AuditError::CorruptedKeyFile { .. }) => {
-                Err(t!("master_password.corrupt_key").to_string())
-            }
-            Err(e) => Err(e.to_string()),
+            e => e.to_string(),
         }
     }
 

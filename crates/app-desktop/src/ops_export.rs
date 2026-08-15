@@ -86,7 +86,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
 
     // For encrypted export, the master password is checked BEFORE starting the
     // task: if it is missing, record the export intent and open the
-    // password-entry modal. After a successful unlock (`unlock_audit`), the
+    // password-entry modal. After a successful unlock (`complete_unlock`), the
     // export resumes automatically via `pending_export_after_unlock` — previously
     // the intent was lost (the format-choice modal was already closed), and for
     // the user the export "did not work".
