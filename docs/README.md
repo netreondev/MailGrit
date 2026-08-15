@@ -16,35 +16,33 @@ It is intentionally a set of **static files** — hand-written HTML and CSS, wit
 |------|---------|
 | `index.html` | English landing page (canonical, `hreflang="en"`). |
 | `uk/index.html` | Ukrainian translation, 1:1 structure (`hreflang="uk"`). |
-| `assets/style.css` | Shared, self-contained, responsive, dark-friendly CSS. |
+| `assets/style.css` | Shared, self-contained, responsive, dark-friendly CSS (system font stacks only — no third-party font CDN). |
+| `assets/app.js` | Progressive enhancement (scroll reveal, counters, copy buttons). |
+| `assets/logo.svg`, `assets/favicon.svg` | Brand marks. |
+| `assets/og.png` | Open Graph / Twitter card image (committed). |
+| `assets/icon-192.png`, `assets/icon-512.png` | Favicon / PWA icons (committed). |
+| `assets/example.csv` | The sample CSV served by the "try it" section. |
+| `llms.txt` | Machine-readable summary for LLM crawlers. |
 | `robots.txt` | Allow-all, points to the sitemap. |
 | `sitemap.xml` | Two locale URLs with `hreflang` alternates. |
 | `site.webmanifest` | PWA manifest (name, theme, icons). |
 
-## Assets referenced but not in this repo
+All referenced assets ARE committed in `docs/assets/` — the site is fully
+self-contained.
 
-The HTML references the following binary assets, which you should drop into
-`docs/assets/` when ready (they are referenced by URL only — the site works
-without them, they just won't resolve until added):
+## Deployment
 
-- `assets/og.png` — Open Graph / Twitter card image.
-- `assets/icon-192.png` and `assets/icon-512.png` — favicon / PWA icons.
-
-## Enable the site
-
-1. Push the `/docs` folder to the `main` branch.
-2. In the repository on GitHub, open **Settings → Pages**.
-3. Under **Build and deployment → Source**, choose **Deploy from a branch**.
-4. Select branch **`main`** and folder **`/docs`**.
-5. Save. The site goes live at `https://netreondev.github.io/MailGrit/` within a
-   minute or two.
-
-There is nothing to install and nothing to build — GitHub Pages serves the
-files as-is.
+Deployment is automated by `.github/workflows/pages.yml`: on every push to
+`main` that touches `docs/**`, the workflow builds the Pages artifact and
+deploys it via the official Pages Actions (configure-pages →
+upload-pages-artifact → deploy-pages). No manual Settings→Pages branch
+configuration is used — the Source is **GitHub Actions**.
 
 ## Updating
 
 Edit the HTML/CSS directly and commit. Each page carries its own SEO metadata
 (canonical, Open Graph, Twitter Card, JSON-LD). When you change a page, keep
 the two locales in sync: the visible content of `uk/index.html` mirrors
-`index.html` one-to-one.
+`index.html` one-to-one. Keep `softwareVersion` in the JSON-LD of both pages in
+sync with the workspace version in the root `Cargo.toml` (and refresh
+`sitemap.xml`'s `lastmod` dates on content changes).

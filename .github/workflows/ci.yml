@@ -14,7 +14,8 @@
 # The single accepted lint exception is `-A clippy::multiple_crate_versions`
 # (transitive duplicates of the GUI/crypto stack, covered by cargo-deny advisories).
 #
-# Fast linker (mold/lld) and sccache are wired per-target (see .cargo/config.toml).
+# The fast linker (mold/lld) is wired per-target (see .cargo/config.toml);
+# sccache is deliberately NOT used in CI (see the comment in the quality job).
 name: CI
 
 on:

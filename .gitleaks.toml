@@ -1,7 +1,9 @@
-# gitleaks — secret-scanning config (CI gate + pre-commit).
+# gitleaks — secret-scanning config (CI gate).
 #
-# CI: see .github/workflows/ci.yml (gitleaks job). Scans the full git history
-# and each new commit pushed in a PR for accidentally-committed secrets.
+# CI: the gitleaks step of the supply-chain job in .github/workflows/ci.yml.
+# Scans the full git history and each new commit pushed in a PR for
+# accidentally-committed secrets. (There is NO pre-commit hook — do not
+# claim one; scanning is CI-only.)
 #
 # This config EXTENDS gitleaks's default rule set (allowlist.title is not set,
 # so the default rules ship unchanged) and adds project-specific allowlist
