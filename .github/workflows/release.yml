@@ -88,10 +88,13 @@ jobs:
       # into the binary with the full dependency list + known advisories at
       # build time. A downloaded binary can then be scanned with
       # `cargo audit bin <path>` without source access.
-      # --all-features matches the CI build/test gate (no feature-gated path
-      # ships without being compiled).
+      # DEFAULT features only: `e2e` is a TEST-ONLY cargo feature (dashboard
+      # override, MAILGRIT_LOGIN_URL) — release binaries must not contain the
+      # hooks. The feature IS still compiled and linted by the CI quality job
+      # (clippy/tests run --all-features), so no feature-gated path ships
+      # untested — it just does not ship IN the binary.
       - name: Build release binary (auditable — deps embedded)
-        run: cargo auditable build --release -p mailgrit-app-desktop --all-features --target ${{ matrix.target }}
+        run: cargo auditable build --release -p mailgrit-app-desktop --target ${{ matrix.target }}
 
       # CycloneDX SBOM for the desktop binary crate. Captures the resolved
       # dependency tree (incl. versions + licenses) at release time.

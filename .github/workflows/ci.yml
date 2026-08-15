@@ -298,8 +298,10 @@ jobs:
             libssl-dev \
             libxdo-dev \
             mold
-      - name: Build release (--all-features, warnings-as-errors)
-        run: cargo build --release --workspace --all-features --target ${{ matrix.target }}
+      # Default features: `e2e` is test-only and must not be compiled into
+      # release binaries (the quality job still lints/tests --all-features).
+      - name: Build release (default features, warnings-as-errors)
+        run: cargo build --release --workspace --target ${{ matrix.target }}
 
   # ==========================================================================
   # Fuzz regression — runs the committed seed corpus against every fuzz target.
