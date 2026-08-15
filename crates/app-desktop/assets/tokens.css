@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT OR Apache-2.0 */
+/* Copyright (c) 2026 Netreon™ and contributors */
 /* ============================================================================
    MailGrit — design tokens.
    A multi-layer system: primitives -> semantics -> components.
@@ -41,6 +43,7 @@
     --bg-input:      #14141C;
 
     --fg:            #EDEDF0;
+    --fg-invert:     #FFFFFF;   /* on-accent text / masks (theme-invariant) */
     --fg-secondary:  #B8B8C4;
     --fg-muted:      #8A8A99;
     --fg-subtle:     #5E5E6B;
@@ -140,6 +143,7 @@
     --bg-input:      #FFFFFF;
 
     --fg:            var(--gray-900);
+    --fg-invert:     #FFFFFF;   /* on-accent text / masks (theme-invariant) */
     --fg-secondary:  #3A3A44;
     --fg-muted:      var(--gray-500);
     --fg-subtle:     var(--gray-400);

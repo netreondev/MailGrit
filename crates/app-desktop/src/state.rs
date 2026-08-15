@@ -181,11 +181,11 @@ impl AppState {
         password_generator
             .classes
             .set_special(password_generator.classes.special() | password_policy.classes.special());
-        // No lower than the policy min_len and no higher than the UI ceiling (32).
+        // No lower than the policy min_len and no higher than the UI ceiling.
         password_generator.length = password_generator
             .length
             .max(password_policy.min_len)
-            .min(32);
+            .min(mailgrit_core_domain::password_gen::UI_MAX_LENGTH);
         Self {
             screen: Screen::Login,
             section: DashboardSection::default(),

@@ -19,6 +19,15 @@ pub const MIN_LENGTH: usize = 4;
 /// Maximum reasonable password length in the UI (separate from `MAX_PASSWORD_LEN`).
 pub const MAX_LENGTH: usize = 64;
 
+/// Lower bound of the UI length slider's working range.
+pub const UI_MIN_LENGTH: usize = 8;
+/// Upper bound of the UI length slider's working range (the display ceiling,
+/// distinct from the generator's hard [`MAX_LENGTH`]).
+///
+/// Single source for the slider bounds and the app-side clamp (previously a
+/// bare `32` in three places).
+pub const UI_MAX_LENGTH: usize = 32;
+
 /// Safe special characters: ASCII punctuation WITHOUT comma (forbidden by
 /// `ValidatedPassword`, breaks CSV), quotes, or backslash (which break JS strings
 /// and escaping in iRedAdmin forms).
@@ -82,13 +91,13 @@ impl PasswordGenerator {
         self.classes.has_any()
     }
 
-    /// Length for the UI slider: clamped to 8..=32 (the slider's working range).
+    /// Length for the UI slider: clamped to [`UI_MIN_LENGTH`]..=[`UI_MAX_LENGTH`].
     #[must_use]
     pub const fn clamped_for_label(&self) -> usize {
-        if self.length < 8 {
-            8
-        } else if self.length > 32 {
-            32
+        if self.length < UI_MIN_LENGTH {
+            UI_MIN_LENGTH
+        } else if self.length > UI_MAX_LENGTH {
+            UI_MAX_LENGTH
         } else {
             self.length
         }

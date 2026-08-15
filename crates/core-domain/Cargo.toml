@@ -11,8 +11,8 @@ publish.workspace = true
 workspace = true
 
 [dependencies]
-thiserror = "2.0.19"
-rand = "0.10.2"
+thiserror = { workspace = true }
+rand = { workspace = true }
 # Zeroizes the generated-password transient so it does not linger in memory
 # after the value has been handed off to the UI layer.
 zeroize = "1.9.0"

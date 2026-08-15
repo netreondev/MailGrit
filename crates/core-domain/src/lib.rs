@@ -35,7 +35,7 @@ pub use error::{
 };
 pub use limits::*;
 pub use operation::{BulkOperationKind, OperationTarget};
-pub use password_gen::PasswordGenerator;
+pub use password_gen::{PasswordGenerator, UI_MAX_LENGTH, UI_MIN_LENGTH};
 pub use password_policy::{PasswordPolicy, PasswordWarning};
 pub use profile::{CLASSICAL_FIELD_NAMES, FieldSpec, OperationProfile};
 pub use types::{

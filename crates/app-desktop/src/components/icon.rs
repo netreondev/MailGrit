@@ -174,6 +174,11 @@ pub fn IconView(
 pub fn Logo(#[props(default)] class: String) -> Element {
     // r##"..."## — the content contains the "# sequence (url(#...)), so a higher
     // hash level (##) is required to keep the raw string from closing prematurely.
+    // The gradient stops below ARE the brand palette and must stay in sync with
+    // the landing-site mark (docs/assets/logo.svg): #1D4ED8, #2563EB, #0EA5E9,
+    // #38BDF8, #BAE6FD, #7DD3FC. A raw string is used (not a format! template
+    // with consts) deliberately: the SVG is static markup, and templating it
+    // would double every brace for no runtime benefit.
     let logo_svg = r##"
         <defs>
             <linearGradient id="fm-logo-bg" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">

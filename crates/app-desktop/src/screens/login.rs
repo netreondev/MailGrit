@@ -6,14 +6,13 @@ use crate::components::button::{Button, ButtonKind, ButtonSize};
 use crate::components::card::Card;
 use crate::components::icon::{Icon, IconSize, IconView, Logo};
 use crate::components::input::{Field, TextField};
-use crate::components::language_menu::LanguageMenu;
+use crate::components::language_selector::LanguageSelector;
 use crate::components::spinner::Spinner;
-use crate::language::Language;
+use crate::components::theme_toggle::ThemeToggle;
 use crate::state::{AppState, AuthStatus};
-use crate::theme::Theme;
 use crate::util::validate_base_url;
 use crate::views::cookies_disclosure;
-use crate::{auth_bridge, login_window, settings};
+use crate::{auth_bridge, login_window};
 use dioxus::prelude::*;
 
 /// Premium login screen: a hero composition with auth auto-polling.
@@ -25,7 +24,6 @@ pub fn login_screen() -> Element {
     let url = state.read().url_input.clone();
     let auth_status = state.read().auth_status;
     let error_msg = state.read().error_msg.clone();
-    let theme = state.read().theme;
     // Read the language — to re-render localized strings when the language changes.
     let language = state.read().language;
 
@@ -132,41 +130,19 @@ pub fn login_screen() -> Element {
                 // hands external URLs to the OS by default).
                 a {
                     class: "login-donate",
-                    href: "https://donatello.to/VladymyrM",
+                    href: crate::brand::DONATE_URL,
                     IconView { icon: Icon::Heart, size: IconSize::Small }
                     {tr!("donate.label")}
                 }
             }
-            // Language selector + theme toggle — tucked into the top-right corner.
-            {login_language_selector(state, language)}
-            button {
-                class: "theme-toggle",
-                title: if theme == Theme::Dark { tr!("theme.light") } else { tr!("theme.dark") },
-                "aria-label": tr!("theme.toggle"),
-                onclick: move |_| {
-                    let new_theme = theme.toggle();
-                    state.write().theme = new_theme;
-                    crate::theme::apply_theme(new_theme);
-                    settings::save_theme(new_theme.as_str());
-                },
-                IconView { icon: if theme == Theme::Dark { Icon::Sun } else { Icon::Moon } }
+            // Language selector + theme toggle — tucked into the top-right corner
+            // (shared components with the dashboard context bar).
+            LanguageSelector {
+                current: language,
+                extra_class: "login-lang-menu".to_string(),
+                state: state
             }
-        }
-    }
-}
-
-/// Language selector on the login screen. Mirrors `dashboard.rs::language_selector`,
-/// but with the `login-lang-menu` class (pinned to the corner of the login screen).
-fn login_language_selector(mut state: Signal<AppState>, current: Language) -> Element {
-    rsx! {
-        LanguageMenu {
-            current: current,
-            extra_class: "login-lang-menu".to_string(),
-            onchange: move |lang: Language| {
-                state.write().language = lang;
-                rust_i18n::set_locale(lang.as_str());
-                settings::save_language(lang.as_str());
-            },
+            ThemeToggle { class: "theme-toggle".to_string(), state: state }
         }
     }
 }

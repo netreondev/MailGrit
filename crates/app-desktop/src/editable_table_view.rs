@@ -37,6 +37,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
         .as_ref()
         .is_some_and(|r| !r.is_empty());
     let op_running = state.read().op_status == OpStatus::Running;
+    let ui_max = mailgrit_core_domain::UI_MAX_LENGTH;
     // Read the language for re-rendering localized strings.
     crate::i18n::subscribe_to_language(state);
     let pw_gen = state.read().password_generator.clone();
@@ -58,7 +59,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
                             class: "pw-length-slider",
                             r#type: "range",
                             min: "{length_min}",
-                            max: "32",
+                            max: "{ui_max}",
                             step: "1",
                             value: "{pw_gen.length}",
                             disabled: op_running,

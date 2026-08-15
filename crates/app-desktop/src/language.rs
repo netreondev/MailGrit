@@ -94,23 +94,6 @@ impl Language {
     /// visual flag in the UI selector use [`country_code`](Self::country_code)
     /// with the `.flag` CSS class family, which renders an inline SVG flag that
     /// is identical on every platform.
-    /// English uses the GB flag (distinct from neutral codes); português uses
-    /// PT (European Portuguese, not BR).
-    #[must_use]
-    pub const fn flag(self) -> &'static str {
-        match self {
-            Self::En => "🇬🇧",
-            Self::De => "🇩🇪",
-            Self::Fr => "🇫🇷",
-            Self::Es => "🇪🇸",
-            Self::It => "🇮🇹",
-            Self::Pt => "🇵🇹",
-            Self::Nl => "🇳🇱",
-            Self::Pl => "🇵🇱",
-            Self::Uk => "🇺🇦",
-        }
-    }
-
     /// ISO-3166-1 alpha-2 country code used to render the language's flag in the
     /// UI selector. The code becomes the CSS modifier `flag-<country_code>`
     /// (e.g. `flag-gb`, `flag-ua`), which the stylesheet maps to an inline SVG
@@ -212,16 +195,6 @@ mod tests {
     }
 
     /// flag() returns a non-empty emoji flag for every language.
-    #[test]
-    fn flag_nonempty_for_all() {
-        for lang in Language::all() {
-            let flag = lang.flag();
-            assert!(!flag.is_empty(), "empty flag for {lang:?}");
-        }
-        assert_eq!(Language::En.flag(), "🇬🇧");
-        assert_eq!(Language::Uk.flag(), "🇺🇦");
-    }
-
     /// country_code() returns a non-empty, distinct, lowercase ISO-2 code for
     /// every language (the CSS modifier for the inline SVG flag).
     #[test]

@@ -34,13 +34,6 @@ impl DashboardSection {
         }
     }
 
-    /// Human-readable section title in the current language (for the card header).
-    /// NOT `const`, since it reads the global `rust_i18n` locale.
-    #[must_use]
-    pub fn title(self) -> String {
-        t!(self.title_key()).to_string()
-    }
-
     /// Options for the top-level `SegmentedControl`. Labels come from the i18n
     /// dictionary (single source of truth). Returns a `Vec` (required by the
     /// `Segmented::options` signature).
@@ -80,7 +73,8 @@ mod tests {
         assert_eq!(opts.len(), 2);
         for opt in &opts {
             assert!(!opt.label.is_empty());
-            assert_eq!(opt.label, opt.value.title());
+            // The option label is exactly the localized title key.
+            assert_eq!(opt.label, t!(opt.value.title_key()).to_string());
         }
     }
 

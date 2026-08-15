@@ -9,8 +9,8 @@ publish.workspace = true
 
 [dependencies]
 mailgrit-core-domain = { workspace = true }
-thiserror = "2.0.19"
-tracing = "0.1"
+thiserror = { workspace = true }
+tracing = { workspace = true }
 
 [lints]
 workspace = true
@@ -22,7 +22,7 @@ proptest = "1.11.0"
 # (cargo bench --no-run) to keep them buildable and catch compile breakage;
 # it does NOT time anything, so it cannot catch performance regressions —
 # those must be checked by a local `cargo bench` run.
-criterion = "0.8"
+criterion = { workspace = true }
 
 # Declare the benchmark target so `cargo bench` discovers it without requiring
 # the `bench = true` default (which would also try to build unit tests as benches).
