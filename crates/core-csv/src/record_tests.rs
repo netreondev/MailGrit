@@ -266,3 +266,100 @@ impl StripTrailingComma for String {
             .map_or_else(|| self.clone(), str::to_string)
     }
 }
+
+// ============================================================================
+// Raw display copy (FailedRow.raw): exact pinning — the bounded-copy logic
+// is observable ONLY through these assertions (mutation testing showed the
+// boundaries untested).
+// ============================================================================
+
+// A single-line record: raw is the line itself, no separator/trailing newline.
+#[test]
+fn raw_display_single_line_is_exact() -> TestResult {
+    let recs = records(b"a,b,c\n")?;
+    assert_eq!(at(&recs, 0)?.raw, "a,b,c");
+    Ok(())
+}
+
+// A record spanning lines: the physical lines are joined with '\n' in raw.
+#[test]
+fn raw_display_joins_physical_lines_with_newline() -> TestResult {
+    let recs = records(b"\"line1\nline2\",second\n")?;
+    assert_eq!(at(&recs, 0)?.raw, "\"line1\nline2\",second");
+    Ok(())
+}
+
+// Boundary: a line of EXACTLY MAX_RECORD_BYTES fills raw to the cap; the
+// trailing newline is NOT appended (raw.len() == cap, ends with data).
+#[test]
+fn raw_display_at_exact_cap_gets_no_trailing_newline() -> TestResult {
+    let line = "a".repeat(MAX_RECORD_BYTES);
+    let mut data = line.clone().into_bytes();
+    data.push(b'\n');
+    let recs = records(&data)?;
+    let raw = &at(&recs, 0)?.raw;
+    assert_eq!(raw.len(), MAX_RECORD_BYTES, "raw fills to the cap exactly");
+    assert!(raw.ends_with('a'), "no trailing newline past the cap");
+    Ok(())
+}
+
+// The raw copy never exceeds the cap even when a record spans many lines.
+#[test]
+fn raw_display_stays_bounded_across_lines() -> TestResult {
+    let mut data = String::from("\"");
+    data.push_str(&"a".repeat(MAX_RECORD_BYTES / 2));
+    data.push('\n'); // inside quotes: the record continues
+    data.push_str(&"b".repeat(MAX_RECORD_BYTES));
+    data.push_str("\"\nnext\n");
+    let recs = records(data.as_bytes())?;
+    let r = at(&recs, 0)?;
+    // The record itself fails (the quoted field exceeds the field cap) —
+    // the raw copy is what FailedRow displays.
+    assert!(matches!(r.outcome, RecordOutcome::Failed(_)));
+    assert!(
+        r.raw.len() <= 2 * MAX_RECORD_BYTES,
+        "raw is bounded by cap + one line, got {}",
+        r.raw.len()
+    );
+    Ok(())
+}
+
+// Invalid UTF-8: raw holds the lossy text (non-empty, bounded).
+#[test]
+fn raw_display_of_invalid_utf8_is_lossy_and_bounded() -> TestResult {
+    let mut data = vec![0xff, 0xfe, b'\n'];
+    data.extend_from_slice(b"next\n");
+    let recs = records(&data)?;
+    let r = at(&recs, 0)?;
+    assert!(matches!(
+        r.outcome,
+        RecordOutcome::Failed(CsvParseError::InvalidUtf8 { .. })
+    ));
+    assert!(!r.raw.is_empty(), "the lossy raw copy is kept for display");
+    assert!(r.raw.contains('\u{fffd}'), "invalid bytes decode lossily");
+    assert!(r.raw.len() <= MAX_RECORD_BYTES);
+    Ok(())
+}
+
+// Invalid UTF-8 on a LATER line of a record: the lossy part joins with the
+// same '\n' separator as valid physical lines.
+#[test]
+fn raw_display_lossy_line_joins_with_separator() -> TestResult {
+    let mut data = b"\"good\n".to_vec();
+    data.push(0xff);
+    data.push(b'\n');
+    data.extend_from_slice(b"next\n");
+    let recs = records(&data)?;
+    let r = at(&recs, 0)?;
+    assert!(matches!(
+        r.outcome,
+        RecordOutcome::Failed(CsvParseError::InvalidUtf8 { .. })
+    ));
+    // The valid first line verbatim, then the separator, then the lossy byte.
+    assert!(
+        r.raw.starts_with("\"good\n\u{fffd}"),
+        "raw = {raw:?}",
+        raw = r.raw
+    );
+    Ok(())
+}

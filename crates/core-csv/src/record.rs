@@ -101,9 +101,11 @@ impl<R: BufRead> RecordReader<R> {
                 acc.fail(CsvParseError::InvalidUtf8 {
                     line_no: start_line,
                 });
-                // Bounded lossy copy for FailedRow display.
+                // Bounded lossy copy for FailedRow display. Nothing else
+                // is tracked for a failed record: its field content is
+                // discarded, and the record ends at this line's newline
+                // (the loop breaks when !in_quotes).
                 acc.push_raw_lossy(&bytes);
-                acc.state_only_feed(had_newline);
             }
             if had_newline && !acc.in_quotes {
                 break; // record boundary reached outside quotes
@@ -205,7 +207,7 @@ impl Accumulator {
     /// a newline; if the record continues (inside quotes), that newline is
     /// field data.
     fn feed_line(&mut self, line: &str, had_newline: bool) {
-        self.account_raw(line, had_newline);
+        self.account_raw(line);
         let mut chars = line.chars().peekable();
         while let Some(ch) = chars.next() {
             if self.in_quotes {
@@ -236,18 +238,6 @@ impl Accumulator {
         }
     }
 
-    /// Feeds a physical line whose bytes are NOT valid UTF-8: only the quote
-    /// state is tracked (to find the record end); content is discarded.
-    fn state_only_feed(&mut self, had_newline: bool) {
-        // Content is unrecoverable for this record; the only thing that matters
-        // is whether an unterminated quote keeps the record open. The raw
-        // bytes are gone, so assume no new quote opens in them — at worst the
-        // record ends one line early and the next line is reported on its own.
-        if had_newline && self.in_quotes {
-            self.push_field_char('\n');
-        }
-    }
-
     fn push_field_char(&mut self, ch: char) {
         if self.error.is_some() {
             return; // already failed: keep state, drop content
@@ -269,9 +259,10 @@ impl Accumulator {
         self.field_opened = false;
     }
 
-    /// Counts a fed line into the bounded raw display copy (lossy, joined
-    /// with `\n` across physical lines) for `FailedRow` display.
-    fn account_raw(&mut self, line: &str, had_newline: bool) {
+    /// Appends a fed line to the bounded raw display copy: physical lines
+    /// joined with `\n` (verbatim, quotes included) for `FailedRow` display.
+    /// Never starts a new line once the cap is reached.
+    fn account_raw(&mut self, line: &str) {
         if self.raw.len() >= MAX_RECORD_BYTES {
             return;
         }
@@ -279,16 +270,18 @@ impl Accumulator {
             self.raw.push('\n');
         }
         self.raw.push_str(line);
-        if had_newline && self.raw.len() < MAX_RECORD_BYTES {
-            self.raw.push('\n');
-        }
     }
 
-    /// Appends lossily decoded bytes to the raw copy (invalid-UTF-8 record).
+    /// Appends lossily decoded bytes to the raw copy (invalid-UTF-8 line),
+    /// separated like any other physical line, never past the cap.
     fn push_raw_lossy(&mut self, bytes: &[u8]) {
-        if self.raw.len() < MAX_RECORD_BYTES {
-            self.raw.push_str(&String::from_utf8_lossy(bytes));
+        if self.raw.len() >= MAX_RECORD_BYTES {
+            return;
         }
+        if !self.raw.is_empty() {
+            self.raw.push('\n');
+        }
+        self.raw.push_str(&String::from_utf8_lossy(bytes));
     }
 
     fn finish(mut self) -> Vec<String> {
