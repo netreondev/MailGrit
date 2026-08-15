@@ -73,16 +73,22 @@ jobs:
           GITLEAKS_ENABLE_COMMENTS: "true"
 
       # --- SAST (Semgrep) -----------------------------------------------------
-      # Rule set: Rust security, secret-detection, common audit findings.
+      # Rule set: Rust security, secrets, common audit findings.
       # Focus: format!-built JS strings (injection into the privileged webview)
       # and secret values reaching tracing logs.
       # returntocorp/semgrep-action@v1 is deprecated/unmaintained; the CLI is
       # version-pinned via pipx instead (no third-party action code runs with
       # the job's token).
       - name: SAST — Semgrep
+        # p/secret-detection was retired from the semgrep.dev registry (HTTP
+        # 404 since 2026-08); p/secrets is the maintained successor ruleset.
         run: |
           pipx install semgrep==1.173.0
-          semgrep scan --error             --config p/rust             --config p/secret-detection             --config p/security-audit             --config p/owasp-top-ten
+          semgrep scan --error \
+            --config p/rust \
+            --config p/secrets \
+            --config p/security-audit \
+            --config p/owasp-top-ten
 
       # --- Supply-chain: cargo-deny + cargo-audit + cargo-vet -----------------
       - name: Supply-chain — cargo-deny (advisories, bans, licenses, sources)
