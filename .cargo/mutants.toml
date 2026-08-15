@@ -11,7 +11,8 @@
 #
 # app-desktop is the Dioxus GUI layer: its functions are view/event handlers
 # that return RSX or mutate a Signal<AppState>, exercised by the Playwright E2E
-# suite (e2e/), not by unit tests. cargo-mutants reports every GUI mutation
+# suite (e2e/, run in CI by the `e2e` job of .github/workflows/ci.yml), not by
+# unit tests. cargo-mutants reports every GUI mutation
 # (replace == with !=, delete !) as MISSED because no unit test can observe the
 # rendered output. Scanning it produces pure noise and fails CI. The core crates
 # (core-domain/csv/storage/security) carry the real testable business logic and
@@ -70,4 +71,15 @@ exclude_re = [
     # (display_name="", quota_mb=DEFAULT) parse back to the SAME value from the
     # empty string, so the downstream RawCsvRow result is identical.
     "replace == with != in process_row_mapped",
+    # ---- Loop-exit mutations in the record reader (hang by construction) ------
+    # These mutations flip the termination condition of a read/drain loop, so
+    # the mutated reader never returns on SOME input: no output-asserting test
+    # can observe a difference (execution never reaches the assertion) — the
+    # mutant dies only by the global test timeout. Excluded to not burn that
+    # wall time in CI; the unmutated loop logic is pinned by the resync and
+    # bounded-read tests (record_tests.rs).
+    "delete ! in RecordReader<R>::next_record",
+    "replace == with != in RecordReader<R>::read_bounded_line",
+    "replace == with != in RecordReader<R>::drain_rest_of_line",
+    "replace \\|\\| with && in RecordReader<R>::drain_rest_of_line",
 ]

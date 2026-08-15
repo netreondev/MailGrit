@@ -10,6 +10,7 @@ use crate::nav::DashboardSection;
 use crate::theme::Theme;
 use mailgrit_core_domain::{EditableUserRow, OperationTarget, PasswordGenerator};
 use std::sync::Arc;
+use zeroize::{Zeroize, Zeroizing};
 
 /// Application state (which screen to show + data).
 #[derive(Clone)]
@@ -32,19 +33,11 @@ pub struct AppState {
     pub session_ok: bool,
     /// Session cookie name (from config.toml; default webpy_session_id). Informational.
     pub session_cookie_name: String,
-    /// Loaded CSV (the parse result).
-    pub csv: Option<Arc<mailgrit_core_csv::ParsedCsv>>,
-    /// Editable table rows (the plain-`String` layer). `None` until the CSV is loaded
-    /// or when the target changes.
-    pub editable_rows: Option<Vec<EditableUserRow>>,
-    /// Current bulk operation target: User/Domain/Admin. Default `User`.
-    pub current_target: OperationTarget,
-    /// Operation profile the CSV is parsed against. `None` = default `for_user_create`.
-    pub current_profile: Option<Arc<mailgrit_core_domain::OperationProfile>>,
-    /// Mapping of CSV columns to profile fields. `None` until auto-detected by the user.
-    pub column_mapping: Option<Arc<mailgrit_core_csv::ColumnMapping>>,
-    /// Result of the last bulk operation.
-    pub batch_result: Option<Arc<BatchResult>>,
+    /// Everything CSV/bulk-operation related (the loaded data, the target and
+    /// profile it is parsed against, the editable layer, and the last result).
+    /// Grouped into a sub-state: AppState used to be a flat bag of 27 pub
+    /// fields mixing routing, auth, CSV, audit, and modals.
+    pub csv: CsvState,
     /// Audit log (hash-chained).
     pub audit: Option<Arc<AuditWriter>>,
     /// Current operation execution status.
@@ -62,8 +55,12 @@ pub struct AppState {
     /// Password generator settings for auto-placement in the editable table.
     pub password_generator: PasswordGenerator,
     /// Entered master password (protects the audit/export key via the Argon2 KDF).
-    /// `None` until the user enters it via the modal; stored only in memory.
-    pub master_password: Option<String>,
+    /// `None` until the user enters it via the modal; stored only in memory,
+    /// wrapped in [`Zeroizing`] so it is wiped when replaced/cleared.
+    pub master_password: Option<Zeroizing<String>>,
+    /// An unlock attempt (Argon2id in a background task) is in flight. Blocks
+    /// repeated submissions from the modal and disables its buttons.
+    pub unlock_pending: bool,
     /// Master password input fields in the modal (twice, for confirmation on creation).
     pub master_password_input: String,
     /// Confirmation field for the master password (must match `master_password_input`).
@@ -72,6 +69,48 @@ pub struct AppState {
     pub export: ExportState,
     /// Selected export encryption mode (true = encrypted, the default).
     pub export_encrypt: bool,
+}
+
+/// CSV / bulk-operation sub-state of [`AppState`].
+#[derive(Clone)]
+pub struct CsvState {
+    /// Loaded CSV (the parse result).
+    pub rows: Option<Arc<mailgrit_core_csv::ParsedCsv>>,
+    /// Editable table rows (the plain-`String` layer). `None` until the CSV is
+    /// loaded or when the target changes.
+    pub editable_rows: Option<Vec<EditableUserRow>>,
+    /// Current bulk operation target: User/Domain/Admin. Default `User`.
+    pub current_target: OperationTarget,
+    /// Operation profile the CSV is parsed against. `None` = default
+    /// `for_user_create`.
+    pub current_profile: Option<Arc<mailgrit_core_domain::OperationProfile>>,
+    /// Mapping of CSV columns to profile fields. `None` until auto-detected.
+    pub column_mapping: Option<Arc<mailgrit_core_csv::ColumnMapping>>,
+    /// Result of the last bulk operation.
+    pub batch_result: Option<Arc<BatchResult>>,
+}
+
+impl Default for CsvState {
+    fn default() -> Self {
+        Self {
+            rows: None,
+            editable_rows: None,
+            current_target: OperationTarget::User,
+            current_profile: None,
+            column_mapping: None,
+            batch_result: None,
+        }
+    }
+}
+
+impl CsvState {
+    /// Clears the loaded data (keeping the selected target).
+    pub fn clear_data(&mut self) {
+        self.rows = None;
+        self.column_mapping = None;
+        self.current_profile = None;
+        self.editable_rows = None;
+    }
 }
 
 /// Awaiting-confirmation modal flags. Grouped (3 bools) to stay below clippy's
@@ -99,7 +138,21 @@ pub struct ExportState {
     pub pending_export_after_unlock: bool,
     /// Export is being performed by a background task (dialog + KDF + file write).
     /// Blocks repeated export button presses / disables the UI for the duration.
+    /// Toggle ONLY via [`begin`](Self::begin)/[`finish`](Self::finish).
     pub export_in_progress: bool,
+}
+
+impl ExportState {
+    /// Marks an export as running (the single way to set the flag — previously
+    /// 6 call sites flipped the raw bool by hand).
+    pub const fn begin(&mut self) {
+        self.export_in_progress = true;
+    }
+
+    /// Clears the running flag (completion, cancel, or failure).
+    pub const fn finish(&mut self) {
+        self.export_in_progress = false;
+    }
 }
 
 /// Audit entry for display in the UI (without the raw hash bytes).
@@ -153,8 +206,9 @@ impl AppState {
     /// Creates the initial state on the login screen.
     ///
     /// The audit log is NOT opened here: the audit key is protected by the master
-    /// password (Argon2id), which has not been entered yet. Unlocking happens via
-    /// [`unlock_audit`](Self::unlock_audit) after the password is entered in the UI modal.
+    /// password (Argon2id), which has not been entered yet. Unlocking happens in
+    /// a background task after the password is entered in the UI modal (see
+    /// [`complete_unlock`](Self::complete_unlock)).
     #[must_use]
     pub fn new() -> Self {
         // Configuration from TOML (no recompilation); defaults when absent.
@@ -175,11 +229,11 @@ impl AppState {
         password_generator
             .classes
             .set_special(password_generator.classes.special() | password_policy.classes.special());
-        // No lower than the policy min_len and no higher than the UI ceiling (32).
+        // No lower than the policy min_len and no higher than the UI ceiling.
         password_generator.length = password_generator
             .length
             .max(password_policy.min_len)
-            .min(32);
+            .min(mailgrit_core_domain::password_gen::UI_MAX_LENGTH);
         Self {
             screen: Screen::Login,
             section: DashboardSection::default(),
@@ -190,12 +244,7 @@ impl AppState {
             language: Language::from_config(&config.language),
             session_ok: false,
             session_cookie_name: config.session_cookie_name.clone(),
-            csv: None,
-            editable_rows: None,
-            current_target: OperationTarget::User,
-            current_profile: None,
-            column_mapping: None,
-            batch_result: None,
+            csv: CsvState::default(),
             audit: None,
             op_status: OpStatus::Idle,
             modals: ModalState::default(),
@@ -205,6 +254,7 @@ impl AppState {
             password_policy,
             password_generator,
             master_password: None,
+            unlock_pending: false,
             master_password_input: String::new(),
             master_password_confirm: String::new(),
             export: ExportState::default(),
@@ -212,36 +262,43 @@ impl AppState {
         }
     }
 
-    /// Unlocks the audit log with the master password. On success, stores the
-    /// password in memory (for export) and populates `audit`/`audit_entries`.
+    /// Applies a successful audit unlock: stores the password in memory (for
+    /// export), closes the modal, wipes the input fields, and populates
+    /// `audit`/`audit_entries`.
     ///
-    /// # Errors
+    /// Split out of the old synchronous `unlock_audit`: the Argon2id KDF inside
+    /// `AuditWriter::open` is memory-hard (64 MiB, t=3) and now runs in a
+    /// `spawn_blocking` task (see `confirm_master_password`); this method only
+    /// applies the result on the UI thread.
+    pub fn complete_unlock(&mut self, master_password: Zeroizing<String>, audit: AuditWriter) {
+        self.master_password = Some(master_password);
+        self.modals.pending_master_password = false;
+        self.unlock_pending = false;
+        self.master_password_input.zeroize();
+        self.master_password_confirm.zeroize();
+        self.audit = Some(Arc::new(audit));
+        self.refresh_audit();
+    }
+
+    /// Ends the iRedAdmin session and clears everything tied to it.
     ///
-    /// Returns a localized reason on a database error or an incorrect password.
-    pub fn unlock_audit(&mut self, master_password: &str) -> Result<(), String> {
-        match AuditWriter::open(master_password) {
-            Ok(audit) => {
-                self.master_password = Some(master_password.to_string());
-                self.modals.pending_master_password = false;
-                self.master_password_input.clear();
-                self.master_password_confirm.clear();
-                let audit = Arc::new(audit);
-                // Load recent entries for display.
-                if let Err(e) = audit.recent(10) {
-                    tracing::warn!("reading audit after unlock: {e}");
-                }
-                self.audit = Some(audit);
-                self.refresh_audit();
-                Ok(())
-            }
-            Err(crate::audit_ui::AuditError::WrongMasterPassword) => {
-                Err(t!("master_password.wrong").to_string())
-            }
-            Err(crate::audit_ui::AuditError::CorruptedKeyFile { .. }) => {
-                Err(t!("master_password.corrupt_key").to_string())
-            }
-            Err(e) => Err(e.to_string()),
-        }
+    /// Single source of truth for BOTH paths — manual logout and automatic
+    /// session-loss: the two hand-maintained field lists had already diverged
+    /// (session-loss forgot `column_mapping`, `current_profile`,
+    /// `editable_rows`). The local audit log and the display entries stay (the
+    /// audit belongs to the app, not to the server session). The caller decides
+    /// what goes into `error_msg`.
+    pub fn reset_session(&mut self) {
+        self.op_status = OpStatus::Idle;
+        self.session_ok = false;
+        self.auth_status = AuthStatus::None;
+        self.screen = Screen::Login;
+        self.csv.clear_data();
+        self.csv.batch_result = None;
+        // Wipe the master password together with the session (Zeroizing drop).
+        self.master_password = None;
+        self.modals.pending_delete = false;
+        self.modals.pending_password_regenerate = false;
     }
 
     /// Refreshes the list of audit entries from the writer.
@@ -266,7 +323,8 @@ impl AppState {
     /// Effective operation profile: the currently selected one, or the default `for_user_create`.
     #[must_use]
     pub fn effective_profile(&self) -> Arc<mailgrit_core_domain::OperationProfile> {
-        self.current_profile
+        self.csv
+            .current_profile
             .clone()
             .unwrap_or_else(|| Arc::new(mailgrit_core_domain::OperationProfile::for_user_create()))
     }
@@ -274,14 +332,12 @@ impl AppState {
     /// Sets the bulk operation target and the matching default create profile.
     /// On target change, the CSV and editable rows are reset.
     pub fn set_current_target(&mut self, target: OperationTarget) {
-        self.current_target = target;
-        self.current_profile = Some(Arc::new(match target {
+        self.csv.current_target = target;
+        self.csv.current_profile = Some(Arc::new(match target {
             OperationTarget::User => mailgrit_core_domain::OperationProfile::for_user_create(),
             OperationTarget::Domain => mailgrit_core_domain::OperationProfile::for_domain_create(),
             OperationTarget::Admin => mailgrit_core_domain::OperationProfile::for_admin_create(),
         }));
-        self.csv = None;
-        self.column_mapping = None;
-        self.editable_rows = None;
+        self.csv.clear_data();
     }
 }

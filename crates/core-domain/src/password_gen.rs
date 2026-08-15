@@ -2,19 +2,31 @@
 //!
 //! Unlike [`PasswordPolicy`](crate::PasswordPolicy) (which only validates),
 //! [`PasswordGenerator`] produces a password guaranteed to satisfy the enabled
-//! requirements. Entropy comes from `rand::rng()` (`OsRng`).
+//! requirements. Entropy comes from `rand::rng()` (a per-thread CSPRNG seeded
+//! from the OS). The returned value is wrapped in [`Zeroizing`] so the
+//! transient is wiped when the caller drops it.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors
 
 use rand::Rng;
 use rand::RngExt;
 use rand::seq::IteratorRandom;
+use zeroize::Zeroizing;
 
 /// Minimum length: smaller values cannot fit all character classes.
 pub const MIN_LENGTH: usize = 4;
 
 /// Maximum reasonable password length in the UI (separate from `MAX_PASSWORD_LEN`).
 pub const MAX_LENGTH: usize = 64;
+
+/// Lower bound of the UI length slider's working range.
+pub const UI_MIN_LENGTH: usize = 8;
+/// Upper bound of the UI length slider's working range (the display ceiling,
+/// distinct from the generator's hard [`MAX_LENGTH`]).
+///
+/// Single source for the slider bounds and the app-side clamp (previously a
+/// bare `32` in three places).
+pub const UI_MAX_LENGTH: usize = 32;
 
 /// Safe special characters: ASCII punctuation WITHOUT comma (forbidden by
 /// `ValidatedPassword`, breaks CSV), quotes, or backslash (which break JS strings
@@ -79,13 +91,13 @@ impl PasswordGenerator {
         self.classes.has_any()
     }
 
-    /// Length for the UI slider: clamped to 8..=32 (the slider's working range).
+    /// Length for the UI slider: clamped to [`UI_MIN_LENGTH`]..=[`UI_MAX_LENGTH`].
     #[must_use]
     pub const fn clamped_for_label(&self) -> usize {
-        if self.length < 8 {
-            8
-        } else if self.length > 32 {
-            32
+        if self.length < UI_MIN_LENGTH {
+            UI_MIN_LENGTH
+        } else if self.length > UI_MAX_LENGTH {
+            UI_MAX_LENGTH
         } else {
             self.length
         }
@@ -93,11 +105,13 @@ impl PasswordGenerator {
 
     /// Generates a random password. Each enabled class is represented by ≥1 character,
     /// there is no comma (the `ValidatedPassword` contract), and the order is shuffled.
-    /// Returns an empty string if no class is enabled.
+    /// Returns an empty string if no class is enabled. The result is [`Zeroizing`]:
+    /// it is wiped from memory when the handle is dropped (the UI layer clones it
+    /// into the table row at its own boundary).
     #[must_use]
-    pub fn generate(&self) -> String {
+    pub fn generate(&self) -> Zeroizing<String> {
         if !self.has_any_class() {
-            return String::new();
+            return Zeroizing::new(String::new());
         }
         let length = self.clamped_length();
         let mut rng = rand::rng();
@@ -148,7 +162,7 @@ impl PasswordGenerator {
         chars.truncate(length);
         shuffle(&mut chars, &mut rng);
 
-        chars.into_iter().collect()
+        Zeroizing::new(chars.into_iter().collect())
     }
 }
 
@@ -222,7 +236,8 @@ mod tests {
             let warnings = policy.validate(&pw);
             assert!(
                 warnings.is_empty(),
-                "generated password \"{pw}\" failed policy: {warnings:?}"
+                "generated password \"{}\" failed policy: {warnings:?}",
+                pw.as_str()
             );
         }
     }
@@ -248,7 +263,8 @@ mod tests {
             let pw = g.generate();
             assert!(
                 pw.chars().all(|c| c.is_ascii_lowercase()),
-                "with classes disabled there should be only lowercase: \"{pw}\""
+                "with classes disabled there should be only lowercase: \"{}\"",
+                pw.as_str()
             );
         }
     }
@@ -276,7 +292,7 @@ mod tests {
         g.classes.set_digits(false);
         g.classes.set_special(false);
         assert_eq!(
-            g.generate(),
+            *g.generate(),
             "",
             "with no classes enabled generation is impossible"
         );
@@ -287,7 +303,7 @@ mod tests {
         let g = PasswordGenerator::default_generator();
         let mut seen = std::collections::HashSet::new();
         for _ in 0..50 {
-            seen.insert(g.generate());
+            seen.insert(g.generate().to_string());
         }
         assert!(seen.len() > 1, "generator produces identical passwords");
     }
@@ -371,7 +387,7 @@ mod tests {
         g.length = MIN_LENGTH;
         let mut seen = std::collections::HashSet::new();
         for _ in 0..500 {
-            seen.insert(g.generate());
+            seen.insert(g.generate().to_string());
         }
         // A working Fisher–Yates over 4 chars produces multiple orderings.
         assert!(

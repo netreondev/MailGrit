@@ -26,17 +26,11 @@ updates:
       rust-minor:
         update-types: ["minor"]
         patterns: ["*"]
-    # Security-relevant crates: always open an isolated PR (not grouped) so they
-    # are reviewed with extra attention.
-    allow:
-      - dependency-name: "argon2"
-      - dependency-name: "chacha20poly1305"
-      - dependency-name: "hmac"
-      - dependency-name: "sha2"
-      - dependency-name: "subtle"
-      - dependency-name: "zeroize"
-      - dependency-name: "rusqlite"
-      - dependency-name: "*"        # plus everything else (grouped above)
+    # allow-list: an EMPTY allow means "everything" (default). The previous
+    # `- dependency-name: "*"` entry only ever widened a non-empty list; with
+    # it the crypto crates below stopped being special. Keep the list empty
+    # and rely on the groups above for batching; crypto crates ride the same
+    # groups as everything else (cargo-deny/audit gate security relevance in CI).
     commit-message:
       prefix: "deps"
       include: "scope"
@@ -60,3 +54,33 @@ updates:
       prefix: "ci"
       include: "scope"
     labels: ["dependencies", "github-actions"]
+
+  # ---------------------------------------------------------------------------
+  # Playwright/npm dependencies of the E2E suite (e2e/package.json). The suite
+  # runs in CI (the e2e job), so @playwright/test updates must be PR-tested.
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "npm"
+    directory: "/e2e"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels: ["dependencies", "e2e"]
+
+  # ---------------------------------------------------------------------------
+  # Fuzz-target crate (fuzz/Cargo.toml — NOT a workspace member, so the "/"
+  # cargo ecosystem above does not cover it).
+  # ---------------------------------------------------------------------------
+  - package-ecosystem: "cargo"
+    directory: "/fuzz"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    labels: ["dependencies", "fuzz"]

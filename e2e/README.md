@@ -11,20 +11,35 @@ separate browser; the real UI in the real WebView2 is tested.
 
 ## Prerequisites
 
-- **Node.js >= 20** (on the developer machine; not needed in the Rust build/CI)
+- **Windows only** — the suite drives the real `.exe` and its WebView2 over
+  CDP (on other OSes there is no WebView2; the suite is not portable as-is).
+- **Node.js >= 20** (on the developer machine; not needed in the Rust build)
 - **WebView2 Runtime** (preinstalled on Windows 11)
-- A built `.exe`: `cargo build -p mailgrit-app-desktop` (debug is enough)
+- A built `.exe` **with the E2E hooks compiled in**:
+  `cargo build -p mailgrit-app-desktop --features e2e` (debug is enough).
+  The `e2e` cargo feature is what includes `e2e_state.rs` and the
+  `MAILGRIT_LOGIN_URL` override — release builds never contain them.
+
+The suite runs in CI on every push (the `e2e` job in `.github/workflows/ci.yml`,
+`windows-latest`): it builds with `--features e2e`, runs `npm ci` and
+`npx playwright test`.
 
 ## Run
 
 ```bash
+cargo build -p mailgrit-app-desktop --features e2e   # from the repo root
 cd e2e
 npm ci
-npx playwright install chromium   # once — installs the Playwright CDP client
-npm test                          # all tests
+npm test                          # all tests (connects to the app's own WebView2)
 npm run test:headed               # with a visible window (handy for debugging)
 npm run report                    # HTML report of the last run
 ```
+
+No Playwright browser download is needed: `chromium.connectOverCDP` connects to
+the application's own WebView2 instance — do NOT run
+`npx playwright install chromium` (it downloads a browser this suite never uses).
+The application's stdout/stderr of every run are captured into
+`app-stdio.log` inside the per-run temp directory.
 
 ## How it works
 

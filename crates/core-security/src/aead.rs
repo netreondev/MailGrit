@@ -15,6 +15,7 @@ use chacha20poly1305::{
     aead::{Aead, Key, KeyInit, Payload},
 };
 use rand::Rng;
+use zeroize::Zeroizing;
 
 /// Nonce length for XChaCha20-Poly1305 (24 bytes).
 pub const NONCE_LEN: usize = 24;
@@ -99,13 +100,19 @@ pub fn encrypt(
 }
 
 /// Decrypts data (format `nonce ‖ ciphertext+tag`) with the same AAD.
+/// The plaintext is returned in a [`Zeroizing`] wrapper: it is wiped from
+/// memory when the handle is dropped (Spec §10).
 ///
 /// # Errors
 ///
 /// - [`SecurityError::Decryption`] — wrong key, corrupted data,
 ///   or AAD mismatch (cryptographic authentication failed).
 /// - [`SecurityError::CiphertextTooShort`] — data shorter than the nonce (24 bytes).
-pub fn decrypt(key: &EncryptionKey, data: &[u8], aad: &[u8]) -> Result<Vec<u8>, SecurityError> {
+pub fn decrypt(
+    key: &EncryptionKey,
+    data: &[u8],
+    aad: &[u8],
+) -> Result<Zeroizing<Vec<u8>>, SecurityError> {
     if data.len() < NONCE_LEN {
         return Err(SecurityError::CiphertextTooShort {
             actual: data.len(),
@@ -128,6 +135,7 @@ pub fn decrypt(key: &EncryptionKey, data: &[u8], aad: &[u8]) -> Result<Vec<u8>, 
                 aad,
             },
         )
+        .map(Zeroizing::new)
         .map_err(|e| SecurityError::Decryption(e.to_string()))
 }
 
@@ -153,7 +161,7 @@ mod tests {
         assert_ne!(ciphertext.get(NONCE_LEN..).unwrap_or(&[]), plaintext);
 
         let decrypted = decrypt(&key, &ciphertext, aad)?;
-        assert_eq!(decrypted, plaintext);
+        assert_eq!(decrypted.as_slice(), &plaintext[..]);
         Ok(())
     }
 

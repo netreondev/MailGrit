@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Netreon™ and contributors
 
 import { testDashboard as test, expect } from '../fixtures/app';
-import { DASH, LANGUAGES, DASH_I18N } from '../helpers/selectors';
+import { DASH, LANGUAGES, DASH_I18N, I18N_MARKERS } from '../helpers/selectors';
 import { assertNoRawKey } from '../helpers/layout';
 
 /**
@@ -73,7 +73,8 @@ test.describe('Dashboard — localization (i18n)', () => {
     await expect(page.locator(DASH.dialog)).toBeVisible();
     // aria-label = title (DE: "Löschen bestätigen").
     const ariaLabel = await page.locator(DASH.dialog).getAttribute('aria-label');
-    expect(ariaLabel, 'DE delete-modal title is non-empty and not a raw key').toBeTruthy();
+    // Exact contract: a non-empty string that is not a raw i18n key.
+    expect(ariaLabel !== null && ariaLabel.trim().length > 0, 'DE delete-modal aria-label is a non-empty string').toBe(true);
     assertNoRawKey(ariaLabel!, 'DE delete-modal title');
     await page.locator(DASH.dialog).getByRole('button').filter({ hasText: /abbr/i }).click();
   });
@@ -86,20 +87,26 @@ async function selectLanguage(page: import('@playwright/test').Page, label: stri
   await page.locator('.lang-dropdown').getByText(label, { exact: true }).click();
   // The menu closed — the indicator that switching finished.
   await expect(page.locator('.lang-dropdown')).toHaveCount(0);
-  // Stabilize the Dioxus re-render on language change.
-  await page.waitForTimeout(120);
+  // Deterministic wait for the re-render: the trigger's aria-label is itself
+  // localized (lang.label) — when it matches the target locale, the switch has
+  // actually been applied (no fixed sleeps).
+  const code = LANGUAGES.find((l) => l.label === label)?.code;
+  const expectedAria = code ? I18N_MARKERS[code]?.langLabel : undefined;
+  if (expectedAria) {
+    await expect(page.locator('.lang-trigger').first()).toHaveAttribute('aria-label', expectedAria);
+  }
 }
 
-/** Ensures the current language is `label` (switches if it is not). */
+/**
+ * Ensures the current language is `label` (switches if it is not). Works for
+ * every locale: the trigger's aria-label is the localized `lang.label` value
+ * (I18N_MARKERS), so the check needs no per-locale special-casing.
+ */
 async function ensureLanguage(page: import('@playwright/test').Page, label: string): Promise<void> {
-  // The trigger shows the code (EN/DE/...). We check via the aria-label of the current item.
+  const code = LANGUAGES.find((l) => l.label === label)?.code;
+  const expectedAria = code ? I18N_MARKERS[code]?.langLabel : undefined;
   const trigger = page.locator('.lang-trigger').first();
   const currentAria = await trigger.getAttribute('aria-label');
-  // Simple heuristic: if the aria-label already matches label, do nothing.
-  const expectedAria = label === 'English' ? 'Language' : undefined;
   if (expectedAria && currentAria === expectedAria) return;
-  // Otherwise switch (only if the current one is not EN).
-  if (currentAria !== 'Language') {
-    await selectLanguage(page, label);
-  }
+  await selectLanguage(page, label);
 }

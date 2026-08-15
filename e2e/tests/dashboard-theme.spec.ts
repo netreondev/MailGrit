@@ -31,9 +31,11 @@ async function readVars(page: import('@playwright/test').Page, names: string[]):
 
 /** Waits until data-theme on <html> becomes target (stabilization after a click). */
 async function waitForTheme(page: import('@playwright/test').Page, target: 'dark' | 'light'): Promise<void> {
+  // The attribute itself is the deterministic condition: the app sets it in the
+  // same effect that flips the theme Signal, and the CSS variables are keyed to
+  // [data-theme=...] — getComputedStyle (used right after) forces synchronous
+  // recalculation, so no fixed sleep is needed.
   await expect(page.locator('html')).toHaveAttribute('data-theme', target);
-  // Extra stabilization: Dioxus finishes the re-render.
-  await page.waitForTimeout(150);
 }
 
 test.describe('Dashboard — theme and contrast', () => {
@@ -117,17 +119,7 @@ test.describe('Dashboard — theme and contrast', () => {
     expect(contrastRatio(parseColor(light['--fg']!)!, lSurf), 'light: text against surface >= 4.5').toBeGreaterThanOrEqual(4.5);
   });
 
-  test('the theme persists in config.toml after switching', async ({ app }) => {
-    const { page, dataDir } = app;
-    await page.locator(DASH.contextThemeToggle).click();
-    await waitForTheme(page, 'light');
-
-    const { existsSync, readFileSync } = await import('node:fs');
-    const { join } = await import('node:path');
-    const cfg = join(dataDir, 'mailgrit-data', 'config.toml');
-    await expect.poll(async () => existsSync(cfg), { timeout: 5000 }).toBe(true);
-    const content = readFileSync(cfg, 'utf8');
-    expect(content, 'config.toml stores the theme').toContain('theme');
-    expect(content).toMatch(/light/i);
-  });
+  // Theme persistence in config.toml is covered ONCE, on the login screen
+  // (theme.spec.ts "theme persists across restart") — the dashboard toggle
+  // writes the same config key through the same settings path.
 });

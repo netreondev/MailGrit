@@ -30,17 +30,25 @@ rfd = "0.17.2"
 tao = "0.34"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-rusqlite = { version = "0.40.1", features = ["bundled"] }
-thiserror = "2.0.19"
+thiserror = { workspace = true }
 time = { version = "0.3", features = ["formatting", "macros"] }
 tokio = { version = "1.53.1", features = ["rt-multi-thread", "macros", "sync"] }
 toml = "0.8"
-tracing = "0.1"
+tracing = { workspace = true }
 tracing-appender = "0.2"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 url = "2.5.8"
 wry = "0.53"
 rust-i18n = "4.2.1"
+# The in-memory master password (and the modal inputs) are wrapped in
+# Zeroizing/zeroize so the secret is wiped on drop/clear.
+zeroize = { workspace = true }
+
+[features]
+# E2E test hooks (dashboard-override startup state, MAILGRIT_LOGIN_URL override).
+# Enabled ONLY for test builds (cargo build --features e2e + the CI e2e job);
+# release binaries never contain this code.
+e2e = []
 
 [lints]
 workspace = true

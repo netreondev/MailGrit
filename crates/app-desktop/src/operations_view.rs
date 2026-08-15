@@ -13,12 +13,10 @@ use crate::components::modal::{Modal, ModalFooter};
 use crate::components::progress::Progress;
 use crate::components::segmented::{Segmented, SegmentedOption};
 use crate::components::spinner::Spinner;
-use crate::csv_summary::CsvSummary;
-use crate::editable_table_view::{editable_table_view, password_controls_view};
+use crate::csv_card::csv_card;
 use crate::ops::{do_export, launch_op, open_export_choice, run_diag};
-use crate::screens::csv_load::load_csv_file;
 use crate::state::{AppState, OpStatus};
-use crate::views::{batch_result_view, failed_csv_rows_view, mapping_panel_view, preview_csv_rows};
+use crate::views::{batch_result_view, preview_csv_rows};
 use dioxus::prelude::*;
 use mailgrit_core_domain::{BulkOperationKind, OperationTarget};
 
@@ -50,7 +48,7 @@ fn target_options() -> Vec<SegmentedOption<OperationTarget>> {
 /// `Operations` → behavior identical to Phase 14 on entry.
 pub fn operations_section(state: Signal<AppState>) -> Element {
     // Read the language so Dioxus re-renders localized strings on language change.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     rsx! {
         div { class: "dash-grid",
             // Card 1: CSV upload.
@@ -68,90 +66,15 @@ pub fn operations_section(state: Signal<AppState>) -> Element {
     }
 }
 
-/// Card 1: CSV upload + mapping panel + editable table + password controls +
-/// rejected rows.
-fn csv_card(state: Signal<AppState>) -> Element {
-    let op_status = state.read().op_status;
-    // Read the language for re-rendering localized strings.
-    let _lang = state.read().language;
-    let csv_summary = state
-        .read()
-        .csv
-        .as_ref()
-        .map(|c| CsvSummary::from_parsed(c));
-    let rejected_text = csv_summary.as_ref().and_then(|summary| {
-        (summary.failed > 0).then(|| format!("{} {}", summary.failed, tr!("csv.rejected")))
-    });
-    rsx! {
-        Card {
-            h2 { IconView { icon: Icon::Upload } {tr!("csv.card_title")} }
-            p { class: "muted", {tr!("csv.format_hint")} }
-
-            div { class: "op-row",
-                Button {
-                    kind: ButtonKind::Secondary,
-                    size: ButtonSize::Small,
-                    icon_left: Some(Icon::Upload),
-                    disabled: op_status == OpStatus::Running,
-                    onclick: move |_| {
-                        // Native file-selection dialog via AsyncFileDialog:
-                        // the blocking part runs on a separate thread (rfd on
-                        // Windows spawns it itself), so the UI thread does not
-                        // reenter the Dioxus runtime — just like in export.
-                        // Parsing and state update happen after the path
-                        // returns.
-                        let mut s = state;
-                        spawn(async move {
-                            let title = tr!("csv.file_dialog_title");
-                            let handle = rfd::AsyncFileDialog::new()
-                                .add_filter("CSV", &["csv"])
-                                .set_title(title)
-                                .pick_file()
-                                .await;
-                            if let Some(handle) = handle {
-                                let path = handle.path().to_path_buf();
-                                load_csv_file(&mut s, &path);
-                            }
-                        });
-                    },
-                    {tr!("csv.choose_file")}
-                }
-            }
-
-            // Flexible column-mapping panel.
-            {mapping_panel_view(state, csv_summary.as_ref())}
-
-            if let Some(summary) = &csv_summary {
-                div { class: "dash-stat-row",
-                    span { class: "dash-stat", "{summary.valid}" }
-                    span { class: "dash-stat-label", {tr!("csv.valid_rows")} }
-                }
-                if let Some(rej) = &rejected_text {
-                    p { class: "muted", "{rej}" }
-                }
-            } else {
-                p { class: "muted mt-3", {tr!("csv.not_loaded")} }
-            }
-
-            // Password-generation controls + the editable row table.
-            {password_controls_view(state)}
-            {editable_table_view(state)}
-
-            // The rejected-CSV-rows table.
-            {failed_csv_rows_view(&state)}
-        }
-    }
-}
-
 /// Card 2: bulk operations (target, buttons, Modal).
 /// Reads all state inside (1 parameter → no argument/bool explosion).
-fn ops_card(mut state: Signal<AppState>) -> Element {
+pub fn ops_card(mut state: Signal<AppState>) -> Element {
     let op_status = state.read().op_status;
-    let current_target = state.read().current_target;
+    let current_target = state.read().csv.current_target;
     let has_session = state.read().session_ok;
-    let has_csv = state.read().csv.is_some();
+    let has_csv = state.read().csv.rows.is_some();
     // Read the language for re-rendering localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     let can_op = has_session && has_csv && op_status != OpStatus::Running;
     rsx! {
         Card {
@@ -209,9 +132,9 @@ fn ops_buttons(
 ) -> Element {
     let pending_delete = state.read().modals.pending_delete;
     let export_in_progress = state.read().export.export_in_progress;
-    let has_result = state.read().batch_result.is_some();
+    let has_result = state.read().csv.batch_result.is_some();
     // Read the language for re-rendering localized button labels.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     rsx! {
         div { class: "op-row",
             Button {
@@ -331,7 +254,7 @@ fn delete_modal(
 fn export_choice_modal(mut state: Signal<AppState>) -> Element {
     // Subscribe to the language: a language change must re-render the localized
     // strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     let pending = state.read().export.pending_export_choice;
     if !pending {
         return rsx! {};

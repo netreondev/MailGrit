@@ -115,6 +115,52 @@ fn append_returns_monotonic_ids() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+// recent(limit) returns the NEWEST `limit` entries in descending-id order —
+// the UI contract (previously emulated by sorting the full table in memory).
+#[test]
+#[cfg_attr(miri, ignore)]
+fn recent_returns_newest_first_and_respects_limit() -> Result<(), Box<dyn std::error::Error>> {
+    let mut log = in_memory_log()?;
+    for i in 0..5 {
+        log.append("t", AuditAction::CreateUser, format!("e{i}").as_bytes())?;
+    }
+    let recent = log.recent(3)?;
+    assert_eq!(recent.len(), 3, "LIMIT is pushed down to SQL");
+    let ids: Vec<i64> = recent.iter().map(|e| e.id).collect();
+    assert_eq!(ids, vec![5, 4, 3], "newest first, ascending ids reversed");
+    // limit larger than the table → everything, still newest first.
+    let all = log.recent(100)?;
+    assert_eq!(all.len(), 5);
+    assert_eq!(all.first().ok_or("empty")?.id, 5);
+    Ok(())
+}
+
+// The path-based constructor (used by app-desktop) creates the DB file and
+// keeps the same chain semantics as the in-memory constructor.
+#[test]
+#[cfg_attr(miri, ignore)]
+fn open_path_creates_file_and_appends() -> Result<(), Box<dyn std::error::Error>> {
+    let dir = std::env::temp_dir().join(format!(
+        "mailgrit-storage-test-{}-{}",
+        std::process::id(),
+        std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&dir)?;
+    let result = (|| {
+        let key = mailgrit_core_security::EncryptionKey::generate();
+        let db = dir.join("audit.sqlite");
+        let mut log = AuditLog::open_path(&db, key)?;
+        log.append("t", AuditAction::Export, b"via-open-path")?;
+        assert!(log.verify().is_ok());
+        assert_eq!(log.recent(10)?.len(), 1);
+        Ok::<(), Box<dyn std::error::Error>>(())
+    })();
+    let _ = std::fs::remove_dir_all(&dir);
+    result
+}
+
 // All AuditAction variants have correct string representations (DB contract).
 #[test]
 #[cfg_attr(miri, ignore)]

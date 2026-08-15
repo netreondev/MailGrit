@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT OR Apache-2.0 */
+/* Copyright (c) 2026 Netreon™ and contributors */
 /* ============================================================================
    MailGrit — styles for reusable design-system components.
    All components are built on the design tokens from tokens.css.
@@ -109,7 +111,7 @@
 /* Variant: Danger */
 .btn-danger {
     background: var(--danger);
-    color: #fff;
+    color: var(--fg-invert);
     font-weight: var(--fw-medium);
 }
 .btn-danger:hover:not(:disabled) {
@@ -146,7 +148,7 @@
     border-radius: inherit;
     padding: 1px;
     background: linear-gradient(180deg, var(--border-strong) 0%, transparent 30%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(var(--fg-invert) 0 0) content-box, linear-gradient(var(--fg-invert) 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 0.5;
@@ -185,7 +187,7 @@
     border-radius: inherit;
     padding: 1px;
     background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 50%, transparent 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(var(--fg-invert) 0 0) content-box, linear-gradient(var(--fg-invert) 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     opacity: 0.6;
@@ -342,7 +344,7 @@
 .spinner-lg { width: 24px; height: 24px; border-width: 2.5px; }
 .spinner-on-accent {
     border-color: rgba(255, 255, 255, 0.35);
-    border-top-color: #fff;
+    border-top-color: var(--fg-invert);
 }
 @keyframes spin {
     to { transform: rotate(360deg); }
@@ -638,7 +640,7 @@
 }
 .win-btn-close:hover {
     background: var(--danger);
-    color: #fff;
+    color: var(--fg-invert);
 }
 
 /* ============================================================================

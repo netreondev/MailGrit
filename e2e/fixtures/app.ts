@@ -32,7 +32,7 @@
  */
 import { test as base, expect, chromium, type Page } from '@playwright/test';
 import { spawn, type ChildProcess } from 'node:child_process';
-import { existsSync, mkdirSync, copyFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, copyFileSync, openSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
@@ -110,12 +110,19 @@ async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: b
 
   let child: ChildProcess | null = null;
   try {
-    child = spawn(exe, { env, cwd: dir, stdio: 'ignore', windowsHide: false });
-    child.once('error', (e) => {
-      throw new Error(`failed to launch the .exe: ${e.message}`);
+    // stdout/stderr go to a log file in the temp dir (NOT 'ignore'): when a
+    // test fails, the application's own diagnostics are available instead of
+    // being discarded.
+    const stdioLog = openSync(join(dir, 'app-stdio.log'), 'a');
+    const spawned = spawn(exe, { env, cwd: dir, stdio: ['ignore', stdioLog, stdioLog], windowsHide: false });
+    child = spawned;
+    // A spawn failure (missing exe, AV block) must FAIL the awaiting test —
+    // throwing inside this EventEmitter callback would be an uncaught error
+    // that kills the runner. Race a rejected promise instead.
+    const launchFailed = new Promise<never>((_, reject) => {
+      spawned.once('error', (e) => reject(new Error(`failed to launch the .exe: ${e.message}`)));
     });
-
-    await waitForCdp();
+    await Promise.race([waitForCdp(), launchFailed]);
 
     const browser = await chromium.connectOverCDP(`http://127.0.0.1:${CDP_PORT}`);
     // WebView2 exposes a single context; take the default one and its first window page.

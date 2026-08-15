@@ -18,10 +18,11 @@
 use libfuzzer_sys::fuzz_target;
 use url::Url;
 
-/// Mirrors the navigation-handler allow-list. Kept in sync manually; if the
-/// app ever allows a new scheme, this must change too.
+/// The PRODUCTION allow-list, imported from core-domain (url_policy) — no
+/// hand-maintained mirror. If the app ever allows a new scheme, this target's
+/// assertions automatically follow.
 fn scheme_is_allowed(url: &str) -> bool {
-    Url::parse(url).is_ok_and(|u| matches!(u.scheme(), "http" | "https"))
+    Url::parse(url).is_ok_and(|u| mailgrit_core_domain::url_policy::scheme_is_allowed(u.scheme()))
 }
 
 fuzz_target!(|data: &str| {
@@ -43,7 +44,9 @@ fuzz_target!(|data: &str| {
         if Url::parse(&format!("javascript:{rest}"))
             .is_ok_and(|u| u.scheme() == "javascript")
         {
-            debug_assert!(
+            // assert (not debug_assert): the invariant must hold in release-
+            // profile fuzzing runs too, where debug_assert is a no-op.
+            assert!(
                 !scheme_is_allowed(&format!("javascript:{rest}")),
                 "javascript: URL must never pass the http/https allow-list"
             );

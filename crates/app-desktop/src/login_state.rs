@@ -83,37 +83,51 @@ impl LoginWindowState {
         Arc::from(Box::new(Self::default()))
     }
 
+    // Mutex policy (uniform across app-desktop): a poisoned lock means a panic
+    // happened while it was held — the guarded data is still structurally valid.
+    // We recover with `unwrap_or_else(PoisonError::into_inner)` instead of
+    // silently dropping the request: a dropped login/operation request is far
+    // worse for the user than acting on possibly-stale state.
+
     /// Requests opening the login window (called from a UI button).
     pub fn request_open(&self, base_url: String) {
         tracing::info!("request to open the login window: {base_url}");
-        if let Ok(mut req) = self.request.lock() {
-            *req = Some(LoginRequest { base_url });
-        }
+        let mut req = self
+            .request
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *req = Some(LoginRequest { base_url });
     }
 
     /// Registers the successful-auth callback (called from `app()`).
     pub fn set_on_login(&self, cb: Box<dyn Fn()>) {
-        if let Ok(mut slot) = self.on_login.lock() {
-            *slot = Some(cb);
-        }
+        let mut slot = self
+            .on_login
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *slot = Some(cb);
     }
 
     /// Stores the session cookie name (from config.toml) for the login predicate.
     pub fn set_session_cookie_name(&self, name: String) {
-        if let Ok(mut slot) = self.session_cookie_name.lock() {
-            *slot = Some(name);
-        }
+        let mut slot = self
+            .session_cookie_name
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *slot = Some(name);
     }
 
     /// Records the login-webview load event (called from page_load_handler).
     /// `final_url` is the final URL after redirects (for the `/dashboard` predicate).
     pub fn report_page_load(&self, base_url: String, final_url: String) {
-        if let Ok(mut ev) = self.auth_event.lock() {
-            *ev = Some(crate::login_types::AuthEvent {
-                base_url,
-                final_url,
-            });
-        }
+        let mut ev = self
+            .auth_event
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        *ev = Some(crate::login_types::AuthEvent {
+            base_url,
+            final_url,
+        });
     }
 
     /// Requests a batch of operations via the login-webview (JS fetch).
@@ -125,19 +139,21 @@ impl LoginWindowState {
         base_url: String,
         rows: Vec<mailgrit_core_domain::SanitizedUserRow>,
     ) -> Option<tokio::sync::oneshot::Receiver<BatchOpResult>> {
-        if let Ok(req) = self.op_request.lock()
-            && req.is_some()
-        {
-            tracing::warn!("batch operation request rejected: a request is already pending");
-            return None;
-        }
         let (tx, rx) = tokio::sync::oneshot::channel::<BatchOpResult>();
         tracing::info!(
             "batch operation request: {} rows, {}",
             rows.len(),
             crate::op_label::operation_label(target, kind),
         );
-        if let Ok(mut req) = self.op_request.lock() {
+        {
+            let mut req = self
+                .op_request
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            if req.is_some() {
+                tracing::warn!("batch operation request rejected: a request is already pending");
+                return None;
+            }
             *req = Some(OpRequest {
                 target,
                 kind,
@@ -152,15 +168,17 @@ impl LoginWindowState {
     /// Requests diagnostics for the create form (GET + returns the form fields' HTML).
     /// Returns `None` if a request is already pending.
     pub fn request_diag(&self, domain: String) -> Option<tokio::sync::oneshot::Receiver<String>> {
-        if let Ok(req) = self.diag_request.lock()
-            && req.is_some()
-        {
-            tracing::warn!("diagnostics request rejected: a request is already pending");
-            return None;
-        }
         let (tx, rx) = tokio::sync::oneshot::channel::<String>();
         tracing::info!("request for form diagnostics for domain {domain}");
-        if let Ok(mut req) = self.diag_request.lock() {
+        {
+            let mut req = self
+                .diag_request
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            if req.is_some() {
+                tracing::warn!("diagnostics request rejected: a request is already pending");
+                return None;
+            }
             *req = Some(DiagRequest { domain, tx });
         }
         Some(rx)
@@ -168,9 +186,11 @@ impl LoginWindowState {
 
     /// Hides the login window (after a successful login).
     pub fn hide(&self) {
-        if let Ok(win) = self.window.lock()
-            && let Some(w) = win.as_ref()
-        {
+        let win = self
+            .window
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        if let Some(w) = win.as_ref() {
             w.set_visible(false);
             tracing::info!("login window hidden");
         }

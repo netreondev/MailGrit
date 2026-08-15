@@ -58,7 +58,7 @@ jobs:
             binary: mailgrit-app-desktop
             archive: mailgrit-macos-arm64.tar.gz
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Install Rust toolchain (pinned 1.97.1)
         run: rustup toolchain install 1.97.1 --profile minimal
@@ -67,7 +67,7 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Install cargo tools (cargo-auditable, cargo-cyclonedx, cargo-bloat)
-        uses: taiki-e/install-action@v2
+        uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
         with:
           tool: cargo-auditable,cargo-cyclonedx,cargo-bloat
 
@@ -88,10 +88,13 @@ jobs:
       # into the binary with the full dependency list + known advisories at
       # build time. A downloaded binary can then be scanned with
       # `cargo audit bin <path>` without source access.
-      # --all-features matches the CI build/test gate (no feature-gated path
-      # ships without being compiled).
+      # DEFAULT features only: `e2e` is a TEST-ONLY cargo feature (dashboard
+      # override, MAILGRIT_LOGIN_URL) — release binaries must not contain the
+      # hooks. The feature IS still compiled and linted by the CI quality job
+      # (clippy/tests run --all-features), so no feature-gated path ships
+      # untested — it just does not ship IN the binary.
       - name: Build release binary (auditable — deps embedded)
-        run: cargo auditable build --release -p mailgrit-app-desktop --all-features --target ${{ matrix.target }}
+        run: cargo auditable build --release -p mailgrit-app-desktop --target ${{ matrix.target }}
 
       # CycloneDX SBOM for the desktop binary crate. Captures the resolved
       # dependency tree (incl. versions + licenses) at release time.
@@ -165,7 +168,7 @@ jobs:
           echo "hashes=$(cat hashes-${{ matrix.name }}.txt | base64 | tr -d '\n')" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact (archive + SBOM + bloat + hashes)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: ${{ matrix.archive }}
           path: |
@@ -198,7 +201,7 @@ jobs:
       # The matrix jobs each produced a hashes-* artifact. Download them all and
       # merge into a single subject list for the SLSA generator.
       - name: Download all build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: release-assets
           merge-multiple: true
@@ -220,7 +223,7 @@ jobs:
       id-token: write
       contents: write
     # Reusable workflow — MUST be at the job level (not inside steps).
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@v2.1.0
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
     with:
       base64-subjects: ${{ needs.provenance-subjects.outputs.base64 }}
       upload-assets: true
@@ -240,16 +243,16 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Download all build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: release-assets
           merge-multiple: true
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v4.1.2
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
         with:
           cosign-release: "v2.4.1"   # pinned for reproducibility
 
@@ -271,7 +274,7 @@ jobs:
           done
 
       - name: Upload signing artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: signatures
           path: |
@@ -295,10 +298,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
 
       - name: Download all artifacts (archives, SBOMs, signatures)
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: release-assets
           merge-multiple: true
@@ -316,7 +319,7 @@ jobs:
           fi
 
       - name: Create / update release with binaries, SBOMs and signatures
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@6cbd405e2c4e67a21c47fa9e383d020e4e28b836 # v2.3.3
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: MailGrit ${{ steps.tag.outputs.tag }}
@@ -375,5 +378,7 @@ jobs:
             release-assets/mailgrit-sbom-windows-x86_64.cdx.json
             release-assets/mailgrit-sbom-linux-x86_64.cdx.json
             release-assets/mailgrit-sbom-macos-arm64.cdx.json
-          draft: false
+          # Draft first: a human reviews assets/signatures/provenance before the
+          # tag goes public (the job holds contents:write + id-token:write).
+          draft: true
           prerelease: false

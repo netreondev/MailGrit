@@ -20,7 +20,6 @@ e2e/
 
 # Generated GitHub Pages site assets (static HTML/CSS) — not audited Rust.
 docs/
-site/
 
 # Lockfiles are machine-generated; scanning them produces deterministic noise.
 Cargo.lock

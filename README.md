@@ -269,7 +269,7 @@ continuous fuzzing (cargo-fuzz) run on every push/PR (Linux) and are
 fails the build and blocks the PR. Kani (bounded model-checking of the
 core-domain parsers) runs in a separate **scheduled** workflow
 (`.github/workflows/kani.yml`, weekly + on-demand): its kani-github-action
-bootstrap takes ~90 min and cannot fit a per-push budget without cancelling
+bootstrap takes ~30 min and cannot fit a per-push budget without cancelling
 the run (a job timeout cancels the whole GitHub Actions run). The harnesses do
 verify (0 of 358 checks failed); only the trigger differs.
 

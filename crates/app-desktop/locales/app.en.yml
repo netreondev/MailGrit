@@ -35,6 +35,7 @@ theme.dark: "Dark theme"
 theme.toggle: "Toggle theme"
 logout: "Log out"
 donate.label: "Donate"
+donate.tooltip: "Support MailGrit — opens the donation page in your browser"
 
 # ── (target x kind) labels — 3x3 matrix ─────────────────────────────────────
 op_label.user.create: "Creating user"
@@ -85,9 +86,7 @@ csv.valid_rows: "valid rows"
 csv.rejected: "rejected"
 csv.read_error: "failed to read file: %{error}"
 csv.parse_io_error: "read error: %{error}"
-csv.parse_error: "CSV error: %{error}"
 csv.loaded_summary: "CSV loaded: %{valid} valid, %{failed} rejected rows"
-csv.utf8_warn: "CSV contains invalid UTF-8, auto column-mapping disabled"
 
 # ── Failed CSV rows view ────────────────────────────────────────────────────
 csv.failed_title: "Rejected CSV rows (%{count})"
@@ -197,7 +196,6 @@ operr.diag_no_forms: "no forms"
 
 # ── Export ─────────────────────────────────────────────────────────────────
 export.nothing: "nothing to export"
-export.encryption_error: "export encryption error: %{error}"
 export.encrypted_ok: "Encrypted to %{path} (decrypt with the master password)"
 export.plain_ok: "Saved to %{path} (unencrypted)"
 export.save_error: "failed to save: %{error}"
@@ -222,7 +220,6 @@ master_password.cancel: "Cancel"
 master_password.wrong: "wrong master password"
 master_password.corrupt_key: "audit key file is corrupted (wrong size); audit history cannot be verified"
 master_password.hint: "Protects the audit log and the export encryption key (Argon2id). It is not stored. You enter it when you unlock the Audit tab or export encrypted data. If lost, the audit log and encrypted exports cannot be recovered."
-master_password.export_need: "Enter the master password to encrypt the export"
 master_password.export_no_audit: "Enter the master password to encrypt the export (it also unlocks the audit log)"
 
 # ── URL validation (util.rs) ───────────────────────────────────────────────
@@ -248,6 +245,7 @@ err.csv.too_many_rows: "CSV exceeds the maximum number of rows: %{actual} > %{ma
 err.csv.line_too_long: "line %{line_no} exceeds %{max} bytes"
 err.csv.field_too_long: "field on line %{line_no} exceeds %{max} bytes"
 err.csv.io: "CSV read error: %{error}"
+err.csv.invalid_utf8: "line %{line_no} is not valid UTF-8"
 err.csv.row: "line %{line_no}: %{detail}"
 # PasswordWarning (core-domain password_policy)
 err.pw.too_short: "password too short: %{actual} characters, needs ≥ %{min}"
@@ -277,4 +275,12 @@ err.quota.out_of_range: "quota out of range: %{value} (expected 1..=%{max})"
 # CsvRowError aggregates (core-domain)
 err.column_count: "wrong number of columns: %{actual} (expected %{expected})"
 err.missing_field: "required field missing: %{field}"
-
+pw.class_upper: "A–Z"
+pw.class_lower: "a–z"
+pw.class_digits: "0–9"
+pw.class_special: "!@#"
+table.placeholder_domain: "example.com"
+table.placeholder_username: "ivan.petrov"
+table.placeholder_quota: "1024"
+audit.export_encrypted: "local encrypted CSV export: %{rows} rows → %{path}"
+audit.export_plain: "local plain CSV export: %{rows} rows → %{path}"

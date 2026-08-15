@@ -83,10 +83,13 @@ impl RawCsvRow {
 
 /// A fully validated CSV row, ready for user creation.
 ///
-/// The `state` field guarantees at the type level that this object can only be
-/// obtained through the canonical parser ([`RawCsvRow::parse`]), not assembled
-/// directly: the `Sanitized` type does not expose a constructor, and the fields
-/// themselves require `Validated*` values that can only be created via the parsers.
+/// Typestate guarantee, stated precisely: OUTSIDE this crate, `Sanitized` has
+/// no constructor (its field is private and it derives nothing constructible),
+/// and each `Validated*`/`Sanitized*` field can only be produced by its
+/// `parse()` — so an external crate cannot assemble this struct bypassing
+/// validation. WITHIN the crate the struct is technically assemblable (all
+/// fields are `pub`); internal code is expected to go through
+/// [`RawCsvRow::parse`], which is the single canonical constructor.
 #[derive(Debug, Clone)]
 pub struct SanitizedUserRow {
     /// Phantom marker of the (Sanitized) state. Carries no data at runtime.
@@ -157,14 +160,44 @@ mod tests {
         Ok(())
     }
 
+    // The typestate CONTRACT, tested for what is actually testable:
+    // 1) `Sanitized` cannot be constructed outside this crate (private field,
+    //    no public constructor) — enforced by the type system, not runtime.
+    // 2) The canonical parser maps every input through the corresponding
+    //    field parser (a mutation swapping a field's parse call must change
+    //    the output or fail this test).
     #[test]
-    fn sanitized_row_not_constructable_directly() -> Result<(), CsvRowError> {
-        // SanitizedUserRow can only be created via RawCsvRow::parse(),
-        // because the fields require Validated* types, which have no public
-        // constructors other than parse(). state = Sanitized cannot be forged.
-        // (Compile-time guarantee; this test documents the contract.)
+    fn parse_routes_every_field_through_its_validator() -> Result<(), Box<dyn std::error::Error>> {
         let row = raw_valid().parse()?;
         assert_eq!(row.state, Sanitized);
+        assert_eq!(row.domain.as_str(), "example.com");
+        assert_eq!(row.username.as_str(), "ivan.petrov");
+        assert_eq!(
+            row.display_name.as_str(),
+            "Ivan Petrov",
+            "display_name must come from the display-name parser (not copied raw)"
+        );
+        assert_eq!(row.quota.mb(), 1024);
+        assert_eq!(row.password.as_secret_str(), "S3cur3P@ss1");
+
+        // The routing is validation-relevant, not cosmetic: invalid per-field
+        // values are rejected with the FIELD's error kind.
+        let mut bad_domain = raw_valid();
+        *bad_domain.fields.get_mut(0).ok_or("field 0")? = "user@example.com".into();
+        assert!(matches!(
+            bad_domain.parse(),
+            Err(CsvRowError::Domain(
+                crate::error::DomainError::EmailProvided
+            ))
+        ));
+        let mut bad_quota = raw_valid();
+        *bad_quota.fields.get_mut(4).ok_or("field 4")? = "0".into();
+        assert!(matches!(
+            bad_quota.parse(),
+            Err(CsvRowError::Quota(
+                crate::error::QuotaError::OutOfRange { .. }
+            ))
+        ));
         Ok(())
     }
 }

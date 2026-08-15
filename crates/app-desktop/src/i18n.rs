@@ -24,6 +24,20 @@
 
 #![forbid(unsafe_code)]
 
+use crate::state::AppState;
+use dioxus::prelude::{ReadableExt, Signal};
+
+/// Subscribes the calling component to language changes.
+///
+/// `rust_i18n::t!`/`tr!` read the **global** locale, not a Dioxus signal, so
+/// every component that renders localized text must explicitly read
+/// `state.read().language` during render — otherwise Dioxus will not re-render
+/// it on a locale switch. This helper is the single named idiom for that
+/// subscription (previously copy-pasted as `let _lang = ...` across components).
+pub fn subscribe_to_language(state: Signal<AppState>) {
+    let _ = state.read().language;
+}
+
 /// Helper for the `tr!` macro (main.rs): converts the `Cow<str>` from
 /// `rust_i18n::t!` into a `String` accepted by Dioxus `IntoDynNode`.
 /// `#[doc(hidden)]` marks it as a macro implementation detail.
@@ -155,5 +169,54 @@ pub mod tests {
                 assert!(!s.is_empty(), "locale {code}: empty interpolation result");
             }
         }
+    }
+
+    /// Full key PARITY between the locale files: every key in `app.en.yml`
+    /// exists in every other `app.<lang>.yml` and vice versa. The catalogs are
+    /// flat `key: "value"` files, so the key sets are extracted by a line scan
+    /// (independent of the runtime catalog). This is the test that would have
+    /// caught the 14 `master_password.*` keys living only in English while the
+    /// modal silently fell back inside the other 8 locales.
+    #[test]
+    fn locale_files_have_identical_key_sets() -> Result<(), Box<dyn std::error::Error>> {
+        let locales_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("locales");
+        let en_keys = read_locale_keys(&locales_dir.join("app.en.yml"))?;
+        assert!(
+            !en_keys.is_empty(),
+            "app.en.yml yielded no keys — the parser is out of sync with the file format"
+        );
+        for code in ["de", "fr", "es", "it", "pt", "nl", "pl", "uk"] {
+            let keys = read_locale_keys(&locales_dir.join(format!("app.{code}.yml")))?;
+            let missing: Vec<&String> = en_keys.difference(&keys).collect();
+            let extra: Vec<&String> = keys.difference(&en_keys).collect();
+            assert!(
+                missing.is_empty(),
+                "locale {code} is missing keys present in en: {missing:?}"
+            );
+            assert!(
+                extra.is_empty(),
+                "locale {code} has keys absent from en: {extra:?}"
+            );
+        }
+        Ok(())
+    }
+
+    /// Extracts the top-level key set from a flat `key: "value"` catalog file.
+    fn read_locale_keys(
+        path: &std::path::Path,
+    ) -> Result<std::collections::BTreeSet<String>, Box<dyn std::error::Error>> {
+        let content = std::fs::read_to_string(path)
+            .map_err(|e| format!("reading {}: {e}", path.display()))?;
+        let mut keys = std::collections::BTreeSet::new();
+        for line in content.lines() {
+            let line = line.trim();
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            }
+            if let Some((key, _value)) = line.split_once(": ") {
+                keys.insert(key.to_string());
+            }
+        }
+        Ok(keys)
     }
 }

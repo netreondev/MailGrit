@@ -22,6 +22,22 @@ use mailgrit_core_domain::{
 };
 
 // ============================================================================
+// UrlError (app layer)
+// ============================================================================
+
+/// Localized message for [`crate::error::UrlError`] (base-URL validation).
+#[must_use]
+pub fn url_error(e: &crate::error::UrlError) -> String {
+    match e {
+        crate::error::UrlError::Invalid => tr!("url.invalid"),
+        crate::error::UrlError::NotHttps { scheme } => {
+            tr!("url.not_https", scheme = scheme)
+        }
+        crate::error::UrlError::NoHost => tr!("url.no_host"),
+    }
+}
+
+// ============================================================================
 // CsvParseError (core-csv)
 // ============================================================================
 
@@ -40,6 +56,9 @@ pub fn csv_parse_error(e: &CsvParseError) -> String {
             tr!("err.csv.field_too_long", line_no = line_no, max = max)
         }
         CsvParseError::Io(io) => tr!("err.csv.io", error = io),
+        CsvParseError::InvalidUtf8 { line_no } => {
+            tr!("err.csv.invalid_utf8", line_no = line_no)
+        }
         CsvParseError::Row { line_no, source } => {
             tr!(
                 "err.csv.row",
@@ -164,11 +183,11 @@ pub fn password_warning(w: &PasswordWarning) -> String {
 // EditableUserRow — localized field validation for the UI table
 // ============================================================================
 
-/// Localized counterpart of [`EditableUserRow::validate_fields`]: re-runs field
-/// validation through the core-domain typestate parsers and returns errors with
-/// a translated `message`. A mirror of the core logic (the same set of parsers in
-/// the same order), but `message` is the result of `domain_error`/
-/// `username_error`/... instead of the core `Display`.
+/// Per-field validation of an [`EditableUserRow`], localized: re-runs the
+/// core-domain typestate parsers (the same set, in the same order, as
+/// [`RawCsvRow::parse`](mailgrit_core_domain::RawCsvRow::parse) — the canonical
+/// pipeline behind `EditableUserRow::to_sanitized`) and returns errors with a
+/// translated `message` instead of the core `Display`.
 ///
 /// Used in `editable_table_view` for cell highlighting and tooltips. The core
 /// crate stays free of i18n — translation lives at this layer.

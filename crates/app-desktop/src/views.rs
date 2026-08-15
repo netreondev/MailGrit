@@ -17,7 +17,7 @@ use std::sync::Arc;
 /// Preview of CSV rows for delete confirmation (in a Modal).
 pub fn preview_csv_rows(state: &Signal<AppState>) -> Element {
     let read = state.read();
-    let Some(csv) = read.csv.as_ref() else {
+    let Some(csv) = read.csv.rows.as_ref() else {
         return rsx! { p { class: "muted", {tr!("csv.preview_empty")} } };
     };
     let preview: Vec<String> = csv
@@ -53,7 +53,7 @@ pub fn cookies_disclosure(state: &Signal<AppState>) -> Element {
     }
     let session_name = state.read().session_cookie_name.clone();
     // Read the language to re-render the localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(*state);
     // Prepare the strings for display (avoiding temporary borrows in RSX).
     let yes = tr!("cookies.yes");
     let no = tr!("cookies.no");
@@ -106,11 +106,11 @@ pub fn cookies_disclosure(state: &Signal<AppState>) -> Element {
 /// View of rejected CSV rows (ParsedCsv::failed) — a table with the reason.
 pub fn failed_csv_rows_view(state: &Signal<AppState>) -> Element {
     // Read the language to re-render the localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(*state);
     // Collect the data to display under the read-guard, releasing it before rendering.
     let (total, rows): (usize, Vec<(usize, String, String)>) = {
         let read = state.read();
-        read.csv.as_ref().map_or_else(
+        read.csv.rows.as_ref().map_or_else(
             || (0, Vec::new()),
             |csv| {
                 let rows = csv
@@ -168,8 +168,8 @@ pub fn failed_csv_rows_view(state: &Signal<AppState>) -> Element {
 pub fn batch_result_view() -> Element {
     let state = use_context::<Signal<AppState>>();
     // Read the language to re-render the localized strings.
-    let _lang = state.read().language;
-    let result = state.read().batch_result.clone();
+    crate::i18n::subscribe_to_language(state);
+    let result = state.read().csv.batch_result.clone();
 
     let Some(result) = result else {
         return rsx! { p { class: "muted", {tr!("result.none_yet")} } };
@@ -216,7 +216,7 @@ pub fn audit_view() -> Element {
     let entries = state.read().audit_entries.clone();
     let has_audit = state.read().audit.is_some();
     // Read the language to re-render the localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
 
     if !has_audit {
         // The audit is locked by the master password. Offer to unlock it.
@@ -282,6 +282,14 @@ pub fn audit_view() -> Element {
                         Some(Err(crate::audit_ui::AuditError::CorruptedKeyFile { .. })) => {
                             tr!("master_password.corrupt_key")
                         }
+                        // KDF/crypto failures cannot occur during verify (the key
+                        // is already derived), but stay distinguishable if that
+                        // ever changes — reported as a technical error, not
+                        // "tampered".
+                        Some(Err(
+                            crate::audit_ui::AuditError::Kdf(_)
+                            | crate::audit_ui::AuditError::Crypto(_),
+                        )) => tr!("audit.verify_storage_error"),
                         None => tr!("audit.unavailable"),
                     };
                     state_clone.write().error_msg = Some(msg);
@@ -317,6 +325,7 @@ pub fn mapping_panel_view(
     let op_status = state.read().op_status;
     let mapping_info = state
         .read()
+        .csv
         .column_mapping
         .as_ref()
         .map(|m| (m.bindings.len(), m.profile.fields.len(), m.header.clone()));
@@ -337,11 +346,11 @@ pub fn mapping_panel_view(
                     // Re-detect the mapping from the loaded CSV header.
                     let s = state.read();
                     let profile = s.effective_profile();
-                    if let Some(m) = &s.column_mapping {
+                    if let Some(m) = &s.csv.column_mapping {
                         let header = m.header.clone();
                         let mapping = detect_mapping(&header, &profile);
                         drop(s);
-                        state.write().column_mapping = Some(Arc::new(mapping));
+                        state.write().csv.column_mapping = Some(Arc::new(mapping));
                     }
                 },
                 {tr!("mapping.auto_detect")}

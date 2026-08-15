@@ -8,7 +8,7 @@
 use crate::batch::{BatchResult, CredentialRow, RowFailure};
 use crate::login_window;
 use crate::op_label::operation_label;
-use crate::state::{AppState, AuthStatus, OpStatus, Screen};
+use crate::state::{AppState, OpStatus};
 use crate::util::now_rfc3339;
 use dioxus::prelude::*;
 use mailgrit_core_domain::{BulkOperationKind, OperationTarget};
@@ -23,44 +23,13 @@ pub use crate::ops_export::{do_export, open_export_choice};
 ///
 /// The requests are executed INSIDE the login-webview (JS fetch), because behind
 /// a FortiWeb WAF replaying the cookie in reqwest does not authenticate against
-/// the backend. Result → oneshot → spawn → Signal.
-#[expect(
-    clippy::too_many_lines,
-    reason = "a single operation pipeline with sequential checks; splitting harms locality"
-)]
+/// the backend. Pipeline: [`validate_and_collect`] (checks + typestate
+/// re-validation) → `request_op` (webview JS) → [`apply_op_results`] (guards,
+/// audit, state).
 pub fn launch_op(state: &mut Signal<AppState>, target: OperationTarget, kind: BulkOperationKind) {
-    let base_url;
-    let rows;
-    let edit_errors;
-    {
-        let read = state.read();
-        if !read.session_ok {
-            drop(read);
-            state.write().error_msg = Some(t!("operr.no_session").to_string());
-            return;
-        }
-        if read.editable_rows.as_ref().is_none_or(Vec::is_empty) {
-            drop(read);
-            state.write().error_msg = Some(t!("operr.no_rows").to_string());
-            return;
-        }
-        base_url = read.base_url.clone();
-        drop(read);
-        // Re-validate the editable rows through the typestate pipeline; invalid
-        // ones are skipped (fail-soft).
-        let (valid, errors) = crate::screens::csv_load::collect_sanitized_rows(state);
-        rows = valid;
-        edit_errors = errors;
-    }
-    if rows.is_empty() {
-        let detail = if edit_errors.is_empty() {
-            t!("operr.no_valid_rows").to_string()
-        } else {
-            t!("operr.no_valid_rows_with_errors", n = edit_errors.len()).to_string()
-        };
-        state.write().error_msg = Some(detail);
-        return;
-    }
+    let Some((base_url, rows)) = validate_and_collect(state) else {
+        return; // the error message is already in state.error_msg
+    };
 
     let op_label = operation_label(target, kind);
     tracing::info!("batch {}: {} rows", op_label, rows.len());
@@ -70,21 +39,8 @@ pub fn launch_op(state: &mut Signal<AppState>, target: OperationTarget, kind: Bu
     let expected = u64::try_from(rows.len()).unwrap_or(0);
 
     // Take the credential snapshot for export BEFORE `rows` is moved into
-    // `request_op`. Passwords are only needed for create; for edit/delete the
-    // snapshot is empty, but the copy is still cheap (Arc-backed strings).
-    let credential_snapshot: Vec<CredentialRow> = match kind {
-        BulkOperationKind::Create => rows
-            .iter()
-            .map(|r| CredentialRow {
-                domain: r.domain.as_str().to_owned(),
-                username: r.username.as_str().to_owned(),
-                password: r.password.as_secret_str().to_owned(),
-                display_name: r.display_name.as_str().to_owned(),
-                quota_mb: r.quota.mb(),
-            })
-            .collect(),
-        BulkOperationKind::Edit | BulkOperationKind::Delete => Vec::new(),
-    };
+    // `request_op`.
+    let credential_snapshot = credential_snapshot_for(kind, &rows);
 
     let login_state = login_window::login_state();
     let Some(rx) = login_state.request_op(target, kind, base_url, rows) else {
@@ -104,99 +60,172 @@ pub fn launch_op(state: &mut Signal<AppState>, target: OperationTarget, kind: Bu
 
     let mut state_clone = *state;
     spawn(async move {
-        if let Ok(results) = rx.await {
-            let total = u64::try_from(results.len()).unwrap_or(0);
-            // A silent empty result on a non-empty batch = a webview failure.
-            if total == 0 && expected > 0 {
-                tracing::warn!("batch returned 0 results for {expected} rows — webview failure");
-                let mut s = state_clone.write();
-                s.op_status = OpStatus::Idle;
-                s.error_msg = Some(t!("operr.webview_no_result").to_string());
-                return;
-            }
-            let succeeded =
-                u64::try_from(results.iter().filter(|r| r.outcome.is_ok()).count()).unwrap_or(0);
-            let failed = total.saturating_sub(succeeded);
-            tracing::info!("batch completed: succeeded {succeeded}, rejected {failed}");
-
-            let failures: Vec<RowFailure> = results
-                .iter()
-                .filter_map(|r| match &r.outcome {
-                    Ok(()) => None,
-                    Err(reason) => Some(RowFailure {
-                        username: r.username.clone(),
-                        domain: r.domain.clone(),
-                        reason: reason.clone(),
-                    }),
-                })
-                .collect();
-
-            // Session-expiry detector: if ALL rows failed with a sign of session
-            // loss (HTTP 401/403 or a redirect to /login), return the user to the
-            // login screen (the "Session active" badge was misleading).
-            let session_lost = total > 0
-                && succeeded == 0
-                && results.iter().all(|r| {
-                    is_session_expired(
-                        r.status,
-                        &r.outcome,
-                        r.resp_url.as_deref(),
-                        r.verify_url.as_deref(),
-                    )
-                });
-            if session_lost {
-                tracing::warn!("session expired during operation — returning to login screen");
-                let mut s = state_clone.write();
-                s.op_status = OpStatus::Idle;
-                s.session_ok = false;
-                s.auth_status = AuthStatus::None;
-                s.error_msg = Some(t!("operr.session_expired").to_string());
-                s.screen = Screen::Login;
-                s.batch_result = None;
-                s.csv = None;
-                s.modals.pending_delete = false;
-                return;
-            }
-
-            // Audit record: the (target × kind) → action mapping is in
-            // `audit_action_for`.
-            let action = audit_action_for(target, kind);
-            // Credential snapshot for export. Passwords live only in
-            // `editable_rows`, which is reset on target change (tab), after which
-            // the export would lose data. Take the password from the snapshot
-            // only for SUCCESSFUL operations (results come in row order): a
-            // guarantee that the password matches what was sent to the server.
-            // For edit/delete no accounts are created — the snapshot is already
-            // empty.
-            let created_credentials = successful_credentials(&credential_snapshot, &results);
-            let result = BatchResult {
-                succeeded,
-                failed,
-                failures,
-                created_credentials,
-            };
-            let timestamp = now_rfc3339();
-            // Audit record: clone the Arc<AuditWriter> in a short read-scope,
-            // release the signal borrow BEFORE the blocking SQLite-INSERT —
-            // otherwise `&state_clone.read().audit` is kept alive across
-            // append_op, which is a reentrant anti-pattern (similarly to export).
-            let audit = { state_clone.read().audit.clone() };
-            if let Some(audit) = &audit
-                && let Err(e) = audit.append_op(action, &result, &timestamp)
-            {
-                tracing::warn!("audit record failed: {e}");
-            }
-            let mut s = state_clone.write();
-            s.batch_result = Some(Arc::new(result));
-            s.op_status = OpStatus::Idle;
-            s.refresh_audit();
-        } else {
+        let Ok(results) = rx.await else {
             tracing::warn!("operation-batch channel closed (cancelled?)");
             let mut s = state_clone.write();
             s.op_status = OpStatus::Idle;
             s.error_msg = Some(t!("operr.cancelled").to_string());
-        }
+            return;
+        };
+        apply_op_results(
+            &mut state_clone,
+            target,
+            kind,
+            expected,
+            &credential_snapshot,
+            &results,
+        );
     });
+}
+
+/// Pre-flight checks of a bulk operation: an active session, loaded rows, and
+/// the typestate re-validation of the editable rows. Returns `None` (with the
+/// localized reason already in `error_msg`) when the operation must not start.
+fn validate_and_collect(
+    state: &mut Signal<AppState>,
+) -> Option<(String, Vec<mailgrit_core_domain::SanitizedUserRow>)> {
+    let base_url;
+    {
+        let read = state.read();
+        if !read.session_ok {
+            drop(read);
+            state.write().error_msg = Some(t!("operr.no_session").to_string());
+            return None;
+        }
+        if read.csv.editable_rows.as_ref().is_none_or(Vec::is_empty) {
+            drop(read);
+            state.write().error_msg = Some(t!("operr.no_rows").to_string());
+            return None;
+        }
+        base_url = read.base_url.clone();
+    }
+    // Re-validate the editable rows through the typestate pipeline; invalid
+    // ones are skipped (fail-soft).
+    let (rows, edit_errors) = crate::screens::csv_load::collect_sanitized_rows(state);
+    if rows.is_empty() {
+        let detail = if edit_errors.is_empty() {
+            t!("operr.no_valid_rows").to_string()
+        } else {
+            t!("operr.no_valid_rows_with_errors", n = edit_errors.len()).to_string()
+        };
+        state.write().error_msg = Some(detail);
+        return None;
+    }
+    Some((base_url, rows))
+}
+
+/// Snapshot of the credentials being created (passwords for the export).
+/// Only create produces accounts; for edit/delete the snapshot is empty.
+fn credential_snapshot_for(
+    kind: BulkOperationKind,
+    rows: &[mailgrit_core_domain::SanitizedUserRow],
+) -> Vec<CredentialRow> {
+    match kind {
+        BulkOperationKind::Create => rows
+            .iter()
+            .map(|r| CredentialRow {
+                domain: r.domain.as_str().to_owned(),
+                username: r.username.as_str().to_owned(),
+                password: r.password.as_secret_str().to_owned(),
+                display_name: r.display_name.as_str().to_owned(),
+                quota_mb: r.quota.mb(),
+            })
+            .collect(),
+        BulkOperationKind::Edit | BulkOperationKind::Delete => Vec::new(),
+    }
+}
+
+/// Applies the webview's per-row results: the empty-result and session-loss
+/// guards, the audit record, and the final state update.
+fn apply_op_results(
+    state_clone: &mut Signal<AppState>,
+    target: OperationTarget,
+    kind: BulkOperationKind,
+    expected: u64,
+    credential_snapshot: &[CredentialRow],
+    results: &[crate::webview_ops::OpResult],
+) {
+    {
+        let total = u64::try_from(results.len()).unwrap_or(0);
+        // A silent empty result on a non-empty batch = a webview failure.
+        if total == 0 && expected > 0 {
+            tracing::warn!("batch returned 0 results for {expected} rows — webview failure");
+            let mut s = state_clone.write();
+            s.op_status = OpStatus::Idle;
+            s.error_msg = Some(t!("operr.webview_no_result").to_string());
+            return;
+        }
+        let succeeded =
+            u64::try_from(results.iter().filter(|r| r.outcome.is_ok()).count()).unwrap_or(0);
+        let failed = total.saturating_sub(succeeded);
+        tracing::info!("batch completed: succeeded {succeeded}, rejected {failed}");
+
+        let failures: Vec<RowFailure> = results
+            .iter()
+            .filter_map(|r| match &r.outcome {
+                Ok(()) => None,
+                Err(reason) => Some(RowFailure {
+                    username: r.username.clone(),
+                    domain: r.domain.clone(),
+                    reason: reason.clone(),
+                }),
+            })
+            .collect();
+
+        // Session-expiry detector: if ALL rows failed with a sign of session
+        // loss (HTTP 401/403 or a redirect to /login), return the user to the
+        // login screen (the "Session active" badge was misleading).
+        let session_lost = total > 0
+            && succeeded == 0
+            && results.iter().all(|r| {
+                is_session_expired(
+                    r.status,
+                    &r.outcome,
+                    r.resp_url.as_deref(),
+                    r.verify_url.as_deref(),
+                )
+            });
+        if session_lost {
+            tracing::warn!("session expired during operation — returning to login screen");
+            let mut s = state_clone.write();
+            s.reset_session();
+            s.error_msg = Some(t!("operr.session_expired").to_string());
+            return;
+        }
+
+        // Audit record: the (target × kind) → action mapping is in
+        // `audit_action_for`.
+        let action = audit_action_for(target, kind);
+        // Credential snapshot for export. Passwords live only in
+        // `editable_rows`, which is reset on target change (tab), after which
+        // the export would lose data. Take the password from the snapshot
+        // only for SUCCESSFUL operations (results come in row order): a
+        // guarantee that the password matches what was sent to the server.
+        // For edit/delete no accounts are created — the snapshot is already
+        // empty.
+        let created_credentials = successful_credentials(credential_snapshot, results);
+        let result = BatchResult {
+            succeeded,
+            failed,
+            failures,
+            created_credentials,
+        };
+        let timestamp = now_rfc3339();
+        // Audit record: clone the Arc<AuditWriter> in a short read-scope,
+        // release the signal borrow BEFORE the blocking SQLite-INSERT —
+        // otherwise `&state_clone.read().audit` is kept alive across
+        // append_op, which is a reentrant anti-pattern (similarly to export).
+        let audit = { state_clone.read().audit.clone() };
+        if let Some(audit) = &audit
+            && let Err(e) = audit.append_op(action, &result, &timestamp)
+        {
+            tracing::warn!("audit record failed: {e}");
+        }
+        let mut s = state_clone.write();
+        s.csv.batch_result = Some(Arc::new(result));
+        s.op_status = OpStatus::Idle;
+        s.refresh_audit();
+    }
 }
 
 /// Maps a (target × kind) pair to an [`AuditAction`] for the audit log.
@@ -245,6 +274,7 @@ fn successful_credentials(
 pub fn run_diag(state: &mut Signal<AppState>) {
     let domain = state
         .read()
+        .csv
         .editable_rows
         .as_ref()
         .and_then(|rows| rows.first())
@@ -375,11 +405,18 @@ fn is_session_expired(
 }
 
 /// Textual fallback indicator of session expiry (for export errors).
+///
+/// Status codes are matched on DIGIT-TOKEN boundaries: a plain
+/// `contains("401")` also matched "4012" and "14012" (any number embedding the
+/// code). The primary detector uses the numeric `status` field; this text
+/// fallback only covers paths without one.
 #[must_use]
 pub fn is_session_expired_reason(reason: &str) -> bool {
     let r = reason.to_ascii_lowercase();
-    r.contains("401")
-        || r.contains("403")
+    let status_match = r
+        .split(|c: char| !c.is_ascii_digit())
+        .any(|tok| tok == "401" || tok == "403");
+    status_match
         || r.contains("/login")
         || r.contains("login_required")
         || r.contains("csrf token not found")

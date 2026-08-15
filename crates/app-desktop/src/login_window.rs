@@ -271,13 +271,15 @@ fn build_login_window<T: 'static>(
     req: &LoginRequest,
     data_dir: &Path,
     target: &EventLoopWindowTarget<T>,
-) -> Result<(), String> {
+) -> Result<(), crate::error::AppError> {
     tracing::info!("building the raw wry login window on the Dioxus event-loop");
 
-    // Test mode: MAILGRIT_LOGIN_URL overrides the URL (diagnostics without iRedAdmin).
-    // The URL goes through the same validation as the main base_url (https + host):
-    // iRedAdmin over HTTP would leak the session cookie (see util::validate_base_url),
-    // so the env override must not bypass this requirement.
+    // Test mode (only compiled with the `e2e` cargo feature): MAILGRIT_LOGIN_URL
+    // overrides the URL (diagnostics without iRedAdmin). The URL goes through
+    // the same validation as the main base_url (https + host): iRedAdmin over
+    // HTTP would leak the session cookie (see util::validate_base_url), so the
+    // env override must not bypass this requirement.
+    #[cfg(feature = "e2e")]
     let url = std::env::var("MAILGRIT_LOGIN_URL").map_or_else(
         |_| req.base_url.clone(),
         |env_url| {
@@ -293,6 +295,8 @@ fn build_login_window<T: 'static>(
             }
         },
     );
+    #[cfg(not(feature = "e2e"))]
+    let url = req.base_url.clone();
 
     // 1. A tao window on the same event-loop. The title is localized (rust_i18n).
     let window = Arc::new(
@@ -301,7 +305,7 @@ fn build_login_window<T: 'static>(
             .with_window_icon(crate::window_icon::window_icon())
             .with_inner_size(tao::dpi::LogicalSize::new(1100.0, 780.0))
             .build(target)
-            .map_err(|e| format!("window creation: {e}"))?,
+            .map_err(|e| crate::error::AppError::Other(format!("window creation: {e}")))?,
     );
 
     // 2. A WebContext with the same data_dir → a shared WebView2 cookie-store with the main window.
@@ -317,8 +321,10 @@ fn build_login_window<T: 'static>(
         .with_url(&url)
         .with_navigation_handler(|nav_url: String| {
             // Allow only http/https (block javascript:, file:, data:, etc.).
-            let allowed =
-                url::Url::parse(&nav_url).is_ok_and(|u| matches!(u.scheme(), "http" | "https"));
+            // The allow-list itself lives in core-domain (url_policy) — the
+            // same function the fuzz target imports.
+            let allowed = url::Url::parse(&nav_url)
+                .is_ok_and(|u| mailgrit_core_domain::url_policy::scheme_is_allowed(u.scheme()));
             if !allowed {
                 tracing::warn!("login webview navigation blocked: {nav_url}");
             }
@@ -343,7 +349,7 @@ fn build_login_window<T: 'static>(
             crate::ipc::dispatch(&pending_map, req.body());
         })
         .build(&window)
-        .map_err(|e| format!("webview creation: {e}"))?;
+        .map_err(|e| crate::error::AppError::Other(format!("webview creation: {e}")))?;
 
     tracing::info!("login webview created, navigating to {url}");
 

@@ -116,7 +116,19 @@ wildcard_dependencies = "deny"     # forbid "*" versions — deny.toml rule dupl
 # Members reference these as `mailgrit-core-foo = { workspace = true }`.
 # ----------------------------------------------------------------------------
 [workspace.dependencies]
+# Internal crates — single source of truth for the version.
 mailgrit-core-csv = { version = "0.1.3", path = "crates/core-csv" }
 mailgrit-core-domain = { version = "0.1.3", path = "crates/core-domain" }
 mailgrit-core-storage = { version = "0.1.3", path = "crates/core-storage" }
 mailgrit-core-security = { version = "0.1.3", path = "crates/core-security" }
+
+# Third-party dependencies shared by several members — declared once so the
+# versions cannot drift between manifests (previously thiserror was spelled
+# out in 5 manifests, rand in 2, criterion in 2).
+thiserror = "2.0.19"
+rand = "0.10.2"
+zeroize = "1.9.0"
+tracing = "0.1"
+
+# Dev-only, shared by the crates with benchmarks (core-csv, core-security).
+criterion = "0.8"

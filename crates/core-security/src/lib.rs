@@ -3,9 +3,11 @@
 //! From the Spec:
 //! - **Streaming AEAD-at-Rest** (§4, §7): export/backup is encrypted via
 //!   `XChaCha20-Poly1305` directly during writing. The backup file is initially
-//!   born encrypted — this minimizes the TOCTOU window. The encryption key
-//!   itself is zeroed in memory when it goes out of scope (`EncryptionKey::Drop`
-//!   via `zeroize`).
+//!   born encrypted — this minimizes the TOCTOU window. Secret material is
+//!   wiped when it goes out of scope: the encryption key via
+//!   `EncryptionKey::Drop` (`zeroize`), and the KDF output / decrypted
+//!   plaintext via the `Zeroizing` wrappers they are returned in. The master
+//!   password itself lives only in the app layer (`Zeroizing<String>` there).
 //! - **Hash-chained audit** (§III.6): an `HMAC-SHA256` chain for the operations log.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors

@@ -25,6 +25,7 @@ use mailgrit_core_domain::{BulkOperationKind, OperationTarget, SanitizedUserRow}
 
 mod admin;
 mod domain;
+mod helpers;
 mod shared;
 mod user;
 

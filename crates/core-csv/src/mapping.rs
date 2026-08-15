@@ -9,13 +9,17 @@
 // Copyright (c) 2026 Netreon™ and contributors
 
 use crate::parser::{CsvParseError, FailedRow, ParsedCsv};
-use crate::util::{split_cells, strip_bom};
-use mailgrit_core_domain::{EXPECTED_CSV_COLUMNS, MAX_CSV_ROWS, OperationProfile, RawCsvRow};
+use crate::record::{RecordOutcome, RecordReader};
+use crate::util::strip_bom;
+use mailgrit_core_domain::{
+    CLASSICAL_FIELD_NAMES, EXPECTED_CSV_COLUMNS, MAX_CSV_ROWS, OperationProfile, RawCsvRow,
+};
 use std::io::{BufRead, BufReader};
 
-/// Canonical names of the classic 5 fields (in `RawCsvRow` order).
-const CLASSICAL_FIELDS: [&str; EXPECTED_CSV_COLUMNS] =
-    ["domain", "username", "password", "display_name", "quota_mb"];
+/// Canonical names of the classic 5 fields (in `RawCsvRow` order). Aliased
+/// from core-domain's `CLASSICAL_FIELD_NAMES` — the single source of truth
+/// (previously a hand-maintained duplicate of `parser::CSV_HEADER`).
+const CLASSICAL_FIELDS: [&str; EXPECTED_CSV_COLUMNS] = CLASSICAL_FIELD_NAMES;
 
 /// Mapping of source columns to canonical field names of the operation profile.
 ///
@@ -99,32 +103,52 @@ impl ColumnMapping {
 ///
 /// Values are reordered into canonical order, missing optional fields are filled
 /// with defaults, and then `RawCsvRow::new(vec).parse()` is called. Failed rows
-/// accumulate in `failed` (parsing is not interrupted).
+/// accumulate in `failed` (parsing is not interrupted) — including over-limit
+/// lines/fields and invalid UTF-8 (per-row, consistent with the classic
+/// parser; previously these were fatal here).
 ///
 /// # Errors
 ///
-/// Fatal errors (I/O, exceeding `MAX_CSV_ROWS`, an abnormally long line) are
-/// returned as `Err`; per-row errors go into `ParsedCsv::failed`.
+/// Fatal errors (I/O, exceeding `MAX_CSV_ROWS`) are returned as `Err`;
+/// per-row errors go into `ParsedCsv::failed`.
 pub fn parse_csv_with_mapping<R: BufRead>(
     reader: R,
     mapping: &ColumnMapping,
 ) -> Result<ParsedCsv, CsvParseError> {
     let mut result = ParsedCsv::default();
     let mut header_seen = false;
-    for (index, line_result) in reader.lines().enumerate() {
-        let line_no = index.saturating_add(1);
-        let line = line_result?;
-        if line.trim().is_empty() {
-            continue;
+    let mut records = RecordReader::new(reader);
+    while let Some(record) = records.next_record()? {
+        if let RecordOutcome::Fields(fields) = &record.outcome
+            && matches!(fields.as_slice(), [f] if f.trim().is_empty())
+        {
+            continue; // blank line
         }
-        // The first non-empty line is the header (skipped); the mapping is already set.
+        // The first non-empty record is the header (skipped); the mapping is
+        // already set. A header record that failed to split is recorded as a
+        // failed row, and the header slot is still consumed.
         if !header_seen {
             header_seen = true;
+            if let RecordOutcome::Failed(err) = record.outcome {
+                result.failed.push(FailedRow {
+                    line_no: record.line_no,
+                    fields: vec![record.raw],
+                    error: err,
+                });
+            }
             continue;
         }
         check_row_budget(&result)?;
-        let cells = split_cells(&line)?;
-        process_row_mapped(&cells, line_no, &mut result, mapping);
+        match record.outcome {
+            RecordOutcome::Fields(cells) => {
+                process_row_mapped(&cells, record.line_no, &mut result, mapping);
+            }
+            RecordOutcome::Failed(err) => result.failed.push(FailedRow {
+                line_no: record.line_no,
+                fields: vec![record.raw],
+                error: err,
+            }),
+        }
     }
     Ok(result)
 }
@@ -167,30 +191,48 @@ fn parse_auto<R: BufRead>(
     let mut header_consumed = false;
     // Set when a header is detected; until then, positional mode is used.
     let mut detected: Option<ColumnMapping> = None;
-    for (index, line_result) in reader.lines().enumerate() {
-        let line_no = index.saturating_add(1);
-        let line = line_result?;
-        if line.trim().is_empty() {
-            continue;
+    let mut records = RecordReader::new(reader);
+    while let Some(record) = records.next_record()? {
+        if let RecordOutcome::Fields(fields) = &record.outcome
+            && matches!(fields.as_slice(), [f] if f.trim().is_empty())
+        {
+            continue; // blank line
         }
         check_row_budget(&result)?;
         if !header_consumed {
-            let cells = split_cells(&line)?;
-            let candidate = detect_mapping(&cells, profile);
-            if candidate.binds_all_profile_fields() {
-                detected = Some(candidate);
-                header_consumed = true;
-                continue;
+            match record.outcome {
+                RecordOutcome::Fields(cells) => {
+                    let candidate = detect_mapping(&cells, profile);
+                    if candidate.binds_all_profile_fields() {
+                        detected = Some(candidate);
+                    } else {
+                        // Not a header — positional mode; the current record is data.
+                        process_row_positional(&cells, record.line_no, &mut result, &record.raw);
+                    }
+                }
+                RecordOutcome::Failed(err) => {
+                    // The first record cannot be probed as a header: treat it
+                    // as a failed data row in positional mode.
+                    result.failed.push(FailedRow {
+                        line_no: record.line_no,
+                        fields: vec![record.raw],
+                        error: err,
+                    });
+                }
             }
-            // Not a header — positional mode; the current line is data.
             header_consumed = true;
-            process_row_positional(&cells, line_no, &mut result, &line);
             continue;
         }
-        let cells = split_cells(&line)?;
-        match &detected {
-            Some(mapping) => process_row_mapped(&cells, line_no, &mut result, mapping),
-            None => process_row_positional(&cells, line_no, &mut result, &line),
+        match record.outcome {
+            RecordOutcome::Fields(cells) => match &detected {
+                Some(mapping) => process_row_mapped(&cells, record.line_no, &mut result, mapping),
+                None => process_row_positional(&cells, record.line_no, &mut result, &record.raw),
+            },
+            RecordOutcome::Failed(err) => result.failed.push(FailedRow {
+                line_no: record.line_no,
+                fields: vec![record.raw],
+                error: err,
+            }),
         }
     }
     Ok(result)

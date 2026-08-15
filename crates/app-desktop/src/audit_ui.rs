@@ -19,6 +19,13 @@ pub enum AuditError {
     /// Failed to open/create the DB or a read error (transient, not tampering).
     #[error("audit DB error: {0}")]
     Storage(String),
+    /// Argon2id key derivation failed (distinct from DB errors — a KDF
+    /// parameter/input problem, not a corrupted log).
+    #[error("audit KDF error: {0}")]
+    Kdf(String),
+    /// HMAC/AEAD failure while verifying or deriving the audit key.
+    #[error("audit crypto error: {0}")]
+    Crypto(String),
     /// A hash-chain integrity violation (the log was tampered with). Distinct
     /// from [`Storage`](Self::Storage) so the UI does not falsely report
     /// "tampering" on any SQLite error.
@@ -69,15 +76,16 @@ impl AuditWriter {
             )));
         }
         let path = dir.join("mailgrit-audit.sqlite");
-        let conn =
-            rusqlite::Connection::open(path).map_err(|e| AuditError::Storage(e.to_string()))?;
 
         // The audit key is protected by the master password (Argon2id). The file
         // holds the salt and a verify-token; the key itself is derived from the
         // password on each open. Without the password (or with a wrong one), the
         // key cannot be recovered → the audit is unavailable.
         let key = load_or_create_persistent_key(&dir, master_password.as_bytes())?;
-        let log = AuditLog::open(conn, key).map_err(|e| AuditError::Storage(e.to_string()))?;
+        // open_path creates the SQLite connection internally: rusqlite stays an
+        // implementation detail of core-storage, not a dependency of this crate.
+        let log =
+            AuditLog::open_path(&path, key).map_err(|e| AuditError::Storage(e.to_string()))?;
         Ok(Self {
             log: Mutex::new(log),
         })
@@ -137,22 +145,21 @@ impl AuditWriter {
             .map_err(|e| AuditError::Storage(e.to_string()))
     }
 
-    /// Returns the last `limit` audit entries (newest first).
+    /// Returns the last `limit` audit entries (newest first). Pushed down to
+    /// SQL (`ORDER BY id DESC LIMIT ?`): the previous version materialized the
+    /// whole table and re-sorted it in memory on every call — and this runs
+    /// after every operation.
     ///
     /// # Errors
     ///
     /// - [`AuditError`] — on a read error.
     pub fn recent(&self, limit: usize) -> Result<Vec<AuditEntry>, AuditError> {
-        let entries = {
-            let log = self.log.lock().map_err(|_| AuditError::PoisonedLock)?;
-            log.entries()
-        };
-        let entries = entries.map_err(|e| AuditError::Storage(e.to_string()))?;
-        // Sort by descending id (newest first) and take `limit`.
-        let mut sorted = entries;
-        sorted.sort_unstable_by_key(|e| std::cmp::Reverse(e.id));
-        sorted.truncate(limit);
-        Ok(sorted)
+        // The audit table cannot outlive u32 rows (ids are SQLite integers);
+        // saturate defensively rather than erroring on an absurd limit.
+        let limit = u32::try_from(limit).unwrap_or(u32::MAX);
+        let log = self.log.lock().map_err(|_| AuditError::PoisonedLock)?;
+        log.recent(limit)
+            .map_err(|e| AuditError::Storage(e.to_string()))
     }
 
     /// Verifies the integrity of the audit hash-chain.
@@ -225,38 +232,59 @@ fn load_or_create_persistent_key(
 ) -> Result<EncryptionKey, AuditError> {
     let key_path = dir.join(".mailgrit-audit-key");
 
-    if key_path.exists() {
-        let data = std::fs::read(&key_path)
-            .map_err(|e| AuditError::Storage(format!("reading the audit key: {e}")))?;
-        if data.len() != AUDIT_KEY_FILE_LEN {
-            // The file exists but has the wrong length → damage (truncation, a
-            // bad sector, third-party editing). Silently recreating the key would
-            // make the entire legitimate audit history indistinguishable from a
-            // forgery (verify() would report Tampered for every old record).
-            // Report it as an error distinct from log tampering and from a wrong
-            // password.
-            tracing::error!(
-                "audit key file is damaged: {} bytes (expected {AUDIT_KEY_FILE_LEN})",
-                data.len()
-            );
-            return Err(AuditError::CorruptedKeyFile { actual: data.len() });
+    // Read first, decide from the result — the old `exists()` probe had a
+    // TOCTOU gap (the file could appear/change between the check and the read).
+    match std::fs::read(&key_path) {
+        Ok(data) => validate_key_file(&data, master_password),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            let key = create_new_key(&key_path, master_password, VERIFY_TAG)?;
+            // First-run race guard: a second instance may have written ITS key
+            // between our NotFound and our rename. Re-read and validate against
+            // what is actually on disk — with the same master password this
+            // converges to the winner's file; with a different one it correctly
+            // reports WrongMasterPassword. (Residual window between this re-read
+            // and the other instance's rename would require file locking, which
+            // the std API does not expose; a single instance per data directory
+            // is the supported configuration.)
+            std::fs::read(&key_path).map_or_else(
+                |_| Ok(key),
+                |data| validate_key_file(&data, master_password),
+            )
         }
-        let (salt, stored_token) = data.split_at(mailgrit_core_security::SALT_LEN);
-        let derived = mailgrit_core_security::derive_key(master_password, salt)
-            .map_err(|e| AuditError::Storage(e.to_string()))?;
-        let derived_key =
-            EncryptionKey::from_bytes(&derived).map_err(|e| AuditError::Storage(e.to_string()))?;
-        // Verify-token: an HMAC with the derived key over the tag. Compared with
-        // the stored one constant-time: the token is cryptographic; a classic
-        // `!=` would reveal the position of the first mismatch via timing (a
-        // weak but real channel).
-        let expected_token = compute_verify_token(&derived_key, VERIFY_TAG)?;
-        if !mailgrit_core_security::constant_time_eq(&expected_token, stored_token) {
-            return Err(AuditError::WrongMasterPassword);
-        }
-        return Ok(derived_key);
+        Err(e) => Err(AuditError::Storage(format!("reading the audit key: {e}"))),
     }
-    create_new_key(&key_path, master_password, VERIFY_TAG)
+}
+
+/// Validates the key file (`salt || verify_token`) against the password and
+/// derives the audit key. A wrong file length is damage, not a wrong password.
+fn validate_key_file(data: &[u8], master_password: &[u8]) -> Result<EncryptionKey, AuditError> {
+    if data.len() != AUDIT_KEY_FILE_LEN {
+        // The file exists but has the wrong length → damage (truncation, a
+        // bad sector, third-party editing). Silently recreating the key would
+        // make the entire legitimate audit history indistinguishable from a
+        // forgery (verify() would report Tampered for every old record).
+        // Report it as an error distinct from log tampering and from a wrong
+        // password.
+        tracing::error!(
+            "audit key file is damaged: {} bytes (expected {AUDIT_KEY_FILE_LEN})",
+            data.len()
+        );
+        return Err(AuditError::CorruptedKeyFile { actual: data.len() });
+    }
+    let (salt, stored_token) = data.split_at(mailgrit_core_security::SALT_LEN);
+    let derived = mailgrit_core_security::derive_key(master_password, salt)
+        .map_err(|e| AuditError::Kdf(e.to_string()))?;
+    let derived_key = EncryptionKey::from_bytes(derived.as_slice())
+        .map_err(|e| AuditError::Crypto(e.to_string()))?;
+    // Verify-token: an HMAC with the derived key over the tag. Compared with
+    // the stored one constant-time: the token is cryptographic; a classic
+    // `!=` would reveal the position of the first mismatch via timing (a
+    // weak but real channel).
+    let expected_token = compute_verify_token(&derived_key, VERIFY_TAG)?;
+    if !mailgrit_core_security::constant_time_eq(&expected_token, stored_token) {
+        return Err(AuditError::WrongMasterPassword);
+    }
+    Ok(derived_key)
 }
 
 /// Creates a new protected audit key (first run): salt + key + token.
@@ -267,15 +295,18 @@ fn create_new_key(
 ) -> Result<EncryptionKey, AuditError> {
     let salt = mailgrit_core_security::generate_salt();
     let derived = mailgrit_core_security::derive_key(master_password, &salt)
-        .map_err(|e| AuditError::Storage(e.to_string()))?;
-    let derived_key =
-        EncryptionKey::from_bytes(&derived).map_err(|e| AuditError::Storage(e.to_string()))?;
+        .map_err(|e| AuditError::Kdf(e.to_string()))?;
+    let derived_key = EncryptionKey::from_bytes(derived.as_slice())
+        .map_err(|e| AuditError::Crypto(e.to_string()))?;
     let verify_token = compute_verify_token(&derived_key, verify_tag)?;
     // Assemble the file: salt || verify_token.
     let mut file_data = Vec::with_capacity(salt.len().saturating_add(verify_token.len()));
     file_data.extend_from_slice(&salt);
     file_data.extend_from_slice(&verify_token);
-    std::fs::write(key_path, file_data)
+    // Atomic write (temp + fsync + rename): a crash mid-write must never
+    // leave a truncated key file — that would brick the whole audit history
+    // (every future open reports CorruptedKeyFile). 0600 on Unix (secret).
+    crate::fs_util::atomic_write(key_path, &file_data)
         .map_err(|e| AuditError::Storage(format!("writing the audit key: {e}")))?;
     Ok(derived_key)
 }
@@ -284,156 +315,9 @@ fn create_new_key(
 /// API.
 fn compute_verify_token(key: &EncryptionKey, tag: &[u8]) -> Result<[u8; 32], AuditError> {
     mailgrit_core_security::chain_hash(key, &mailgrit_core_security::GENESIS_HASH, tag)
-        .map_err(|e| AuditError::Storage(e.to_string()))
+        .map_err(|e| AuditError::Crypto(e.to_string()))
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use std::path::PathBuf;
-    use std::sync::atomic::{AtomicU64, Ordering};
-
-    static COUNTER: AtomicU64 = AtomicU64::new(0);
-
-    /// A unique temporary directory for a test. With no external dependency
-    /// (`tempfile`): pid + a monotonic counter guarantee uniqueness even under
-    /// parallel nextest. Cleaned up (best-effort) via `Drop`.
-    struct TempDir(PathBuf);
-    impl TempDir {
-        fn new() -> Result<Self, std::io::Error> {
-            let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-            let dir = std::env::temp_dir()
-                .join(format!("mailgrit-audit-test-{}-{n}", std::process::id()));
-            std::fs::create_dir_all(&dir)?;
-            Ok(Self(dir))
-        }
-        fn path(&self) -> &Path {
-            &self.0
-        }
-    }
-    impl Drop for TempDir {
-        fn drop(&mut self) {
-            let _ = std::fs::remove_dir_all(&self.0);
-        }
-    }
-
-    // First run (no file) → a key is created, the file has the correct length.
-    #[test]
-    fn missing_key_file_creates_new_on_first_run() -> Result<(), Box<dyn std::error::Error>> {
-        let dir = TempDir::new()?;
-        let result = load_or_create_persistent_key(dir.path(), b"strong-password-123");
-        assert!(result.is_ok(), "the first run must create a key");
-        let file = dir.path().join(".mailgrit-audit-key");
-        let data = std::fs::read(&file)?;
-        assert_eq!(data.len(), AUDIT_KEY_FILE_LEN, "the file length is correct");
-        Ok(())
-    }
-
-    // A correct file → the key is derived and verified by the same password.
-    #[test]
-    fn correct_key_file_loads_successfully() -> Result<(), Box<dyn std::error::Error>> {
-        let dir = TempDir::new()?;
-        // Create a reference file.
-        load_or_create_persistent_key(dir.path(), b"correct-password-1")?;
-        // Reopening with the same password must return Ok.
-        let result = load_or_create_persistent_key(dir.path(), b"correct-password-1");
-        assert!(result.is_ok(), "a correct file must load");
-        Ok(())
-    }
-
-    // A wrong password on a correct file → WrongMasterPassword (constant-time).
-    #[test]
-    fn wrong_password_fails() -> Result<(), Box<dyn std::error::Error>> {
-        let dir = TempDir::new()?;
-        load_or_create_persistent_key(dir.path(), b"correct-password-1")?;
-        let result = load_or_create_persistent_key(dir.path(), b"different-password-2");
-        assert!(matches!(result, Err(AuditError::WrongMasterPassword)));
-        Ok(())
-    }
-
-    // Regression for #5: a damaged file (wrong length) is NOT silently recreated
-    // — CorruptedKeyFile is returned, otherwise the legitimate audit history
-    // would become indistinguishable from a forgery.
-    #[test]
-    fn corrupted_key_file_returns_error_not_recreate() -> Result<(), Box<dyn std::error::Error>> {
-        let dir = TempDir::new()?;
-        let key_path = dir.path().join(".mailgrit-audit-key");
-        // Write a file of a deliberately wrong length (1 byte instead of 48).
-        std::fs::write(&key_path, vec![0u8; 1])?;
-        let original_len = std::fs::metadata(&key_path)?.len();
-
-        let result = load_or_create_persistent_key(dir.path(), b"any-password-here");
-        assert!(
-            matches!(result, Err(AuditError::CorruptedKeyFile { actual: 1 })),
-            "a damaged file must yield CorruptedKeyFile, not a recreation"
-        );
-        // The file must NOT have been recreated (same length).
-        let after_len = std::fs::metadata(&key_path)?.len();
-        assert_eq!(
-            original_len, after_len,
-            "a damaged file must not be silently recreated"
-        );
-        Ok(())
-    }
-
-    // An empty file (0 bytes) is a special case of damage → CorruptedKeyFile.
-    #[test]
-    fn empty_key_file_is_corrupted() -> Result<(), Box<dyn std::error::Error>> {
-        let dir = TempDir::new()?;
-        let key_path = dir.path().join(".mailgrit-audit-key");
-        std::fs::write(&key_path, b"")?;
-        let result = load_or_create_persistent_key(dir.path(), b"pw");
-        assert!(matches!(
-            result,
-            Err(AuditError::CorruptedKeyFile { actual: 0 })
-        ));
-        Ok(())
-    }
-
-    // An oversized file (> the expected length) is also damage.
-    #[test]
-    fn oversized_key_file_is_corrupted() -> Result<(), Box<dyn std::error::Error>> {
-        let dir = TempDir::new()?;
-        let key_path = dir.path().join(".mailgrit-audit-key");
-        std::fs::write(&key_path, vec![0u8; AUDIT_KEY_FILE_LEN + 10])?;
-        let result = load_or_create_persistent_key(dir.path(), b"pw");
-        assert!(matches!(
-            result,
-            Err(AuditError::CorruptedKeyFile { actual })
-            if actual == AUDIT_KEY_FILE_LEN + 10
-        ));
-        Ok(())
-    }
-
-    // A file of the correct length, but the verify-token does not match the
-    // derived key (e.g. the salt/token is random junk) → WrongMasterPassword,
-    // NOT CorruptedKeyFile: the length is correct, but the password does not
-    // fit.
-    #[test]
-    fn wrong_length_ok_but_token_garbage_is_wrong_password()
-    -> Result<(), Box<dyn std::error::Error>> {
-        let dir = TempDir::new()?;
-        let key_path = dir.path().join(".mailgrit-audit-key");
-        // 48 bytes of random junk of the correct length.
-        std::fs::write(&key_path, vec![0xABu8; AUDIT_KEY_FILE_LEN])?;
-        let result = load_or_create_persistent_key(dir.path(), b"pw");
-        assert!(matches!(result, Err(AuditError::WrongMasterPassword)));
-        Ok(())
-    }
-
-    // Two consecutive key derivations with the same password from a correct file
-    // are deterministic (the same key).
-    #[test]
-    fn derived_key_is_deterministic_across_loads() -> Result<(), Box<dyn std::error::Error>> {
-        let dir = TempDir::new()?;
-        load_or_create_persistent_key(dir.path(), b"deterministic-pw-9")?;
-        let k1 = load_or_create_persistent_key(dir.path(), b"deterministic-pw-9")?;
-        let k2 = load_or_create_persistent_key(dir.path(), b"deterministic-pw-9")?;
-        assert_eq!(
-            k1.as_bytes(),
-            k2.as_bytes(),
-            "the key is deterministic for one password and file"
-        );
-        Ok(())
-    }
-}
+#[path = "audit_ui_tests.rs"]
+mod tests;

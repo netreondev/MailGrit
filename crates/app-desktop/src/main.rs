@@ -42,10 +42,14 @@ mod auth_bridge;
 mod batch;
 mod brand;
 mod components;
+mod csv_card;
 mod csv_summary;
+#[cfg(feature = "e2e")]
 mod e2e_state;
 mod editable_table_view;
+mod error;
 mod error_i18n;
+mod fs_util;
 mod i18n;
 mod infra;
 mod ipc;
@@ -60,6 +64,7 @@ mod op_label;
 mod operations_view;
 mod ops;
 mod ops_export;
+mod password_controls;
 mod screens;
 mod settings;
 mod state;
@@ -154,7 +159,9 @@ fn app() -> Element {
     // re-renders) — otherwise logout (resetting screen=Login) would immediately
     // revert to Dashboard by re-applying the hook. Applied BEFORE the first
     // read() so that subsequent subscriptions observe the overridden state.
-    // No-op in production.
+    // Compiled only with the `e2e` cargo feature (test builds); release builds
+    // do not contain the hook at all.
+    #[cfg(feature = "e2e")]
     use_hook(|| e2e_state::apply_e2e_overrides(&state));
     let screen = state.read().screen;
     // Subscribe to the language: the titlebar subtitle and localized tooltips/window

@@ -11,11 +11,11 @@ publish.workspace = true
 argon2 = "0.5"
 chacha20poly1305 = "0.11.0"
 hmac = "0.13.0"
-rand = "0.10.2"
+rand = { workspace = true }
 sha2 = "0.11.0"
 subtle = "2"
-thiserror = "2.0.19"
-zeroize = { version = "1.9.0", features = ["derive"] }
+thiserror = { workspace = true }
+zeroize = { workspace = true, features = ["derive"] }
 
 # Kani note: see crates/core-domain/Cargo.toml. Formal verification via
 # `cargo kani -p mailgrit-core-security`; harnesses in src/kani_harnesses.rs.
@@ -29,7 +29,7 @@ workspace = true
 # benches (cargo bench --no-run) to keep them buildable and catch compile
 # breakage; it does NOT time anything, so it cannot catch performance
 # regressions — those must be checked by a local `cargo bench` run.
-criterion = "0.8"
+criterion = { workspace = true }
 
 [[bench]]
 name = "crypto"

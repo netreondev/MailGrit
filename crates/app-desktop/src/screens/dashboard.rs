@@ -10,14 +10,15 @@
 use crate::components::badge::{Badge, BadgeKind, Dot, DotKind};
 use crate::components::button::{Button, ButtonKind, ButtonSize};
 use crate::components::card::Card;
+use crate::components::donate_button::DonateButton;
 use crate::components::icon::{Icon, IconView};
-use crate::components::language_menu::LanguageMenu;
+use crate::components::language_selector::LanguageSelector;
 use crate::components::segmented::Segmented;
+use crate::components::theme_toggle::ThemeToggle;
 use crate::language::Language;
 use crate::nav::DashboardSection;
 use crate::operations_view::operations_section;
-use crate::settings;
-use crate::state::{AppState, AuthStatus, Screen};
+use crate::state::AppState;
 use crate::theme::Theme;
 use crate::views::audit_view;
 use dioxus::prelude::*;
@@ -78,14 +79,9 @@ fn context_bar(
     mut state: Signal<AppState>,
     has_session: bool,
     base_url: &str,
-    theme: Theme,
+    _theme: Theme,
     language: Language,
 ) -> Element {
-    let theme_title = if theme == Theme::Dark {
-        tr!("theme.light")
-    } else {
-        tr!("theme.dark")
-    };
     rsx! {
         div { class: "context-bar",
             div { class: "context-bar-left",
@@ -103,35 +99,10 @@ fn context_bar(
                 }
             }
             span { class: "context-spacer" }
-            // Language selector (compact dropdown). The current language is in `language`.
-            {language_selector(state, language)}
-            button {
-                class: "btn btn-ghost btn-icon",
-                title: "{theme_title}",
-                "aria-label": tr!("theme.toggle"),
-                onclick: move |_| {
-                    let new_theme = theme.toggle();
-                    state.write().theme = new_theme;
-                    crate::theme::apply_theme(new_theme);
-                    settings::save_theme(new_theme.as_str());
-                },
-                IconView { icon: if theme == Theme::Dark { Icon::Sun } else { Icon::Moon } }
-            }
-            Button {
-                kind: ButtonKind::Ghost,
-                size: ButtonSize::Small,
-                icon_left: Some(Icon::Heart),
-                // External link: Dioxus/wry hands it to the system browser.
-                onclick: move |_| {
-                    if let Err(e) =
-                        dioxus::desktop::use_window().webview
-                            .evaluate_script("window.open('https://donatello.to/VladymyrM','_blank','noopener');")
-                    {
-                        tracing::warn!("opening donate link: {e}");
-                    }
-                },
-                {tr!("donate.label")}
-            }
+            // Language selector + theme toggle (shared components with the login screen).
+            LanguageSelector { current: language, state: state }
+            ThemeToggle { class: "btn btn-ghost btn-icon".to_string(), state: state }
+            DonateButton { state: state }
             Button {
                 kind: ButtonKind::Ghost,
                 size: ButtonSize::Small,
@@ -139,35 +110,11 @@ fn context_bar(
                 onclick: move |_| {
                     // Logout: clear the session and return to the login screen.
                     let mut s = state.write();
-                    s.session_ok = false;
-                    s.auth_status = AuthStatus::None;
-                    s.screen = Screen::Login;
-                    s.batch_result = None;
-                    s.csv = None;
-                    s.column_mapping = None;
-                    s.current_profile = None;
-                    s.editable_rows = None;
-                    s.modals.pending_delete = false;
-                    s.modals.pending_password_regenerate = false;
+                    s.reset_session();
                     s.error_msg = None;
                 },
                 {tr!("logout")}
             }
-        }
-    }
-}
-
-/// Compact language selector (dropdown with flags). Updates `state.language`,
-/// applies the locale globally, and persists it to config.toml (mirrors the theme).
-fn language_selector(mut state: Signal<AppState>, current: Language) -> Element {
-    rsx! {
-        LanguageMenu {
-            current: current,
-            onchange: move |lang: Language| {
-                state.write().language = lang;
-                rust_i18n::set_locale(lang.as_str());
-                settings::save_language(lang.as_str());
-            },
         }
     }
 }

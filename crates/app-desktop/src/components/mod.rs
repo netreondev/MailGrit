@@ -11,11 +11,14 @@
 pub mod badge;
 pub mod button;
 pub mod card;
+pub mod donate_button;
 pub mod icon;
 pub mod input;
 pub mod language_menu;
+pub mod language_selector;
 pub mod modal;
 pub mod progress;
 pub mod segmented;
 pub mod spinner;
+pub mod theme_toggle;
 pub mod titlebar;

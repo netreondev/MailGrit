@@ -45,7 +45,11 @@ pub fn init() -> Option<WorkerGuard> {
     // (crate_name with an underscore, not a hyphen), so the directive `mailgrit=debug`
     // will NOT match (there is no `::` separator). We use the glob `mailgrit_*=debug`,
     // which covers all our crates; `wry=info` keeps webview logs at info level.
-    let default_filter = EnvFilter::try_new("warn,mailgrit_*=debug,wry=info").unwrap_or_default();
+    // The default is INFO, not debug: debug level dumps full webview responses
+    // (responseBodyFull up to 5000 chars, including any credentials the server
+    // echoes back) into mailgrit.log on every run — an opt-in, not a default.
+    // Override with RUST_LOG=debug when diagnosing.
+    let default_filter = EnvFilter::try_new("warn,mailgrit_*=info,wry=info").unwrap_or_default();
     let filter = EnvFilter::try_from_default_env().unwrap_or(default_filter);
 
     let result = tracing_subscriber::registry()

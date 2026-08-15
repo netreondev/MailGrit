@@ -15,7 +15,7 @@ name = "mailgrit-fuzz"
 # forbids). To keep it fully self-contained — so `cargo +nightly fuzz run` works
 # without it "believing it is in a workspace" — the metadata is inlined here
 # (mirroring the root [workspace.package]) instead of inherited via `*.workspace`.
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 rust-version = "1.97.1"
 license = "MIT OR Apache-2.0"

@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MIT OR Apache-2.0 */
+/* Copyright (c) 2026 Netreon™ and contributors */
 /* ============================================================================
    MailGrit — screen styles (layered on top of the component design system).
    Global tokens in tokens.css, base in base.css, components in components.css.
@@ -120,18 +122,10 @@
     margin-left: auto;
     margin-right: auto;
 }
-.login-donate {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--s-1);
+/* Donate row: the shared DonateButton under the privacy footer note. */
+.login-donate-row {
     margin-top: var(--s-3);
-    color: var(--fg-subtle);
-    font-size: var(--fs-xs);
-    text-decoration: none;
-    transition: color var(--t-fast, 0.15s) ease;
 }
-.login-donate:hover { color: var(--accent); text-decoration: none; }
-.login-donate svg { stroke: currentColor; }
 
 /* ============================================================================
    Dashboard

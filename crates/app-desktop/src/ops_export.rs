@@ -24,6 +24,7 @@ use crate::batch::BatchResult;
 use crate::state::AppState;
 use crate::util::now_rfc3339;
 use dioxus::prelude::*;
+use mailgrit_core_csv::escape_field;
 use mailgrit_core_domain::SanitizedUserRow;
 use mailgrit_core_storage::AuditAction;
 use std::fmt::Write as _;
@@ -31,15 +32,32 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 /// The outcome of the background export file write (from `spawn_blocking`).
-/// `String` is a human-readable error (localized in the UI task).
-type WriteOutcome = std::result::Result<(), String>;
+/// Typed: the KDF/AEAD and I/O failure kinds stay distinguishable at the UI
+/// boundary (they used to collapse into a formatted `String`).
+enum ExportError {
+    /// Argon2id / AEAD failure (build_encrypted_bytes).
+    Crypto(mailgrit_core_security::SecurityError),
+    /// Writing the target file.
+    Io(std::io::Error),
+}
+
+impl std::fmt::Display for ExportError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Crypto(e) => write!(f, "encryption: {e}"),
+            Self::Io(e) => write!(f, "file write: {e}"),
+        }
+    }
+}
+
+type WriteOutcome = std::result::Result<(), ExportError>;
 
 /// Opens the export-format selection modal (encrypted/plain).
 /// First checks that there is something to export.
 pub fn open_export_choice(state: &mut Signal<AppState>) {
     let (has_csv, has_result) = {
         let read = state.read();
-        (read.csv.is_some(), read.batch_result.is_some())
+        (read.csv.rows.is_some(), read.csv.batch_result.is_some())
     };
     if !has_csv && !has_result {
         state.write().error_msg = Some(t!("export.nothing").to_string());
@@ -76,7 +94,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
         let read = state.read();
         master_password = read.master_password.clone();
         audit = read.audit.clone();
-        result_snapshot = read.batch_result.clone();
+        result_snapshot = read.csv.batch_result.clone();
     }
     if rows.is_empty() && result_snapshot.is_none() {
         state.write().error_msg = Some(t!("export.nothing").to_string());
@@ -86,7 +104,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
 
     // For encrypted export, the master password is checked BEFORE starting the
     // task: if it is missing, record the export intent and open the
-    // password-entry modal. After a successful unlock (`unlock_audit`), the
+    // password-entry modal. After a successful unlock (`complete_unlock`), the
     // export resumes automatically via `pending_export_after_unlock` — previously
     // the intent was lost (the format-choice modal was already closed), and for
     // the user the export "did not work".
@@ -97,7 +115,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
         return;
     }
 
-    state.write().export.export_in_progress = true;
+    state.write().export.begin();
     // Row count for the audit message: the credential snapshot takes precedence
     // (create); otherwise the editable table (edit/delete/before an operation).
     let row_count = result_snapshot
@@ -118,7 +136,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
             .await;
         let Some(handle) = handle else {
             // The user cancelled — reset the flag and exit quietly.
-            state_clone.write().export.export_in_progress = false;
+            state_clone.write().export.finish();
             return;
         };
         let path: PathBuf = handle.path().to_path_buf();
@@ -130,30 +148,32 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
         //    is needed.
         let plaintext_bytes = plaintext.into_bytes();
         let outcome: WriteOutcome = if encrypt {
-            let Some(master_password) = master_password.as_deref() else {
+            let Some(pw) = master_password.clone() else {
                 // Unreachable: checked above, but fail-closed.
                 let mut s = state_clone.write();
-                s.export.export_in_progress = false;
+                s.export.finish();
                 s.error_msg = Some(t!("master_password.export_no_audit").to_string());
                 return;
             };
-            let pw = master_password.to_string();
             let join = crate::tokio_runtime().spawn_blocking(move || -> WriteOutcome {
-                let file_bytes = build_encrypted_bytes(&pw, &plaintext_bytes)?;
-                std::fs::write(&path, file_bytes).map_err(|e| e.to_string())
+                let file_bytes = build_encrypted_bytes(pw.as_str(), &plaintext_bytes)
+                    .map_err(ExportError::Crypto)?;
+                std::fs::write(&path, file_bytes).map_err(ExportError::Io)
             });
-            match join.await {
-                Ok(res) => res,
-                Err(e) => Err(e.to_string()),
-            }
+            join.await.unwrap_or_else(|e| {
+                Err(ExportError::Io(std::io::Error::other(format!(
+                    "export task failed: {e}"
+                ))))
+            })
         } else {
             let join = crate::tokio_runtime().spawn_blocking(move || -> WriteOutcome {
-                std::fs::write(&path, plaintext_bytes).map_err(|e| e.to_string())
+                std::fs::write(&path, plaintext_bytes).map_err(ExportError::Io)
             });
-            match join.await {
-                Ok(res) => res,
-                Err(e) => Err(e.to_string()),
-            }
+            join.await.unwrap_or_else(|e| {
+                Err(ExportError::Io(std::io::Error::other(format!(
+                    "export task failed: {e}"
+                ))))
+            })
         };
 
         match outcome {
@@ -166,7 +186,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
             ),
             Err(e) => {
                 let mut s = state_clone.write();
-                s.export.export_in_progress = false;
+                s.export.finish();
                 s.error_msg = Some(t!("export.save_error", error = e).to_string());
             }
         }
@@ -207,10 +227,10 @@ fn build_export_text_from(rows: &[SanitizedUserRow], result_opt: Option<&BatchRe
             let _ = writeln!(
                 out,
                 "{},{},{},{},{}",
-                csv_escape(&c.domain),
-                csv_escape(&c.username),
-                csv_escape(&c.password),
-                csv_escape(&c.display_name),
+                escape_field(&c.domain),
+                escape_field(&c.username),
+                escape_field(&c.password),
+                escape_field(&c.display_name),
                 c.quota_mb
             );
             wrote_from_credentials = true;
@@ -225,10 +245,10 @@ fn build_export_text_from(rows: &[SanitizedUserRow], result_opt: Option<&BatchRe
             let _ = writeln!(
                 out,
                 "{},{},{},{},{}",
-                csv_escape(row.domain.as_str()),
-                csv_escape(row.username.as_str()),
-                csv_escape(row.password.as_secret_str()),
-                csv_escape(row.display_name.as_str()),
+                escape_field(row.domain.as_str()),
+                escape_field(row.username.as_str()),
+                escape_field(row.password.as_secret_str()),
+                escape_field(row.display_name.as_str()),
                 row.quota.mb()
             );
         }
@@ -242,50 +262,27 @@ fn build_export_text_from(rows: &[SanitizedUserRow], result_opt: Option<&BatchRe
             let _ = writeln!(
                 out,
                 "# FAIL {}@{}: {}",
-                csv_escape(&f.username),
-                csv_escape(&f.domain),
-                csv_escape(&f.reason)
+                escape_field(&f.username),
+                escape_field(&f.domain),
+                escape_field(&f.reason)
             );
         }
     }
     out
 }
 
-/// Escapes a CSV field per RFC 4180: wraps it in double quotes if the field
-/// contains a comma, quote, newline, or carriage return; inside quotes, quotes
-/// are doubled. The password generator produces values without these characters,
-/// but `display_name` (and a FAIL reason) may contain a comma/quote (e.g.
-/// "Petrov, Ivan"), which without escaping would break the column count in the
-/// export.
-fn csv_escape(field: &str) -> String {
-    let needs_quoting = field.chars().any(|c| matches!(c, ',' | '"' | '\n' | '\r'));
-    if !needs_quoting {
-        return field.to_owned();
-    }
-    // Double the quotes and wrap the field in quotes.
-    let mut escaped = String::with_capacity(field.len().saturating_add(2));
-    escaped.push('"');
-    for c in field.chars() {
-        if c == '"' {
-            escaped.push('"');
-        }
-        escaped.push(c);
-    }
-    escaped.push('"');
-    escaped
-}
-
 /// Encrypts the plaintext with the master password: returns
 /// `salt(16) || nonce || ciphertext+tag`. File format: the salt (for the KDF) in
 /// the clear + AEAD-ciphertext. The key is NOT stored.
-fn build_encrypted_bytes(master_password: &str, plaintext: &[u8]) -> Result<Vec<u8>, String> {
+fn build_encrypted_bytes(
+    master_password: &str,
+    plaintext: &[u8],
+) -> Result<Vec<u8>, mailgrit_core_security::SecurityError> {
     let salt = mailgrit_core_security::generate_salt();
-    let derived = mailgrit_core_security::derive_key(master_password.as_bytes(), &salt)
-        .map_err(|e| e.to_string())?;
-    let export_key =
-        mailgrit_core_security::EncryptionKey::from_bytes(&derived).map_err(|e| e.to_string())?;
-    let ciphertext = mailgrit_core_security::encrypt(&export_key, plaintext, b"MailGrit-export-v1")
-        .map_err(|e| e.to_string())?;
+    let derived = mailgrit_core_security::derive_key(master_password.as_bytes(), &salt)?;
+    let export_key = mailgrit_core_security::EncryptionKey::from_bytes(derived.as_slice())?;
+    let ciphertext =
+        mailgrit_core_security::encrypt(&export_key, plaintext, b"MailGrit-export-v1")?;
     // Assemble the file: salt(16) || ciphertext (the nonce is already included in
     // the ciphertext).
     let mut file_bytes = Vec::with_capacity(salt.len().saturating_add(ciphertext.len()));
@@ -309,9 +306,14 @@ fn record_export_success(
 ) {
     let timestamp = now_rfc3339();
     let detail = if encrypt {
-        format!("local encrypted CSV export: {row_count} rows → {path_display}")
+        t!(
+            "audit.export_encrypted",
+            rows = row_count,
+            path = path_display
+        )
+        .to_string()
     } else {
-        format!("local plain CSV export: {row_count} rows → {path_display}")
+        t!("audit.export_plain", rows = row_count, path = path_display).to_string()
     };
     // Audit record on a cloned Arc — without borrowing the signal.
     if let Some(audit) = audit
@@ -327,144 +329,10 @@ fn record_export_success(
     // One write-scope at the end: update the audit list, the flag, and the message.
     let mut s = state.write();
     s.refresh_audit();
-    s.export.export_in_progress = false;
+    s.export.finish();
     s.error_msg = Some(msg);
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::batch::CredentialRow;
-
-    /// Regression for the "stale passwords" bug: the export must contain the
-    /// actual values from the editable table (after a password regeneration), not
-    /// from the original CSV snapshot. Here we check the pure builder on a
-    /// fixture.
-    #[test]
-    fn export_text_uses_edited_passwords() -> Result<(), mailgrit_core_domain::CsvRowError> {
-        // Simulate an edited row with the new password "NewP@ss1!".
-        let new_row = mailgrit_core_domain::RawCsvRow::new(vec![
-            "example.com".into(),
-            "ivan.petrov".into(),
-            "NewP@ss1!".into(),
-            "Ivan Petrov".into(),
-            "1024".into(),
-        ])
-        .parse()?;
-        let text = build_export_text_from(std::slice::from_ref(&new_row), None);
-        assert!(
-            text.contains("NewP@ss1!"),
-            "the export must contain the actual password from the editable table: {text}"
-        );
-        assert!(text.contains("ivan.petrov"));
-        assert!(text.contains("domain,username,password"));
-        Ok(())
-    }
-
-    /// With no rows and no result — an empty export text (only the header). The
-    /// caller makes the "nothing to export" error decision.
-    #[test]
-    fn export_text_empty_has_header_only() {
-        let text = build_export_text_from(&[], None);
-        assert!(text.contains("domain,username,password"));
-        assert!(!text.contains("FAIL"));
-    }
-
-    /// RFC 4180: a field without special characters is not escaped (left as is).
-    #[test]
-    fn csv_escape_plain_field_unchanged() {
-        assert_eq!(csv_escape("ivan.petrov"), "ivan.petrov");
-        assert_eq!(csv_escape(""), "");
-        assert_eq!(csv_escape("example.com"), "example.com");
-    }
-
-    /// RFC 4180: a comma in a field (e.g. "Petrov, Ivan") → wrap in quotes.
-    /// Previously such a display_name broke the column count in the export.
-    #[test]
-    fn csv_escape_quotes_comma_field() {
-        assert_eq!(csv_escape("Petrov, Ivan"), "\"Petrov, Ivan\"");
-    }
-
-    /// RFC 4180: a double quote inside → double it and wrap the field.
-    #[test]
-    fn csv_escape_doubles_inner_quotes() {
-        assert_eq!(csv_escape("say \"hi\""), "\"say \"\"hi\"\"\"");
-    }
-
-    /// RFC 4180: a newline in a field also requires quotes.
-    #[test]
-    fn csv_escape_newline_field() {
-        assert_eq!(csv_escape("line1\nline2"), "\"line1\nline2\"");
-        assert_eq!(csv_escape("a\rb"), "\"a\rb\"");
-    }
-
-    /// Password-loss regression: after switching the tab, editable_rows is empty,
-    /// but BatchResult.created_credentials holds a snapshot of the created
-    /// accounts — the export must export exactly those (with passwords).
-    #[test]
-    fn export_text_uses_created_credentials_when_rows_empty() {
-        let result = BatchResult {
-            succeeded: 1,
-            failed: 0,
-            failures: Vec::new(),
-            created_credentials: vec![CredentialRow {
-                domain: "dnipr.gp.gov.ua".into(),
-                username: "ivan.petrov".into(),
-                password: "S5v!i2&yQ9".into(),
-                display_name: "Petrov, Ivan".into(),
-                quota_mb: 1024,
-            }],
-        };
-        // editable_rows is empty (simulating a clear by switching the tab).
-        let text = build_export_text_from(&[], Some(&result));
-        assert!(
-            text.contains("S5v!i2&yQ9"),
-            "the export must contain the password from created_credentials: {text}"
-        );
-        // A display_name with a comma is escaped.
-        assert!(
-            text.contains("\"Petrov, Ivan\""),
-            "a display_name with a comma must be quoted: {text}"
-        );
-        // A data row is present (not only the header).
-        assert!(text.contains("ivan.petrov"));
-        assert!(text.contains("dnipr.gp.gov.ua"));
-    }
-
-    /// Source priority: if created_credentials are present, the rows from the
-    /// editable table are NOT duplicated in the export.
-    #[test]
-    fn export_text_does_not_duplicate_when_credentials_present()
-    -> Result<(), mailgrit_core_domain::CsvRowError> {
-        let row = mailgrit_core_domain::RawCsvRow::new(vec![
-            "example.com".into(),
-            "dup.user".into(),
-            "NewP@ss1!".into(),
-            "Dup".into(),
-            "1024".into(),
-        ])
-        .parse()?;
-        let result = BatchResult {
-            succeeded: 1,
-            failed: 0,
-            failures: Vec::new(),
-            created_credentials: vec![CredentialRow {
-                domain: "example.com".into(),
-                username: "real.user".into(),
-                password: "CreatedPass1!".into(),
-                display_name: "Real".into(),
-                quota_mb: 512,
-            }],
-        };
-        let text = build_export_text_from(std::slice::from_ref(&row), Some(&result));
-        // The row from created_credentials must be present …
-        assert!(text.contains("real.user"));
-        assert!(text.contains("CreatedPass1!"));
-        // … and there must be NO duplicate from the editable table.
-        assert!(
-            !text.contains("dup.user"),
-            "when created_credentials are present, the table rows are not duplicated: {text}"
-        );
-        Ok(())
-    }
-}
+#[path = "ops_export_tests.rs"]
+mod tests;

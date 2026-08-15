@@ -93,7 +93,12 @@ pub fn dispatch(pending: &PendingMap, body: &str) {
     let id_str = parts.next().unwrap_or("");
     let json = parts.next().unwrap_or("");
     let Some(id) = id_str.parse::<u64>().ok() else {
-        tracing::warn!("IPC: invalid id in message: {body}");
+        // Never log the raw body: IPC payloads carry operation data and may
+        // embed secrets (see the webview-logging policy in webview_parse.rs).
+        tracing::warn!(
+            "IPC: invalid id in message (tag={tag}, id={id_str:?}, length {})",
+            body.len()
+        );
         return;
     };
     // Recover from the poisoned state (like in login_window/register).

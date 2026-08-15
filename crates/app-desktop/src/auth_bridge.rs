@@ -40,12 +40,13 @@ pub fn request_login_window(state: &LoginWindowState, base_url: &str) {
 pub fn read_cookies_for_panel(
     state: &LoginWindowState,
     base_url: &str,
-) -> Result<Vec<CookieInfo>, String> {
-    let origin = url_origin(base_url).ok_or_else(|| format!("invalid URL: {base_url}"))?;
+) -> Result<Vec<CookieInfo>, crate::error::AppError> {
+    let origin = url_origin(base_url)
+        .ok_or_else(|| crate::error::AppError::InvalidBaseUrl(base_url.to_string()))?;
     let cookies = state
         .with_webview_cookies(|wv| wv.cookies_for_url(&origin))
-        .ok_or("login window is not open")?
-        .map_err(|e| e.to_string())?;
+        .ok_or(crate::error::AppError::LoginWindowClosed)?
+        .map_err(|e| crate::error::AppError::WebView(e.to_string()))?;
     Ok(cookies
         .iter()
         .map(|c| CookieInfo {
