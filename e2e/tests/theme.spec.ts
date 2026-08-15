@@ -35,14 +35,22 @@ test.describe('Theme toggle', () => {
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 
     // config.toml is written next to the binary (mailgrit-data/).
-    // Verify persistence: the theme value must be saved in the config.
-    // dataDir is the temporary directory the .exe was copied into (mailgrit-data/ sits next to it).
-    const { existsSync, readFileSync } = await import('node:fs');
+    // Verify persistence: the LIGHT theme value must be IN THE FILE. The save
+    // is asynchronous (spawn_blocking in save_theme) and config.toml already
+    // exists from startup with the OLD theme — polling mere existence races
+    // the write; poll the CONTENT instead.
+    const { readFileSync } = await import('node:fs');
     const { join } = await import('node:path');
     const cfg = join(dataDir, 'mailgrit-data', 'config.toml');
-    await expect.poll(async () => existsSync(cfg), { timeout: 5000 }).toBe(true);
-    const content = readFileSync(cfg, 'utf8');
-    expect(content, 'config.toml stores the theme').toContain('theme');
-    expect(content).toMatch(/light/i);
+    await expect.poll(
+      () => {
+        try {
+          return readFileSync(cfg, 'utf8');
+        } catch {
+          return '';
+        }
+      },
+      { timeout: 5000, message: 'config.toml stores the light theme' },
+    ).toMatch(/theme\s*=\s*"light"/i);
   });
 });

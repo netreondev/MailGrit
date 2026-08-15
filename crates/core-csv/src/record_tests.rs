@@ -294,7 +294,7 @@ fn raw_display_joins_physical_lines_with_newline() -> TestResult {
 #[test]
 fn raw_display_at_exact_cap_gets_no_trailing_newline() -> TestResult {
     let line = "a".repeat(MAX_RECORD_BYTES);
-    let mut data = line.clone().into_bytes();
+    let mut data = line.into_bytes();
     data.push(b'\n');
     let recs = records(&data)?;
     let raw = &at(&recs, 0)?.raw;

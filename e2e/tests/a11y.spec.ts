@@ -127,12 +127,26 @@ test.describe('Dashboard — accessibility (a11y)', () => {
     // Clear focus from the previous test (focus-ring) and wait for stabilization.
     await page.locator('body').click();
     await page.waitForLoadState('domcontentloaded');
-    // Collect texts in a single evaluate (stable against Dioxus re-renders).
-    const data = await page.evaluate(() => {
-      const h2 = Array.from(document.querySelectorAll('.dash-grid .card h2')).map((e) => (e.textContent ?? '').trim());
-      const nav = Array.from(document.querySelectorAll('.section-nav [role="radio"]')).map((e) => (e.textContent ?? '').trim());
-      return { h2, nav };
-    });
+    // Collect texts in a single evaluate. NOTE: even a single evaluate can land
+    // exactly BETWEEN two Dioxus re-renders and observe a transiently empty
+    // heading (seen once as a flake) — so the invariant is POLLED until it
+    // holds; a persistently-empty heading still fails after the timeout.
+    const readHeadings = () =>
+      page.evaluate(() => {
+        const h2 = Array.from(document.querySelectorAll('.dash-grid .card h2')).map((e) => (e.textContent ?? '').trim());
+        const nav = Array.from(document.querySelectorAll('.section-nav [role="radio"]')).map((e) => (e.textContent ?? '').trim());
+        return { h2, nav };
+      });
+    await expect.poll(async () => {
+      const d = await readHeadings();
+      return (
+        d.h2.length > 0 &&
+        d.h2.every((t) => t.length > 0) &&
+        d.nav.length >= 2 &&
+        d.nav.every((t) => t.length > 0)
+      );
+    }, { message: 'card headings and nav radios render non-empty text' }).toBe(true);
+    const data = await readHeadings();
     expect(data.h2.length, 'there are card headings').toBeGreaterThan(0);
     for (const t of data.h2) {
       expect(t.length, 'card heading is non-empty').toBeGreaterThan(0);
