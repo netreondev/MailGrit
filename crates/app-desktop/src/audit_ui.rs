@@ -225,38 +225,59 @@ fn load_or_create_persistent_key(
 ) -> Result<EncryptionKey, AuditError> {
     let key_path = dir.join(".mailgrit-audit-key");
 
-    if key_path.exists() {
-        let data = std::fs::read(&key_path)
-            .map_err(|e| AuditError::Storage(format!("reading the audit key: {e}")))?;
-        if data.len() != AUDIT_KEY_FILE_LEN {
-            // The file exists but has the wrong length → damage (truncation, a
-            // bad sector, third-party editing). Silently recreating the key would
-            // make the entire legitimate audit history indistinguishable from a
-            // forgery (verify() would report Tampered for every old record).
-            // Report it as an error distinct from log tampering and from a wrong
-            // password.
-            tracing::error!(
-                "audit key file is damaged: {} bytes (expected {AUDIT_KEY_FILE_LEN})",
-                data.len()
-            );
-            return Err(AuditError::CorruptedKeyFile { actual: data.len() });
+    // Read first, decide from the result — the old `exists()` probe had a
+    // TOCTOU gap (the file could appear/change between the check and the read).
+    match std::fs::read(&key_path) {
+        Ok(data) => validate_key_file(&data, master_password),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            let key = create_new_key(&key_path, master_password, VERIFY_TAG)?;
+            // First-run race guard: a second instance may have written ITS key
+            // between our NotFound and our rename. Re-read and validate against
+            // what is actually on disk — with the same master password this
+            // converges to the winner's file; with a different one it correctly
+            // reports WrongMasterPassword. (Residual window between this re-read
+            // and the other instance's rename would require file locking, which
+            // the std API does not expose; a single instance per data directory
+            // is the supported configuration.)
+            std::fs::read(&key_path).map_or_else(
+                |_| Ok(key),
+                |data| validate_key_file(&data, master_password),
+            )
         }
-        let (salt, stored_token) = data.split_at(mailgrit_core_security::SALT_LEN);
-        let derived = mailgrit_core_security::derive_key(master_password, salt)
-            .map_err(|e| AuditError::Storage(e.to_string()))?;
-        let derived_key = EncryptionKey::from_bytes(derived.as_slice())
-            .map_err(|e| AuditError::Storage(e.to_string()))?;
-        // Verify-token: an HMAC with the derived key over the tag. Compared with
-        // the stored one constant-time: the token is cryptographic; a classic
-        // `!=` would reveal the position of the first mismatch via timing (a
-        // weak but real channel).
-        let expected_token = compute_verify_token(&derived_key, VERIFY_TAG)?;
-        if !mailgrit_core_security::constant_time_eq(&expected_token, stored_token) {
-            return Err(AuditError::WrongMasterPassword);
-        }
-        return Ok(derived_key);
+        Err(e) => Err(AuditError::Storage(format!("reading the audit key: {e}"))),
     }
-    create_new_key(&key_path, master_password, VERIFY_TAG)
+}
+
+/// Validates the key file (`salt || verify_token`) against the password and
+/// derives the audit key. A wrong file length is damage, not a wrong password.
+fn validate_key_file(data: &[u8], master_password: &[u8]) -> Result<EncryptionKey, AuditError> {
+    if data.len() != AUDIT_KEY_FILE_LEN {
+        // The file exists but has the wrong length → damage (truncation, a
+        // bad sector, third-party editing). Silently recreating the key would
+        // make the entire legitimate audit history indistinguishable from a
+        // forgery (verify() would report Tampered for every old record).
+        // Report it as an error distinct from log tampering and from a wrong
+        // password.
+        tracing::error!(
+            "audit key file is damaged: {} bytes (expected {AUDIT_KEY_FILE_LEN})",
+            data.len()
+        );
+        return Err(AuditError::CorruptedKeyFile { actual: data.len() });
+    }
+    let (salt, stored_token) = data.split_at(mailgrit_core_security::SALT_LEN);
+    let derived = mailgrit_core_security::derive_key(master_password, salt)
+        .map_err(|e| AuditError::Storage(e.to_string()))?;
+    let derived_key = EncryptionKey::from_bytes(derived.as_slice())
+        .map_err(|e| AuditError::Storage(e.to_string()))?;
+    // Verify-token: an HMAC with the derived key over the tag. Compared with
+    // the stored one constant-time: the token is cryptographic; a classic
+    // `!=` would reveal the position of the first mismatch via timing (a
+    // weak but real channel).
+    let expected_token = compute_verify_token(&derived_key, VERIFY_TAG)?;
+    if !mailgrit_core_security::constant_time_eq(&expected_token, stored_token) {
+        return Err(AuditError::WrongMasterPassword);
+    }
+    Ok(derived_key)
 }
 
 /// Creates a new protected audit key (first run): salt + key + token.
@@ -275,7 +296,10 @@ fn create_new_key(
     let mut file_data = Vec::with_capacity(salt.len().saturating_add(verify_token.len()));
     file_data.extend_from_slice(&salt);
     file_data.extend_from_slice(&verify_token);
-    std::fs::write(key_path, file_data)
+    // Atomic write (temp + fsync + rename): a crash mid-write must never
+    // leave a truncated key file — that would brick the whole audit history
+    // (every future open reports CorruptedKeyFile). 0600 on Unix (secret).
+    crate::fs_util::atomic_write(key_path, &file_data)
         .map_err(|e| AuditError::Storage(format!("writing the audit key: {e}")))?;
     Ok(derived_key)
 }
@@ -326,6 +350,24 @@ mod tests {
         let file = dir.path().join(".mailgrit-audit-key");
         let data = std::fs::read(&file)?;
         assert_eq!(data.len(), AUDIT_KEY_FILE_LEN, "the file length is correct");
+        Ok(())
+    }
+
+    // The key file must be written atomically: no temp-file leftovers, and no
+    // path where a crash could leave a truncated (bricked) key behind.
+    #[test]
+    fn key_creation_leaves_no_temp_files() -> Result<(), Box<dyn std::error::Error>> {
+        let dir = TempDir::new()?;
+        load_or_create_persistent_key(dir.path(), b"atomic-write-pw")?;
+        let entries: Vec<String> = std::fs::read_dir(dir.path())?
+            .filter_map(std::result::Result::ok)
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect();
+        assert_eq!(
+            entries,
+            vec![".mailgrit-audit-key".to_string()],
+            "only the key file must remain after creation"
+        );
         Ok(())
     }
 
