@@ -7,8 +7,8 @@
 // Copyright (c) 2026 Netreon™ and contributors
 
 use crate::error::StorageError;
-use mailgrit_core_security::{EncryptionKey, GENESIS_HASH, HMAC_LEN, chain_hash, verify_chain};
-use rusqlite::{Connection, params};
+use mailgrit_core_security::{EncryptionKey, GENESIS_HASH, HMAC_LEN, chain_hash, constant_time_eq};
+use rusqlite::{Connection, TransactionBehavior, params};
 
 /// An action recorded in the audit (`action` TEXT — extensible without a migration).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -78,7 +78,22 @@ pub struct AuditLog {
 }
 
 impl AuditLog {
-    /// Opens (or creates) the audit log; `key` must be the same for the whole chain.
+    /// Opens (or creates) the audit log at `path`, creating the SQLite
+    /// connection internally. This is the supported constructor for callers
+    /// outside this crate: it does not leak the `rusqlite::Connection` type
+    /// into their API/dependencies.
+    ///
+    /// # Errors
+    ///
+    /// - [`StorageError::Sqlite`] — DB open/initialization error.
+    pub fn open_path(path: &std::path::Path, key: EncryptionKey) -> Result<Self, StorageError> {
+        let conn = Connection::open(path)?;
+        Self::open(conn, key)
+    }
+
+    /// Opens an existing SQLite connection as the audit log; `key` must be the
+    /// same for the whole chain. In-memory/test usage; production callers
+    /// should prefer [`AuditLog::open_path`](Self::open_path).
     ///
     /// # Errors
     ///
@@ -99,24 +114,35 @@ impl AuditLog {
 
     /// Appends an entry, computing the hash chain.
     ///
+    /// The `last_hash` read and the `INSERT` run inside a single
+    /// `BEGIN IMMEDIATE` transaction: a second writer (e.g. another app
+    /// instance on the same data directory) serializes at the DB level instead
+    /// of racing the SELECT-then-INSERT pair and forking the chain (two rows
+    /// claiming the same predecessor → later reported as tampering).
+    ///
     /// # Errors
     ///
     /// - [`StorageError::Sqlite`] — write error.
+    /// - [`StorageError::CorruptedEntry`] — the previous chain tail is damaged.
+    /// - [`StorageError::ChainBroken`] — HMAC failure.
     pub fn append(
         &mut self,
         timestamp: &str,
         action: AuditAction,
         payload: &[u8],
     ) -> Result<i64, StorageError> {
-        let prev_hash = self.last_hash()?;
-
+        let tx = self
+            .conn
+            .transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let prev_hash = Self::last_hash(&tx)?;
         let new_hash = chain_hash(&self.key, &prev_hash, payload)?;
-
-        self.conn.execute(
+        tx.execute(
             "INSERT INTO audit_log (timestamp, action, payload, hash) VALUES (?1, ?2, ?3, ?4)",
             params![timestamp, action.as_str(), payload, new_hash.as_slice()],
         )?;
-        Ok(self.conn.last_insert_rowid())
+        let id = tx.last_insert_rowid();
+        tx.commit()?;
+        Ok(id)
     }
 
     /// Returns the hash of the last entry, or GENESIS if the chain is empty.
@@ -124,10 +150,8 @@ impl AuditLog {
     /// A corrupted blob (length ≠ `HMAC_LEN`) → [`StorageError::CorruptedEntry`]:
     /// it is NOT silently replaced with zeros, or verification would incorrectly
     /// point at the next entry (fail loud, not silent).
-    fn last_hash(&self) -> Result<[u8; HMAC_LEN], StorageError> {
-        let mut stmt = self
-            .conn
-            .prepare("SELECT id, hash FROM audit_log ORDER BY id DESC LIMIT 1")?;
+    fn last_hash(conn: &Connection) -> Result<[u8; HMAC_LEN], StorageError> {
+        let mut stmt = conn.prepare("SELECT id, hash FROM audit_log ORDER BY id DESC LIMIT 1")?;
         let mut rows = stmt.query([])?;
         match rows.next()? {
             Some(row) => {
@@ -141,19 +165,73 @@ impl AuditLog {
 
     /// Verifies the integrity of the whole hash chain.
     ///
+    /// Streams row-by-row (`ORDER BY id ASC`, a running `prev_hash`) instead of
+    /// materializing the whole table: memory stays O(1) in the row size, and the
+    /// per-link comparison is constant-time (the same standard the key-file
+    /// verify-token uses).
+    ///
     /// # Errors
     ///
     /// - [`StorageError::ChainBroken`] — the chain is broken (the log was tampered with).
     /// - [`StorageError::CorruptedEntry`] — corrupted entry structure.
     /// - [`StorageError::Sqlite`] — read error.
     pub fn verify(&self) -> Result<(), StorageError> {
-        let entries = self.entries()?;
-        let chain: Vec<(Vec<u8>, [u8; HMAC_LEN])> =
-            entries.into_iter().map(|e| (e.payload, e.hash)).collect();
-        verify_chain(&self.key, chain).map_err(StorageError::from)
+        let mut stmt = self
+            .conn
+            .prepare("SELECT id, payload, hash FROM audit_log ORDER BY id ASC")?;
+        let rows = stmt.query_map([], |row| {
+            Ok((
+                row.get::<_, i64>(0)?,
+                row.get::<_, Vec<u8>>(1)?,
+                row.get::<_, Vec<u8>>(2)?,
+            ))
+        })?;
+        let mut prev_hash = GENESIS_HASH;
+        let mut index: u64 = 0;
+        for row in rows {
+            let (id, payload, hash_blob) = row?;
+            let expected = hash_from_blob(id, &hash_blob)?;
+            let computed = chain_hash(&self.key, &prev_hash, &payload)?;
+            if !constant_time_eq(&computed, &expected) {
+                return Err(StorageError::ChainBroken(
+                    mailgrit_core_security::SecurityError::ChainBroken { entry_index: index },
+                ));
+            }
+            prev_hash = expected;
+            index = index.saturating_add(1);
+        }
+        Ok(())
     }
 
-    /// Returns all entries in ascending `id` order (for UI/export and verification).
+    /// Returns the last `limit` entries, newest first
+    /// (`ORDER BY id DESC LIMIT ?`) — the UI must not materialize and re-sort
+    /// the whole table on every operation.
+    ///
+    /// A corrupted hash blob → [`StorageError::CorruptedEntry`] (fail loud, not silent).
+    ///
+    /// # Errors
+    ///
+    /// - [`StorageError::Sqlite`] — DB read error.
+    /// - [`StorageError::CorruptedEntry`] — corrupted entry structure.
+    pub fn recent(&self, limit: u32) -> Result<Vec<AuditEntry>, StorageError> {
+        let mut stmt = self.conn.prepare(
+            "SELECT id, timestamp, action, payload, hash FROM audit_log
+             ORDER BY id DESC LIMIT ?1",
+        )?;
+        let rows = stmt.query_map([limit], |row| {
+            Ok(RawEntry {
+                id: row.get(0)?,
+                timestamp: row.get(1)?,
+                action: row.get(2)?,
+                payload: row.get(3)?,
+                hash_blob: row.get(4)?,
+            })
+        })?;
+        collect_entries(rows)
+    }
+
+    /// Returns all entries in ascending `id` order (for export; the UI uses
+    /// [`recent`](Self::recent), verification streams its own cursor).
     ///
     /// A corrupted hash blob → [`StorageError::CorruptedEntry`] (fail loud, not silent).
     ///
@@ -174,20 +252,28 @@ impl AuditLog {
                 hash_blob: row.get(4)?,
             })
         })?;
-        let mut entries = Vec::new();
-        for row in rows {
-            let raw = row?;
-            let hash = hash_from_blob(raw.id, &raw.hash_blob)?;
-            entries.push(AuditEntry {
-                id: raw.id,
-                timestamp: raw.timestamp,
-                action: raw.action,
-                payload: raw.payload,
-                hash,
-            });
-        }
-        Ok(entries)
+        collect_entries(rows)
     }
+}
+
+/// Materializes mapped rows into validated entries (shared by
+/// [`AuditLog::entries`] and [`AuditLog::recent`]).
+fn collect_entries(
+    rows: rusqlite::MappedRows<'_, impl FnMut(&rusqlite::Row<'_>) -> rusqlite::Result<RawEntry>>,
+) -> Result<Vec<AuditEntry>, StorageError> {
+    let mut entries = Vec::new();
+    for row in rows {
+        let raw = row?;
+        let hash = hash_from_blob(raw.id, &raw.hash_blob)?;
+        entries.push(AuditEntry {
+            id: raw.id,
+            timestamp: raw.timestamp,
+            action: raw.action,
+            payload: raw.payload,
+            hash,
+        });
+    }
+    Ok(entries)
 }
 
 /// A raw entry from the DB before hash-blob length validation.

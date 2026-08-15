@@ -2904,7 +2904,6 @@ dependencies = [
  "mailgrit-core-security",
  "mailgrit-core-storage",
  "rfd",
- "rusqlite",
  "rust-i18n",
  "serde",
  "serde_json",

@@ -12,6 +12,7 @@
 // Copyright (c) 2026 Netreon™ and contributors
 
 use crate::aead::EncryptionKey;
+use crate::ct_eq::constant_time_eq;
 use crate::error::SecurityError;
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
@@ -68,7 +69,10 @@ where
     let mut prev_hash = GENESIS_HASH;
     for (index, (message, expected_hash)) in entries.into_iter().enumerate() {
         let computed = chain_hash(key, &prev_hash, &message)?;
-        if computed != expected_hash {
+        // Constant-time comparison: an early-exit `!=` would leak the position
+        // of the first mismatching byte through timing (the same standard the
+        // audit key-file verify-token uses).
+        if !constant_time_eq(&computed, &expected_hash) {
             // u64 index is safe: the number of audit entries will not exceed u64.
             let idx = u64::try_from(index).unwrap_or(u64::MAX);
             return Err(SecurityError::ChainBroken { entry_index: idx });

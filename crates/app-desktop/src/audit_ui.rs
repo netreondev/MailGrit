@@ -69,15 +69,16 @@ impl AuditWriter {
             )));
         }
         let path = dir.join("mailgrit-audit.sqlite");
-        let conn =
-            rusqlite::Connection::open(path).map_err(|e| AuditError::Storage(e.to_string()))?;
 
         // The audit key is protected by the master password (Argon2id). The file
         // holds the salt and a verify-token; the key itself is derived from the
         // password on each open. Without the password (or with a wrong one), the
         // key cannot be recovered → the audit is unavailable.
         let key = load_or_create_persistent_key(&dir, master_password.as_bytes())?;
-        let log = AuditLog::open(conn, key).map_err(|e| AuditError::Storage(e.to_string()))?;
+        // open_path creates the SQLite connection internally: rusqlite stays an
+        // implementation detail of core-storage, not a dependency of this crate.
+        let log =
+            AuditLog::open_path(&path, key).map_err(|e| AuditError::Storage(e.to_string()))?;
         Ok(Self {
             log: Mutex::new(log),
         })
@@ -137,22 +138,21 @@ impl AuditWriter {
             .map_err(|e| AuditError::Storage(e.to_string()))
     }
 
-    /// Returns the last `limit` audit entries (newest first).
+    /// Returns the last `limit` audit entries (newest first). Pushed down to
+    /// SQL (`ORDER BY id DESC LIMIT ?`): the previous version materialized the
+    /// whole table and re-sorted it in memory on every call — and this runs
+    /// after every operation.
     ///
     /// # Errors
     ///
     /// - [`AuditError`] — on a read error.
     pub fn recent(&self, limit: usize) -> Result<Vec<AuditEntry>, AuditError> {
-        let entries = {
-            let log = self.log.lock().map_err(|_| AuditError::PoisonedLock)?;
-            log.entries()
-        };
-        let entries = entries.map_err(|e| AuditError::Storage(e.to_string()))?;
-        // Sort by descending id (newest first) and take `limit`.
-        let mut sorted = entries;
-        sorted.sort_unstable_by_key(|e| std::cmp::Reverse(e.id));
-        sorted.truncate(limit);
-        Ok(sorted)
+        // The audit table cannot outlive u32 rows (ids are SQLite integers);
+        // saturate defensively rather than erroring on an absurd limit.
+        let limit = u32::try_from(limit).unwrap_or(u32::MAX);
+        let log = self.log.lock().map_err(|_| AuditError::PoisonedLock)?;
+        log.recent(limit)
+            .map_err(|e| AuditError::Storage(e.to_string()))
     }
 
     /// Verifies the integrity of the audit hash-chain.
