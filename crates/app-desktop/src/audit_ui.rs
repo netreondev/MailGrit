@@ -19,6 +19,13 @@ pub enum AuditError {
     /// Failed to open/create the DB or a read error (transient, not tampering).
     #[error("audit DB error: {0}")]
     Storage(String),
+    /// Argon2id key derivation failed (distinct from DB errors — a KDF
+    /// parameter/input problem, not a corrupted log).
+    #[error("audit KDF error: {0}")]
+    Kdf(String),
+    /// HMAC/AEAD failure while verifying or deriving the audit key.
+    #[error("audit crypto error: {0}")]
+    Crypto(String),
     /// A hash-chain integrity violation (the log was tampered with). Distinct
     /// from [`Storage`](Self::Storage) so the UI does not falsely report
     /// "tampering" on any SQLite error.
@@ -266,9 +273,9 @@ fn validate_key_file(data: &[u8], master_password: &[u8]) -> Result<EncryptionKe
     }
     let (salt, stored_token) = data.split_at(mailgrit_core_security::SALT_LEN);
     let derived = mailgrit_core_security::derive_key(master_password, salt)
-        .map_err(|e| AuditError::Storage(e.to_string()))?;
+        .map_err(|e| AuditError::Kdf(e.to_string()))?;
     let derived_key = EncryptionKey::from_bytes(derived.as_slice())
-        .map_err(|e| AuditError::Storage(e.to_string()))?;
+        .map_err(|e| AuditError::Crypto(e.to_string()))?;
     // Verify-token: an HMAC with the derived key over the tag. Compared with
     // the stored one constant-time: the token is cryptographic; a classic
     // `!=` would reveal the position of the first mismatch via timing (a
@@ -288,9 +295,9 @@ fn create_new_key(
 ) -> Result<EncryptionKey, AuditError> {
     let salt = mailgrit_core_security::generate_salt();
     let derived = mailgrit_core_security::derive_key(master_password, &salt)
-        .map_err(|e| AuditError::Storage(e.to_string()))?;
+        .map_err(|e| AuditError::Kdf(e.to_string()))?;
     let derived_key = EncryptionKey::from_bytes(derived.as_slice())
-        .map_err(|e| AuditError::Storage(e.to_string()))?;
+        .map_err(|e| AuditError::Crypto(e.to_string()))?;
     let verify_token = compute_verify_token(&derived_key, verify_tag)?;
     // Assemble the file: salt || verify_token.
     let mut file_data = Vec::with_capacity(salt.len().saturating_add(verify_token.len()));
@@ -308,7 +315,7 @@ fn create_new_key(
 /// API.
 fn compute_verify_token(key: &EncryptionKey, tag: &[u8]) -> Result<[u8; 32], AuditError> {
     mailgrit_core_security::chain_hash(key, &mailgrit_core_security::GENESIS_HASH, tag)
-        .map_err(|e| AuditError::Storage(e.to_string()))
+        .map_err(|e| AuditError::Crypto(e.to_string()))
 }
 
 #[cfg(test)]

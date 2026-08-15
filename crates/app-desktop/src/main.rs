@@ -46,6 +46,7 @@ mod csv_summary;
 #[cfg(feature = "e2e")]
 mod e2e_state;
 mod editable_table_view;
+mod error;
 mod error_i18n;
 mod fs_util;
 mod i18n;

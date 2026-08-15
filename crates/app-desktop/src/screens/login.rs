@@ -81,8 +81,9 @@ pub fn login_screen() -> Element {
                                         }
                                         auth_bridge::request_login_window(&login_state_for_open, &base);
                                     }
-                                    Err(msg) => {
-                                        tracing::warn!("URL validation failed: {msg}");
+                                    Err(e) => {
+                                        tracing::warn!("URL validation failed: {e}");
+                                        let msg = crate::error_i18n::url_error(&e);
                                         state.write().error_msg = Some(msg);
                                     }
                                 }

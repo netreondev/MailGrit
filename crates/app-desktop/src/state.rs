@@ -237,21 +237,6 @@ impl AppState {
         self.refresh_audit();
     }
 
-    /// Maps an audit-open failure to a localized, user-facing message
-    /// (wrong password / damaged key file are named explicitly).
-    #[must_use]
-    pub fn map_unlock_error(e: crate::audit_ui::AuditError) -> String {
-        match e {
-            crate::audit_ui::AuditError::WrongMasterPassword => {
-                t!("master_password.wrong").to_string()
-            }
-            crate::audit_ui::AuditError::CorruptedKeyFile { .. } => {
-                t!("master_password.corrupt_key").to_string()
-            }
-            e => e.to_string(),
-        }
-    }
-
     /// Refreshes the list of audit entries from the writer.
     pub fn refresh_audit(&mut self) {
         if let Some(audit) = &self.audit {

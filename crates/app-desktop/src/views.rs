@@ -282,6 +282,14 @@ pub fn audit_view() -> Element {
                         Some(Err(crate::audit_ui::AuditError::CorruptedKeyFile { .. })) => {
                             tr!("master_password.corrupt_key")
                         }
+                        // KDF/crypto failures cannot occur during verify (the key
+                        // is already derived), but stay distinguishable if that
+                        // ever changes — reported as a technical error, not
+                        // "tampered".
+                        Some(Err(
+                            crate::audit_ui::AuditError::Kdf(_)
+                            | crate::audit_ui::AuditError::Crypto(_),
+                        )) => tr!("audit.verify_storage_error"),
                         None => tr!("audit.unavailable"),
                     };
                     state_clone.write().error_msg = Some(msg);

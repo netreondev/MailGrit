@@ -32,8 +32,25 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 /// The outcome of the background export file write (from `spawn_blocking`).
-/// `String` is a human-readable error (localized in the UI task).
-type WriteOutcome = std::result::Result<(), String>;
+/// Typed: the KDF/AEAD and I/O failure kinds stay distinguishable at the UI
+/// boundary (they used to collapse into a formatted `String`).
+enum ExportError {
+    /// Argon2id / AEAD failure (build_encrypted_bytes).
+    Crypto(mailgrit_core_security::SecurityError),
+    /// Writing the target file.
+    Io(std::io::Error),
+}
+
+impl std::fmt::Display for ExportError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Crypto(e) => write!(f, "encryption: {e}"),
+            Self::Io(e) => write!(f, "file write: {e}"),
+        }
+    }
+}
+
+type WriteOutcome = std::result::Result<(), ExportError>;
 
 /// Opens the export-format selection modal (encrypted/plain).
 /// First checks that there is something to export.
@@ -139,21 +156,24 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
                 return;
             };
             let join = crate::tokio_runtime().spawn_blocking(move || -> WriteOutcome {
-                let file_bytes = build_encrypted_bytes(pw.as_str(), &plaintext_bytes)?;
-                std::fs::write(&path, file_bytes).map_err(|e| e.to_string())
+                let file_bytes = build_encrypted_bytes(pw.as_str(), &plaintext_bytes)
+                    .map_err(ExportError::Crypto)?;
+                std::fs::write(&path, file_bytes).map_err(ExportError::Io)
             });
-            match join.await {
-                Ok(res) => res,
-                Err(e) => Err(e.to_string()),
-            }
+            join.await.unwrap_or_else(|e| {
+                Err(ExportError::Io(std::io::Error::other(format!(
+                    "export task failed: {e}"
+                ))))
+            })
         } else {
             let join = crate::tokio_runtime().spawn_blocking(move || -> WriteOutcome {
-                std::fs::write(&path, plaintext_bytes).map_err(|e| e.to_string())
+                std::fs::write(&path, plaintext_bytes).map_err(ExportError::Io)
             });
-            match join.await {
-                Ok(res) => res,
-                Err(e) => Err(e.to_string()),
-            }
+            join.await.unwrap_or_else(|e| {
+                Err(ExportError::Io(std::io::Error::other(format!(
+                    "export task failed: {e}"
+                ))))
+            })
         };
 
         match outcome {
@@ -254,14 +274,15 @@ fn build_export_text_from(rows: &[SanitizedUserRow], result_opt: Option<&BatchRe
 /// Encrypts the plaintext with the master password: returns
 /// `salt(16) || nonce || ciphertext+tag`. File format: the salt (for the KDF) in
 /// the clear + AEAD-ciphertext. The key is NOT stored.
-fn build_encrypted_bytes(master_password: &str, plaintext: &[u8]) -> Result<Vec<u8>, String> {
+fn build_encrypted_bytes(
+    master_password: &str,
+    plaintext: &[u8],
+) -> Result<Vec<u8>, mailgrit_core_security::SecurityError> {
     let salt = mailgrit_core_security::generate_salt();
-    let derived = mailgrit_core_security::derive_key(master_password.as_bytes(), &salt)
-        .map_err(|e| e.to_string())?;
-    let export_key = mailgrit_core_security::EncryptionKey::from_bytes(derived.as_slice())
-        .map_err(|e| e.to_string())?;
-    let ciphertext = mailgrit_core_security::encrypt(&export_key, plaintext, b"MailGrit-export-v1")
-        .map_err(|e| e.to_string())?;
+    let derived = mailgrit_core_security::derive_key(master_password.as_bytes(), &salt)?;
+    let export_key = mailgrit_core_security::EncryptionKey::from_bytes(derived.as_slice())?;
+    let ciphertext =
+        mailgrit_core_security::encrypt(&export_key, plaintext, b"MailGrit-export-v1")?;
     // Assemble the file: salt(16) || ciphertext (the nonce is already included in
     // the ciphertext).
     let mut file_bytes = Vec::with_capacity(salt.len().saturating_add(ciphertext.len()));

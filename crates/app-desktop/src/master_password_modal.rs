@@ -185,7 +185,7 @@ fn confirm_master_password(state: &mut Signal<AppState>, is_create: bool) {
             Err(e) => {
                 let mut s = state_clone.write();
                 s.unlock_pending = false;
-                s.error_msg = Some(crate::state::AppState::map_unlock_error(e));
+                s.error_msg = Some(crate::error::AppError::Audit(e).user_message());
             }
         }
     });

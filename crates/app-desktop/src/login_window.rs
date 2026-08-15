@@ -271,7 +271,7 @@ fn build_login_window<T: 'static>(
     req: &LoginRequest,
     data_dir: &Path,
     target: &EventLoopWindowTarget<T>,
-) -> Result<(), String> {
+) -> Result<(), crate::error::AppError> {
     tracing::info!("building the raw wry login window on the Dioxus event-loop");
 
     // Test mode (only compiled with the `e2e` cargo feature): MAILGRIT_LOGIN_URL
@@ -305,7 +305,7 @@ fn build_login_window<T: 'static>(
             .with_window_icon(crate::window_icon::window_icon())
             .with_inner_size(tao::dpi::LogicalSize::new(1100.0, 780.0))
             .build(target)
-            .map_err(|e| format!("window creation: {e}"))?,
+            .map_err(|e| crate::error::AppError::Other(format!("window creation: {e}")))?,
     );
 
     // 2. A WebContext with the same data_dir → a shared WebView2 cookie-store with the main window.
@@ -347,7 +347,7 @@ fn build_login_window<T: 'static>(
             crate::ipc::dispatch(&pending_map, req.body());
         })
         .build(&window)
-        .map_err(|e| format!("webview creation: {e}"))?;
+        .map_err(|e| crate::error::AppError::Other(format!("webview creation: {e}")))?;
 
     tracing::info!("login webview created, navigating to {url}");
 

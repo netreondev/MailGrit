@@ -22,6 +22,22 @@ use mailgrit_core_domain::{
 };
 
 // ============================================================================
+// UrlError (app layer)
+// ============================================================================
+
+/// Localized message for [`crate::error::UrlError`] (base-URL validation).
+#[must_use]
+pub fn url_error(e: &crate::error::UrlError) -> String {
+    match e {
+        crate::error::UrlError::Invalid => tr!("url.invalid"),
+        crate::error::UrlError::NotHttps { scheme } => {
+            tr!("url.not_https", scheme = scheme)
+        }
+        crate::error::UrlError::NoHost => tr!("url.no_host"),
+    }
+}
+
+// ============================================================================
 // CsvParseError (core-csv)
 // ============================================================================
 

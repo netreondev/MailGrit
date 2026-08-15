@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors
 
+use crate::error::UrlError;
 use time::OffsetDateTime;
 
 /// Current time in RFC3339 (UTC).
@@ -16,14 +17,21 @@ pub fn now_rfc3339() -> String {
 ///
 /// # Errors
 ///
-/// Returns `Err(message)` with a clear reason (failed to parse / not https / no host).
-pub fn validate_base_url(base: &str) -> Result<(), String> {
-    let parsed = url::Url::parse(base).map_err(|_| t!("url.invalid").to_string())?;
+/// - [`UrlError::Invalid`] — not a parseable URL.
+/// - [`UrlError::NotHttps`] — the scheme is not `https`.
+/// - [`UrlError::NoHost`] — no host part.
+///
+/// The error is TYPED; the localized user-facing text is produced at the
+/// display boundary via [`crate::error_i18n::url_error`].
+pub fn validate_base_url(base: &str) -> Result<(), UrlError> {
+    let parsed = url::Url::parse(base).map_err(|_| UrlError::Invalid)?;
     if parsed.scheme() != "https" {
-        return Err(t!("url.not_https", scheme = parsed.scheme()).to_string());
+        return Err(UrlError::NotHttps {
+            scheme: parsed.scheme().to_string(),
+        });
     }
     if parsed.host_str().is_none() {
-        return Err(t!("url.no_host").to_string());
+        return Err(UrlError::NoHost);
     }
     Ok(())
 }
