@@ -113,7 +113,6 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
 
 /// "Fill empty" and "Regenerate all" action buttons (extracted to keep
 /// `password_controls_view` within the 100-line pedantic limit).
-#[allow(clippy::too_many_lines)]
 fn pw_actions_row(mut state: Signal<AppState>, op_running: bool, has_any_class: bool) -> Element {
     rsx! {
         div { class: "pw-controls-actions",
