@@ -105,19 +105,10 @@ fn context_bar(
                 kind: ButtonKind::Ghost,
                 size: ButtonSize::Small,
                 icon_left: Some(Icon::Heart),
-                // External link: Dioxus/wry hands it to the system browser.
                 onclick: move |_| {
-                    if let Err(e) =
-                        dioxus::desktop::use_window().webview
-                            .evaluate_script(
-                            &format!(
-                                "window.open('{}','_blank','noopener,noreferrer');",
-                                crate::brand::DONATE_URL
-                            ),
-                        )
-                    {
-                        tracing::warn!("opening donate link: {e}");
-                    }
+                    // The OS browser, not the webview: window.open from inside
+                    // WebView2 is a silent no-op (see util::open_in_system_browser).
+                    crate::util::open_in_system_browser(crate::brand::DONATE_URL);
                 },
                 {tr!("donate.label")}
             }
