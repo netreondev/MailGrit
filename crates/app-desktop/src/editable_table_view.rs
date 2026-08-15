@@ -38,7 +38,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
         .is_some_and(|r| !r.is_empty());
     let op_running = state.read().op_status == OpStatus::Running;
     // Read the language for re-rendering localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     let pw_gen = state.read().password_generator.clone();
     let policy = state.read().password_policy.clone();
     // Slider lower bound: no lower than the policy's min_len and no lower than 8
@@ -81,7 +81,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
                             disabled: op_running || policy.classes.uppercase(),
                             onchange: move |ev| state.write().password_generator.classes.set_uppercase(ev.checked()),
                         }
-                        " A–Z"
+                        {tr!("pw.class_upper")}
                     }
                     label { class: "pw-class",
                         input {
@@ -90,7 +90,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
                             disabled: op_running || policy.classes.lowercase(),
                             onchange: move |ev| state.write().password_generator.classes.set_lowercase(ev.checked()),
                         }
-                        " a–z"
+                        {tr!("pw.class_lower")}
                     }
                     label { class: "pw-class",
                         input {
@@ -99,7 +99,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
                             disabled: op_running || policy.classes.digits(),
                             onchange: move |ev| state.write().password_generator.classes.set_digits(ev.checked()),
                         }
-                        " 0–9"
+                        {tr!("pw.class_digits")}
                     }
                     label { class: "pw-class",
                         input {
@@ -108,7 +108,7 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
                             disabled: op_running || policy.classes.special(),
                             onchange: move |ev| state.write().password_generator.classes.set_special(ev.checked()),
                         }
-                        " !@#"
+                        {tr!("pw.class_special")}
                     }
                 }
                 div { class: "pw-controls-actions",
@@ -294,7 +294,7 @@ fn render_row(
                 r#type: "text",
                 value: "{row.domain}",
                 disabled: op_running,
-                placeholder: "example.com",
+                placeholder: tr!("table.placeholder_domain"),
                 oninput: move |ev: FormEvent| {
                     set_field(&mut state, idx, |r| r.domain = ev.value());
                 },
@@ -304,7 +304,7 @@ fn render_row(
                 r#type: "text",
                 value: "{row.username}",
                 disabled: op_running,
-                placeholder: "ivan.petrov",
+                placeholder: tr!("table.placeholder_username"),
                 oninput: move |ev: FormEvent| {
                     set_field(&mut state, idx, |r| r.username = ev.value());
                 },
@@ -347,7 +347,7 @@ fn render_row(
                 r#type: "text",
                 value: "{row.quota}",
                 disabled: op_running,
-                placeholder: "1024",
+                placeholder: tr!("table.placeholder_quota"),
                 oninput: move |ev: FormEvent| {
                     set_field(&mut state, idx, |r| r.quota = ev.value());
                 },

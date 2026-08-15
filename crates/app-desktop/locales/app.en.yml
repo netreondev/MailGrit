@@ -278,4 +278,12 @@ err.quota.out_of_range: "quota out of range: %{value} (expected 1..=%{max})"
 # CsvRowError aggregates (core-domain)
 err.column_count: "wrong number of columns: %{actual} (expected %{expected})"
 err.missing_field: "required field missing: %{field}"
-
+pw.class_upper: "A–Z"
+pw.class_lower: "a–z"
+pw.class_digits: "0–9"
+pw.class_special: "!@#"
+table.placeholder_domain: "example.com"
+table.placeholder_username: "ivan.petrov"
+table.placeholder_quota: "1024"
+audit.export_encrypted: "local encrypted CSV export: %{rows} rows → %{path}"
+audit.export_plain: "local plain CSV export: %{rows} rows → %{path}"

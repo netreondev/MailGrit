@@ -53,7 +53,7 @@ pub fn cookies_disclosure(state: &Signal<AppState>) -> Element {
     }
     let session_name = state.read().session_cookie_name.clone();
     // Read the language to re-render the localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(*state);
     // Prepare the strings for display (avoiding temporary borrows in RSX).
     let yes = tr!("cookies.yes");
     let no = tr!("cookies.no");
@@ -106,7 +106,7 @@ pub fn cookies_disclosure(state: &Signal<AppState>) -> Element {
 /// View of rejected CSV rows (ParsedCsv::failed) — a table with the reason.
 pub fn failed_csv_rows_view(state: &Signal<AppState>) -> Element {
     // Read the language to re-render the localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(*state);
     // Collect the data to display under the read-guard, releasing it before rendering.
     let (total, rows): (usize, Vec<(usize, String, String)>) = {
         let read = state.read();
@@ -168,7 +168,7 @@ pub fn failed_csv_rows_view(state: &Signal<AppState>) -> Element {
 pub fn batch_result_view() -> Element {
     let state = use_context::<Signal<AppState>>();
     // Read the language to re-render the localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     let result = state.read().batch_result.clone();
 
     let Some(result) = result else {
@@ -216,7 +216,7 @@ pub fn audit_view() -> Element {
     let entries = state.read().audit_entries.clone();
     let has_audit = state.read().audit.is_some();
     // Read the language to re-render the localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
 
     if !has_audit {
         // The audit is locked by the master password. Offer to unlock it.

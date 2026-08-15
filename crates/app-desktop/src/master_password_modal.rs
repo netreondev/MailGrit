@@ -26,7 +26,7 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
     // Subscribe to the language: tr!/t! read the global locale rather than a
     // Dioxus signal, so without this line a language change would not re-render
     // the modal (see the pattern in i18n.rs:16-21).
-    let _ = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     let pending = state.read().modals.pending_master_password;
     if !pending {
         return rsx! {};

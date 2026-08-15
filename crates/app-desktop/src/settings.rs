@@ -373,11 +373,13 @@ pub fn save(settings: &Settings) {
     }
     match toml::to_string_pretty(settings) {
         Ok(toml_str) => {
+            // NOTE: only list languages that `Language::from_config` actually
+            // supports — a "ru" here used to fall back to English silently.
             let with_header = format!(
                 "# MailGrit configuration. Edit for your iRedAdmin.\n\
                  # theme: \"dark\" or \"light\".\n\
                  # language: \"en\", \"de\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \
-                 \"pl\", \"uk\", \"ru\".\n\n{toml_str}"
+                 \"pl\", \"uk\".\n\n{toml_str}"
             );
             if let Err(e) = std::fs::write(&path, with_header) {
                 tracing::warn!("writing config.toml: {e}");

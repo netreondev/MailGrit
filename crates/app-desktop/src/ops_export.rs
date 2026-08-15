@@ -285,9 +285,14 @@ fn record_export_success(
 ) {
     let timestamp = now_rfc3339();
     let detail = if encrypt {
-        format!("local encrypted CSV export: {row_count} rows → {path_display}")
+        t!(
+            "audit.export_encrypted",
+            rows = row_count,
+            path = path_display
+        )
+        .to_string()
     } else {
-        format!("local plain CSV export: {row_count} rows → {path_display}")
+        t!("audit.export_plain", rows = row_count, path = path_display).to_string()
     };
     // Audit record on a cloned Arc — without borrowing the signal.
     if let Some(audit) = audit

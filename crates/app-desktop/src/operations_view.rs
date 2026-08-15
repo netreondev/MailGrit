@@ -50,7 +50,7 @@ fn target_options() -> Vec<SegmentedOption<OperationTarget>> {
 /// `Operations` → behavior identical to Phase 14 on entry.
 pub fn operations_section(state: Signal<AppState>) -> Element {
     // Read the language so Dioxus re-renders localized strings on language change.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     rsx! {
         div { class: "dash-grid",
             // Card 1: CSV upload.
@@ -73,7 +73,7 @@ pub fn operations_section(state: Signal<AppState>) -> Element {
 fn csv_card(state: Signal<AppState>) -> Element {
     let op_status = state.read().op_status;
     // Read the language for re-rendering localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     let csv_summary = state
         .read()
         .csv
@@ -151,7 +151,7 @@ fn ops_card(mut state: Signal<AppState>) -> Element {
     let has_session = state.read().session_ok;
     let has_csv = state.read().csv.is_some();
     // Read the language for re-rendering localized strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     let can_op = has_session && has_csv && op_status != OpStatus::Running;
     rsx! {
         Card {
@@ -211,7 +211,7 @@ fn ops_buttons(
     let export_in_progress = state.read().export.export_in_progress;
     let has_result = state.read().batch_result.is_some();
     // Read the language for re-rendering localized button labels.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     rsx! {
         div { class: "op-row",
             Button {
@@ -331,7 +331,7 @@ fn delete_modal(
 fn export_choice_modal(mut state: Signal<AppState>) -> Element {
     // Subscribe to the language: a language change must re-render the localized
     // strings.
-    let _lang = state.read().language;
+    crate::i18n::subscribe_to_language(state);
     let pending = state.read().export.pending_export_choice;
     if !pending {
         return rsx! {};
