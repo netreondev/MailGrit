@@ -118,6 +118,18 @@ fn reason_401() {
     assert!(is_session_expired_reason("HTTP 401"));
 }
 
+// Regression: a plain contains("401") also matched numbers that merely
+// EMBED the code — "quota 4012 exceeded" and "id 14012" are not auth errors.
+#[test]
+fn reason_does_not_match_embedded_status_digits() {
+    assert!(!is_session_expired_reason("quota 4012 exceeded"));
+    assert!(!is_session_expired_reason("id 14012 not found"));
+    assert!(!is_session_expired_reason("error 4030"));
+    // …while real codes at token boundaries still match.
+    assert!(is_session_expired_reason("HTTP 403"));
+    assert!(is_session_expired_reason("status=401 unauthorized"));
+}
+
 #[test]
 fn reason_login_path() {
     assert!(is_session_expired_reason("redirected to /login"));

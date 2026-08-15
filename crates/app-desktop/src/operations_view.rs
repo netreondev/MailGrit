@@ -100,7 +100,7 @@ fn csv_card(state: Signal<AppState>) -> Element {
                         // reenter the Dioxus runtime — just like in export.
                         // Parsing and state update happen after the path
                         // returns.
-                        let mut s = state;
+                        let s = state;
                         spawn(async move {
                             let title = tr!("csv.file_dialog_title");
                             let handle = rfd::AsyncFileDialog::new()
@@ -110,7 +110,7 @@ fn csv_card(state: Signal<AppState>) -> Element {
                                 .await;
                             if let Some(handle) = handle {
                                 let path = handle.path().to_path_buf();
-                                load_csv_file(&mut s, &path);
+                                load_csv_file(&s, &path);
                             }
                         });
                     },

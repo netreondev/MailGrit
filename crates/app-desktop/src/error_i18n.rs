@@ -183,11 +183,11 @@ pub fn password_warning(w: &PasswordWarning) -> String {
 // EditableUserRow — localized field validation for the UI table
 // ============================================================================
 
-/// Localized counterpart of [`EditableUserRow::validate_fields`]: re-runs field
-/// validation through the core-domain typestate parsers and returns errors with
-/// a translated `message`. A mirror of the core logic (the same set of parsers in
-/// the same order), but `message` is the result of `domain_error`/
-/// `username_error`/... instead of the core `Display`.
+/// Per-field validation of an [`EditableUserRow`], localized: re-runs the
+/// core-domain typestate parsers (the same set, in the same order, as
+/// [`RawCsvRow::parse`](mailgrit_core_domain::RawCsvRow::parse) — the canonical
+/// pipeline behind `EditableUserRow::to_sanitized`) and returns errors with a
+/// translated `message` instead of the core `Display`.
 ///
 /// Used in `editable_table_view` for cell highlighting and tooltips. The core
 /// crate stays free of i18n — translation lives at this layer.

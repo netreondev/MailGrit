@@ -22,7 +22,9 @@ pub(super) const fn mf_mask_js() -> &'static str {
     function mfMask(k, v) {
         const s = String(v);
         if (k === 'newpw' || k === 'confirmpw' || k === 'csrf_token') {
-            return s.length <= 8 ? '***' : s.slice(0, 8) + '***';
+            // Full masking: echoing even the first 8 chars of a secret into
+            // logs leaks a meaningful prefix of passwords/CSRF tokens.
+            return s.length === 0 ? '(empty)' : '***(' + s.length + ')';
         }
         if (k === 'mail' || k === 'username') {
             const at = s.lastIndexOf('@');
@@ -65,7 +67,7 @@ pub(super) fn get_csrf_js(log_tag: &str) -> String {
             const token = csrfEl ? (csrfEl.getAttribute('value') || csrfEl.value || '') : '';
             const allInputs = Array.from(doc.querySelectorAll('input,select')).map(i => i.name + '(' + i.type + ')');
             const ms = Math.round(performance.now() - t0);
-            console.log('[{log_tag}] url=' + formUrl + ' status=' + r.status + ' token=' + (token ? token.slice(0,15) + '...' : 'EMPTY') + ' inputs=[' + allInputs.join(',') + '] ' + ms + 'ms');
+            console.log('[{log_tag}] url=' + formUrl + ' status=' + r.status + ' token=' + (token ? 'present(' + token.length + ')' : 'EMPTY') + ' inputs=[' + allInputs.join(',') + '] ' + ms + 'ms');
             return {{token: token, status: r.status, inputs: allInputs, ms: ms, htmlHead: html.slice(0, 800)}};
         }} catch(e) {{
             console.error('[{log_tag}] ERROR ' + e);

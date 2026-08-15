@@ -17,30 +17,46 @@ use std::sync::Arc;
 
 /// Loads and parses the selected CSV file into [`AppState`].
 ///
-/// File reading runs in `spawn_blocking` (so it does not block the Dioxus
-/// event-loop on large CSVs); parsing and state updates happen after the bytes
-/// are returned.
+/// File reading runs via `spawn_blocking` on the tokio runtime's blocking
+/// pool (so the Dioxus event-loop never stalls on large CSVs, and nothing
+/// depends on `block_in_place`, which panics on a current-thread runtime);
+/// parsing and state updates happen on the async continuation after the bytes
+/// return.
 ///
 /// Auto-mapping uses the profile of the selected target (for the classic
 /// 5-column CSV the result is identical to `parse_csv_bytes`). Valid rows are
 /// also duplicated into the editable layer `editable_rows` (plain `String`),
 /// which the user edits directly in the table; on execution, rows are
 /// re-validated via [`EditableUserRow::to_sanitized`].
-pub fn load_csv_file(state: &mut Signal<AppState>, path: &std::path::Path) {
-    // File reading is blocking IO; offloaded to block_in_place on the tokio
-    // runtime so the Dioxus event-loop does not stall on large CSVs.
+pub fn load_csv_file(state: &Signal<AppState>, path: &std::path::Path) {
+    let mut state_clone = *state;
     let path = path.to_path_buf();
-    let bytes = match tokio::task::block_in_place(|| std::fs::read(&path)) {
-        Ok(b) => b,
-        Err(e) => {
-            state.write().error_msg = Some(t!("csv.read_error", error = e).to_string());
-            return;
-        }
-    };
+    spawn(async move {
+        let bytes = match crate::tokio_runtime()
+            .spawn_blocking(move || std::fs::read(&path))
+            .await
+        {
+            Ok(Ok(b)) => b,
+            Ok(Err(e)) => {
+                state_clone.write().error_msg = Some(t!("csv.read_error", error = e).to_string());
+                return;
+            }
+            Err(e) => {
+                state_clone.write().error_msg = Some(t!("csv.read_error", error = e).to_string());
+                return;
+            }
+        };
+        apply_loaded_csv(&mut state_clone, &bytes);
+    });
+}
+
+/// Parses the CSV bytes and applies the result to the state (split out of
+/// [`load_csv_file`] so the parse/apply path is unit-testable).
+fn apply_loaded_csv(state: &mut Signal<AppState>, bytes: &[u8]) {
     let profile = state.read().effective_profile();
-    match parse_csv_bytes_auto(&bytes, &profile) {
+    match parse_csv_bytes_auto(bytes, &profile) {
         Ok(parsed) => {
-            let header = extract_header(&bytes);
+            let header = extract_header(bytes);
             let mapping = detect_mapping(&header, &profile);
             let summary = CsvSummary::from_parsed(&parsed);
             // Editable layer: copy valid rows into plain `String`.

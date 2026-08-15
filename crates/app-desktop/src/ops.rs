@@ -8,7 +8,7 @@
 use crate::batch::{BatchResult, CredentialRow, RowFailure};
 use crate::login_window;
 use crate::op_label::operation_label;
-use crate::state::{AppState, AuthStatus, OpStatus, Screen};
+use crate::state::{AppState, OpStatus};
 use crate::util::now_rfc3339;
 use dioxus::prelude::*;
 use mailgrit_core_domain::{BulkOperationKind, OperationTarget};
@@ -147,16 +147,8 @@ pub fn launch_op(state: &mut Signal<AppState>, target: OperationTarget, kind: Bu
             if session_lost {
                 tracing::warn!("session expired during operation — returning to login screen");
                 let mut s = state_clone.write();
-                s.op_status = OpStatus::Idle;
-                s.session_ok = false;
-                s.auth_status = AuthStatus::None;
+                s.reset_session();
                 s.error_msg = Some(t!("operr.session_expired").to_string());
-                s.screen = Screen::Login;
-                s.batch_result = None;
-                s.csv = None;
-                // Wipe the master password together with the session.
-                s.master_password = None;
-                s.modals.pending_delete = false;
                 return;
             }
 
@@ -377,11 +369,18 @@ fn is_session_expired(
 }
 
 /// Textual fallback indicator of session expiry (for export errors).
+///
+/// Status codes are matched on DIGIT-TOKEN boundaries: a plain
+/// `contains("401")` also matched "4012" and "14012" (any number embedding the
+/// code). The primary detector uses the numeric `status` field; this text
+/// fallback only covers paths without one.
 #[must_use]
 pub fn is_session_expired_reason(reason: &str) -> bool {
     let r = reason.to_ascii_lowercase();
-    r.contains("401")
-        || r.contains("403")
+    let status_match = r
+        .split(|c: char| !c.is_ascii_digit())
+        .any(|tok| tok == "401" || tok == "403");
+    status_match
         || r.contains("/login")
         || r.contains("login_required")
         || r.contains("csrf token not found")

@@ -390,25 +390,32 @@ pub fn save(settings: &Settings) {
 }
 
 /// Updates only the theme field in config.toml, preserving the other settings.
-/// Reading and writing TOML happen in `block_in_place`, so as not to block the event loop.
+/// The read-modify-write runs via `spawn_blocking`: `block_in_place` PANICS on
+/// a current-thread runtime (the fallback infra.rs may build), and would still
+/// stall the event loop on a slow disk. Fire-and-forget: the UI applies the
+/// theme immediately, config.toml follows.
 pub fn save_theme(theme: &str) {
     let theme = theme.to_string();
-    tokio::task::block_in_place(|| {
+    // Detached: dropping the handle leaves the task running (fire-and-forget).
+    let join = crate::tokio_runtime().spawn_blocking(move || {
         let mut settings = load_or_create();
         settings.theme = theme;
         save(&settings);
     });
+    drop(join);
 }
 
 /// Updates only the language field in config.toml, preserving the other settings.
-/// Reading and writing TOML happen in `block_in_place`, so as not to block the event loop.
+/// Same spawn_blocking rationale as [`save_theme`].
 pub fn save_language(language: &str) {
     let language = language.to_string();
-    tokio::task::block_in_place(|| {
+    // Detached (see save_theme).
+    let join = crate::tokio_runtime().spawn_blocking(move || {
         let mut settings = load_or_create();
         settings.language = language;
         save(&settings);
     });
+    drop(join);
 }
 
 /// Loads settings from TOML. If the file is missing, it creates a sample and

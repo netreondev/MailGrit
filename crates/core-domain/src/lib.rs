@@ -22,6 +22,7 @@ pub mod password_policy;
 pub mod profile;
 pub mod types;
 pub mod typestate;
+pub mod url_policy;
 
 /// Kani formal verification proof harnesses (only active under cfg(kani)).
 #[cfg(kani)]

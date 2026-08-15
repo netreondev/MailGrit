@@ -17,11 +17,16 @@ fuzz_target!(|data: &str| {
     // Contract 1: the parser must return a Result, not panic.
     if let Ok(q) = ValidatedQuota::parse(data) {
         // Contract 2 (invariant): a successful parse always yields a quota in
-        // the documented range [1, MAX_QUOTA_MB]. A violation here would be a
-        // logic bug that could let an attacker bypass storage limits.
-        debug_assert!(
+        // the documented range [1, MAX_QUOTA_MB] — BOTH bounds. assert (not
+        // debug_assert) so release-profile fuzz runs check it too; the old
+        // version asserted only the lower bound while documenting a range.
+        assert!(
             q.mb() >= 1,
             "quota parser must never return a value below the minimum"
+        );
+        assert!(
+            u64::from(q.mb()) <= mailgrit_core_domain::MAX_QUOTA_MB,
+            "quota parser must never return a value above MAX_QUOTA_MB"
         );
     }
 });

@@ -174,7 +174,8 @@ fn regenerate_all_modal(mut state: Signal<AppState>) -> Element {
 ///
 /// For each row shows:
 /// - per-cell format-error highlighting (domain/login/password/name/quota) via
-///   [`EditableUserRow::validate_fields`] → the `input-cell-invalid` class;
+///   [`error_i18n::validate_fields_localized`] (which re-runs the canonical
+///   core-domain parsers) → the `input-cell-invalid` class;
 /// - a password-strength indicator (a ⚠ icon with a tooltip) per the server-side
 ///   policy `state.password_policy` — warnings, not blocking the operation.
 pub fn editable_table_view(mut state: Signal<AppState>) -> Element {

@@ -237,6 +237,30 @@ impl AppState {
         self.refresh_audit();
     }
 
+    /// Ends the iRedAdmin session and clears everything tied to it.
+    ///
+    /// Single source of truth for BOTH paths — manual logout and automatic
+    /// session-loss: the two hand-maintained field lists had already diverged
+    /// (session-loss forgot `column_mapping`, `current_profile`,
+    /// `editable_rows`). The local audit log and the display entries stay (the
+    /// audit belongs to the app, not to the server session). The caller decides
+    /// what goes into `error_msg`.
+    pub fn reset_session(&mut self) {
+        self.op_status = OpStatus::Idle;
+        self.session_ok = false;
+        self.auth_status = AuthStatus::None;
+        self.screen = Screen::Login;
+        self.batch_result = None;
+        self.csv = None;
+        self.column_mapping = None;
+        self.current_profile = None;
+        self.editable_rows = None;
+        // Wipe the master password together with the session (Zeroizing drop).
+        self.master_password = None;
+        self.modals.pending_delete = false;
+        self.modals.pending_password_regenerate = false;
+    }
+
     /// Refreshes the list of audit entries from the writer.
     pub fn refresh_audit(&mut self) {
         if let Some(audit) = &self.audit {

@@ -321,8 +321,10 @@ fn build_login_window<T: 'static>(
         .with_url(&url)
         .with_navigation_handler(|nav_url: String| {
             // Allow only http/https (block javascript:, file:, data:, etc.).
-            let allowed =
-                url::Url::parse(&nav_url).is_ok_and(|u| matches!(u.scheme(), "http" | "https"));
+            // The allow-list itself lives in core-domain (url_policy) — the
+            // same function the fuzz target imports.
+            let allowed = url::Url::parse(&nav_url)
+                .is_ok_and(|u| mailgrit_core_domain::url_policy::scheme_is_allowed(u.scheme()));
             if !allowed {
                 tracing::warn!("login webview navigation blocked: {nav_url}");
             }
