@@ -46,7 +46,7 @@ jobs:
     name: Supply chain, SAST & secrets
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # Full history so gitleaks can scan all commits, not just the PR tip.
           fetch-depth: 0
@@ -134,7 +134,7 @@ jobs:
             target: aarch64-apple-darwin
             name: macos-arm
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Rust toolchain (pinned)
         run: rustup show active-toolchain || rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
@@ -228,7 +228,7 @@ jobs:
     needs: quality
     timeout-minutes: 40
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install Rust toolchain (pinned)
         run: rustup show active-toolchain || rustup toolchain install 1.97.1 --profile minimal
@@ -279,7 +279,7 @@ jobs:
             target: aarch64-apple-darwin
             name: macos-arm
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install Rust toolchain (pinned)
         run: rustup toolchain install 1.97.1 --profile minimal
       - name: Add target
@@ -317,7 +317,7 @@ jobs:
     needs: supply-chain
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install nightly Rust
         run: rustup toolchain install nightly
       - name: Install cargo-fuzz
@@ -356,7 +356,7 @@ jobs:
     needs: quality
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
       # needs the GTK/webkit headers on Linux (same as quality/build-release).
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
@@ -412,7 +412,7 @@ jobs:
     needs: quality
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install nightly Rust
         run: rustup toolchain install nightly
       - name: Install cargo-fuzz
