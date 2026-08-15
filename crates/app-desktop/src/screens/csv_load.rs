@@ -9,7 +9,9 @@
 use crate::csv_summary::CsvSummary;
 use crate::state::AppState;
 use dioxus::prelude::*;
-use mailgrit_core_csv::{CsvParseError, detect_mapping, parse_csv_bytes_auto};
+use mailgrit_core_csv::{
+    CsvParseError, RecordOutcome, RecordReader, detect_mapping, parse_csv_bytes_auto,
+};
 use mailgrit_core_domain::{EditableUserRow, SanitizedUserRow};
 use std::sync::Arc;
 
@@ -67,29 +69,34 @@ pub fn load_csv_file(state: &mut Signal<AppState>, path: &std::path::Path) {
     }
 }
 
-/// Extracts the CSV header (the first non-empty line) from the bytes for
-/// auto-detecting the column mapping. The logic matches the auto-parser:
-/// strip the UTF-8 BOM, skip empty lines, split on commas and trim each cell.
+/// Extracts the CSV header (the first non-empty record) from the bytes for
+/// auto-detecting the column mapping. Uses the core-csv [`RecordReader`] (the
+/// single wire-format layer: quoted headers like `"Domain","Username"` are
+/// unquoted correctly, matching what the parser itself sees).
 fn extract_header(data: &[u8]) -> Vec<String> {
-    let clean = data.strip_prefix(b"\xef\xbb\xbf").unwrap_or(data);
-    let text = match std::str::from_utf8(clean) {
-        Ok(t) => t,
-        Err(e) => {
-            // Invalid UTF-8: column auto-mapping is impossible. Return an empty
-            // header (mapping yields 0 bindings) and log the reason — do not
-            // mask the failure with a silent empty result.
-            tracing::warn!("CSV contains invalid UTF-8, column auto-mapping disabled: {e}");
-            return Vec::new();
-        }
-    };
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if !trimmed.is_empty() {
-            return trimmed.split(',').map(|c| c.trim().to_string()).collect();
+    let clean = mailgrit_core_csv::strip_bom(data);
+    let mut reader = RecordReader::new(std::io::BufReader::new(clean));
+    loop {
+        let record = match reader.next_record() {
+            Ok(Some(r)) => r,
+            Ok(None) => return Vec::new(), // no non-empty lines
+            Err(e) => {
+                tracing::warn!("CSV read error, column auto-mapping disabled: {e}");
+                return Vec::new();
+            }
+        };
+        match record.outcome {
+            RecordOutcome::Fields(fields) => {
+                let blank = matches!(fields.as_slice(), [f] if f.trim().is_empty());
+                if !blank {
+                    return fields.iter().map(|f| f.trim().to_string()).collect();
+                }
+            }
+            // A first record that failed to split cannot serve as a header
+            // (mapping yields 0 bindings).
+            RecordOutcome::Failed(_) => return Vec::new(),
         }
     }
-    // No non-empty lines — empty header (mapping yields 0 bindings).
-    Vec::new()
 }
 
 /// Collects valid rows from the editable table for operation execution.

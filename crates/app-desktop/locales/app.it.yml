@@ -225,6 +225,7 @@ err.csv.too_many_rows: "il CSV supera il numero massimo di righe: %{actual} > %{
 err.csv.line_too_long: "la riga %{line_no} supera %{max} byte"
 err.csv.field_too_long: "il campo alla riga %{line_no} supera %{max} byte"
 err.csv.io: "errore di lettura CSV: %{error}"
+err.csv.invalid_utf8: "la riga %{line_no} non è UTF-8 valido"
 err.csv.row: "riga %{line_no}: %{detail}"
 err.pw.too_short: "password troppo corta: %{actual} caratteri, necessario ≥ %{min}"
 err.pw.missing_uppercase: "nessuna maiuscola (A–Z)"

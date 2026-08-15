@@ -36,7 +36,7 @@ pub use limits::*;
 pub use operation::{BulkOperationKind, OperationTarget};
 pub use password_gen::PasswordGenerator;
 pub use password_policy::{PasswordPolicy, PasswordWarning};
-pub use profile::{FieldSpec, OperationProfile};
+pub use profile::{CLASSICAL_FIELD_NAMES, FieldSpec, OperationProfile};
 pub use types::{
     SanitizedDisplayName, SanitizedUsername, ValidatedDomain, ValidatedPassword, ValidatedQuota,
 };

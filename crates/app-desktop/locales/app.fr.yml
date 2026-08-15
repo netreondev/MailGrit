@@ -225,6 +225,7 @@ err.csv.too_many_rows: "le CSV dépasse le nombre maximal de lignes : %{actual} 
 err.csv.line_too_long: "la ligne %{line_no} dépasse %{max} octets"
 err.csv.field_too_long: "le champ à la ligne %{line_no} dépasse %{max} octets"
 err.csv.io: "erreur de lecture CSV : %{error}"
+err.csv.invalid_utf8: "la ligne %{line_no} n'est pas valide en UTF-8"
 err.csv.row: "ligne %{line_no} : %{detail}"
 err.pw.too_short: "mot de passe trop court : %{actual} caractères, nécessaire ≥ %{min}"
 err.pw.missing_uppercase: "pas de majuscule (A–Z)"

@@ -225,6 +225,7 @@ err.csv.too_many_rows: "CSV перевищує максимальну кільк
 err.csv.line_too_long: "рядок %{line_no} перевищує %{max} байт"
 err.csv.field_too_long: "поле в рядку %{line_no} перевищує %{max} байт"
 err.csv.io: "помилка читання CSV: %{error}"
+err.csv.invalid_utf8: "рядок %{line_no} не є коректним UTF-8"
 err.csv.row: "рядок %{line_no}: %{detail}"
 err.pw.too_short: "пароль занадто короткий: %{actual} символів, потрібно ≥ %{min}"
 err.pw.missing_uppercase: "немає великої літери (A–Z)"

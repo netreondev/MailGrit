@@ -107,7 +107,7 @@ fn auto_positional_without_header_matches_classic() -> Result<(), Box<dyn std::e
 /// detect_mapping on a canonical header → 5 bindings.
 #[test]
 fn detect_mapping_canonical_header_five_bindings() {
-    let header: Vec<String> = ["domain", "username", "password", "display_name", "quota_mb"]
+    let header: Vec<String> = mailgrit_core_csv::CSV_HEADER
         .iter()
         .copied()
         .map(String::from)
@@ -267,7 +267,7 @@ fn auto_strips_utf8_bom() -> Result<(), Box<dyn std::error::Error>> {
 /// ColumnMapping clones and holds the profile (basic type contract).
 #[test]
 fn column_mapping_is_clone_and_holds_profile() {
-    let header: Vec<String> = ["domain", "username", "password", "display_name", "quota_mb"]
+    let header: Vec<String> = mailgrit_core_csv::CSV_HEADER
         .iter()
         .copied()
         .map(String::from)

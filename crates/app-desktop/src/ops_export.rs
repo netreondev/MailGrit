@@ -24,6 +24,7 @@ use crate::batch::BatchResult;
 use crate::state::AppState;
 use crate::util::now_rfc3339;
 use dioxus::prelude::*;
+use mailgrit_core_csv::escape_field;
 use mailgrit_core_domain::SanitizedUserRow;
 use mailgrit_core_storage::AuditAction;
 use std::fmt::Write as _;
@@ -206,10 +207,10 @@ fn build_export_text_from(rows: &[SanitizedUserRow], result_opt: Option<&BatchRe
             let _ = writeln!(
                 out,
                 "{},{},{},{},{}",
-                csv_escape(&c.domain),
-                csv_escape(&c.username),
-                csv_escape(&c.password),
-                csv_escape(&c.display_name),
+                escape_field(&c.domain),
+                escape_field(&c.username),
+                escape_field(&c.password),
+                escape_field(&c.display_name),
                 c.quota_mb
             );
             wrote_from_credentials = true;
@@ -224,10 +225,10 @@ fn build_export_text_from(rows: &[SanitizedUserRow], result_opt: Option<&BatchRe
             let _ = writeln!(
                 out,
                 "{},{},{},{},{}",
-                csv_escape(row.domain.as_str()),
-                csv_escape(row.username.as_str()),
-                csv_escape(row.password.as_secret_str()),
-                csv_escape(row.display_name.as_str()),
+                escape_field(row.domain.as_str()),
+                escape_field(row.username.as_str()),
+                escape_field(row.password.as_secret_str()),
+                escape_field(row.display_name.as_str()),
                 row.quota.mb()
             );
         }
@@ -241,37 +242,13 @@ fn build_export_text_from(rows: &[SanitizedUserRow], result_opt: Option<&BatchRe
             let _ = writeln!(
                 out,
                 "# FAIL {}@{}: {}",
-                csv_escape(&f.username),
-                csv_escape(&f.domain),
-                csv_escape(&f.reason)
+                escape_field(&f.username),
+                escape_field(&f.domain),
+                escape_field(&f.reason)
             );
         }
     }
     out
-}
-
-/// Escapes a CSV field per RFC 4180: wraps it in double quotes if the field
-/// contains a comma, quote, newline, or carriage return; inside quotes, quotes
-/// are doubled. The password generator produces values without these characters,
-/// but `display_name` (and a FAIL reason) may contain a comma/quote (e.g.
-/// "Petrov, Ivan"), which without escaping would break the column count in the
-/// export.
-fn csv_escape(field: &str) -> String {
-    let needs_quoting = field.chars().any(|c| matches!(c, ',' | '"' | '\n' | '\r'));
-    if !needs_quoting {
-        return field.to_owned();
-    }
-    // Double the quotes and wrap the field in quotes.
-    let mut escaped = String::with_capacity(field.len().saturating_add(2));
-    escaped.push('"');
-    for c in field.chars() {
-        if c == '"' {
-            escaped.push('"');
-        }
-        escaped.push(c);
-    }
-    escaped.push('"');
-    escaped
 }
 
 /// Encrypts the plaintext with the master password: returns
@@ -372,29 +349,72 @@ mod tests {
     /// RFC 4180: a field without special characters is not escaped (left as is).
     #[test]
     fn csv_escape_plain_field_unchanged() {
-        assert_eq!(csv_escape("ivan.petrov"), "ivan.petrov");
-        assert_eq!(csv_escape(""), "");
-        assert_eq!(csv_escape("example.com"), "example.com");
+        assert_eq!(escape_field("ivan.petrov"), "ivan.petrov");
+        assert_eq!(escape_field(""), "");
+        assert_eq!(escape_field("example.com"), "example.com");
     }
 
     /// RFC 4180: a comma in a field (e.g. "Petrov, Ivan") → wrap in quotes.
     /// Previously such a display_name broke the column count in the export.
     #[test]
     fn csv_escape_quotes_comma_field() {
-        assert_eq!(csv_escape("Petrov, Ivan"), "\"Petrov, Ivan\"");
+        assert_eq!(escape_field("Petrov, Ivan"), "\"Petrov, Ivan\"");
     }
 
     /// RFC 4180: a double quote inside → double it and wrap the field.
     #[test]
     fn csv_escape_doubles_inner_quotes() {
-        assert_eq!(csv_escape("say \"hi\""), "\"say \"\"hi\"\"\"");
+        assert_eq!(escape_field("say \"hi\""), "\"say \"\"hi\"\"\"");
     }
 
     /// RFC 4180: a newline in a field also requires quotes.
     #[test]
     fn csv_escape_newline_field() {
-        assert_eq!(csv_escape("line1\nline2"), "\"line1\nline2\"");
-        assert_eq!(csv_escape("a\rb"), "\"a\rb\"");
+        assert_eq!(escape_field("line1\nline2"), "\"line1\nline2\"");
+        assert_eq!(escape_field("a\rb"), "\"a\rb\"");
+    }
+
+    // CSV formula injection (audit finding): display_name and free-text FAIL
+    // reasons used to pass through unneutralized — opening the export in
+    // Excel/LibreOffice executed =HYPERLINK/@SUM/… cells. escape_field now
+    // prefixes formula-leading fields with an apostrophe.
+    #[test]
+    fn export_neutralizes_formula_injection() -> Result<(), mailgrit_core_domain::CsvRowError> {
+        let row = mailgrit_core_domain::RawCsvRow::new(vec![
+            "example.com".into(),
+            "ivan.petrov".into(),
+            "NewP@ss1!".into(),
+            "=HYPERLINK(\"http://evil\")".into(),
+            "1024".into(),
+        ])
+        .parse()?;
+        let text = build_export_text_from(std::slice::from_ref(&row), None);
+        assert!(
+            !text.contains(",=HYPERLINK"),
+            "a formula-leading display_name must be neutralized: {text}"
+        );
+        assert!(
+            text.contains("\"'=HYPERLINK"),
+            "the neutralized form must carry the apostrophe prefix: {text}"
+        );
+
+        // FAIL reasons (free text from the server) are neutralized too.
+        let result = BatchResult {
+            succeeded: 0,
+            failed: 1,
+            failures: vec![crate::batch::RowFailure {
+                username: "ivan.petrov".into(),
+                domain: "example.com".into(),
+                reason: "@SUM(a1:a2) crashed".into(),
+            }],
+            created_credentials: Vec::new(),
+        };
+        let text = build_export_text_from(&[], Some(&result));
+        assert!(
+            text.contains("'@SUM"),
+            "a formula-leading FAIL reason must be neutralized: {text}"
+        );
+        Ok(())
     }
 
     /// Password-loss regression: after switching the tab, editable_rows is empty,

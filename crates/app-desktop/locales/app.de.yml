@@ -225,6 +225,7 @@ err.csv.too_many_rows: "CSV überschreitet die maximale Zeilenzahl: %{actual} > 
 err.csv.line_too_long: "Zeile %{line_no} überschreitet %{max} Bytes"
 err.csv.field_too_long: "Feld in Zeile %{line_no} überschreitet %{max} Bytes"
 err.csv.io: "CSV-Lesefehler: %{error}"
+err.csv.invalid_utf8: "Zeile %{line_no} ist kein gültiges UTF-8"
 err.csv.row: "Zeile %{line_no}: %{detail}"
 err.pw.too_short: "Passwort zu kurz: %{actual} Zeichen, benötigt ≥ %{min}"
 err.pw.missing_uppercase: "kein Großbuchstabe (A–Z)"

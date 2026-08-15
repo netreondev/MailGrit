@@ -40,6 +40,9 @@ pub fn csv_parse_error(e: &CsvParseError) -> String {
             tr!("err.csv.field_too_long", line_no = line_no, max = max)
         }
         CsvParseError::Io(io) => tr!("err.csv.io", error = io),
+        CsvParseError::InvalidUtf8 { line_no } => {
+            tr!("err.csv.invalid_utf8", line_no = line_no)
+        }
         CsvParseError::Row { line_no, source } => {
             tr!(
                 "err.csv.row",

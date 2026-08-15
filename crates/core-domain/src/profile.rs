@@ -19,6 +19,19 @@ const FIELD_PASSWORD: &str = "password";
 const FIELD_DISPLAY_NAME: &str = "display_name";
 const FIELD_QUOTA_MB: &str = "quota_mb";
 
+/// The classic 5-column CSV schema, in [`RawCsvRow`](crate::RawCsvRow) order.
+///
+/// Single source of truth: `core-csv` derives its header constant and mapping
+/// names from here (previously the same array was duplicated across crates).
+#[rustfmt::skip]
+pub const CLASSICAL_FIELD_NAMES: [&str; crate::EXPECTED_CSV_COLUMNS] = [
+    FIELD_DOMAIN,
+    FIELD_USERNAME,
+    FIELD_PASSWORD,
+    FIELD_DISPLAY_NAME,
+    FIELD_QUOTA_MB,
+];
+
 /// Description of a single operation field.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FieldSpec {
@@ -134,9 +147,16 @@ mod tests {
         assert_eq!(p.kind, BulkOperationKind::Create);
         assert_eq!(p.fields.len(), 5, "create profile = exactly 5 fields");
         let names: Vec<&str> = p.fields.iter().map(|f| f.name).collect();
+        assert_eq!(names, CLASSICAL_FIELD_NAMES);
+    }
+
+    // CLASSICAL_FIELD_NAMES is the cross-crate contract (core-csv header and
+    // mapping): pin that it stays the exact 5 canonical names in order.
+    #[test]
+    fn classical_field_names_are_the_canonical_five() {
         assert_eq!(
-            names,
-            vec!["domain", "username", "password", "display_name", "quota_mb"]
+            CLASSICAL_FIELD_NAMES,
+            ["domain", "username", "password", "display_name", "quota_mb"]
         );
     }
 

@@ -1,22 +1,26 @@
 //! Streaming CSV parser for bulk user imports.
 //!
 //! Schema: `domain,username,password,display_name,quota_mb`.
-//! Streaming line-by-line parsing with strict limits
-//! ([`MAX_CSV_ROWS`],
-//! [`MAX_CSV_FIELD_BYTES`](mailgrit_core_domain::MAX_CSV_FIELD_BYTES)) protects
-//! against OOM. Returns a
+//! Records are read by the bounded RFC-4180 [`RecordReader`](crate::record)
+//! (quoted fields supported; no physical line is ever buffered past the
+//! record cap — the real protection against OOM on hostile input). Strict
+//! limits ([`MAX_CSV_ROWS`],
+//! [`MAX_CSV_FIELD_BYTES`](mailgrit_core_domain::MAX_CSV_FIELD_BYTES), record
+//! bytes) protect against DoS. Returns a
 //! [`RawCsvRow`](mailgrit_core_domain::RawCsvRow) (Unverified); field validation
 //! happens in `core-domain` via the typestate.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors
 
-use crate::util::{split_cells, strip_bom};
+use crate::record::{RecordOutcome, RecordReader};
+use crate::util::strip_bom;
 use mailgrit_core_domain::{CsvRowError, EXPECTED_CSV_COLUMNS, MAX_CSV_ROWS};
 use std::io::{BufRead, BufReader};
 
-/// Canonical CSV column names, in `RawCsvRow` order.
-pub const CSV_HEADER: [&str; EXPECTED_CSV_COLUMNS] =
-    ["domain", "username", "password", "display_name", "quota_mb"];
+/// Canonical CSV column names, in `RawCsvRow` order. Re-exported from
+/// core-domain (`CLASSICAL_FIELD_NAMES`) — the single source of truth shared
+/// with the operation profiles and the mapping layer.
+pub use mailgrit_core_domain::CLASSICAL_FIELD_NAMES as CSV_HEADER;
 
 /// Streaming CSV parse error.
 #[derive(Debug, thiserror::Error)]
@@ -48,6 +52,13 @@ pub enum CsvParseError {
     /// Error reading from the source (I/O).
     #[error("CSV read error: {0}")]
     Io(#[from] std::io::Error),
+    /// A record contains bytes that are not valid UTF-8. Per-row (the record
+    /// is rejected); parsing of the remaining records continues.
+    #[error("line {line_no} is not valid UTF-8")]
+    InvalidUtf8 {
+        /// Line number (1-based).
+        line_no: usize,
+    },
     /// Validation error for a specific row (core-domain domain rules).
     #[error("line {line_no}: {source}")]
     Row {
@@ -84,9 +95,9 @@ pub struct FailedRow {
 ///
 /// # Errors
 ///
-/// Returns `Err` on fatal errors: I/O, exceeding `MAX_CSV_ROWS`,
-/// or an abnormally long line. Individual failed rows do NOT interrupt parsing —
-/// they accumulate in `ParsedCsv::failed`.
+/// Returns `Err` only on fatal errors: I/O and exceeding `MAX_CSV_ROWS`.
+/// Everything else — domain validation, over-limit lines/fields, invalid
+/// UTF-8 — is a per-row failure accumulated in `ParsedCsv::failed`.
 pub fn parse_csv<R: BufRead>(reader: R) -> Result<ParsedCsv, CsvParseError> {
     parse_csv_with_limit(reader, MAX_CSV_ROWS)
 }
@@ -102,16 +113,29 @@ pub fn parse_csv_with_limit<R: BufRead>(
 ) -> Result<ParsedCsv, CsvParseError> {
     let mut result = ParsedCsv::default();
     let mut header_seen = false;
+    let mut records = RecordReader::new(reader);
 
-    for (index, line_result) in reader.lines().enumerate() {
-        let line_no = index.saturating_add(1);
-        let line = line_result?;
+    while let Some(record) = records.next_record()? {
+        let fields = match record.outcome {
+            RecordOutcome::Fields(fields) => fields,
+            RecordOutcome::Failed(err) => {
+                // Limits and encoding problems are per-row failures (the old
+                // parser made them fatal in the mapping layer and misreported
+                // them in the classic one); the reader has already resynced.
+                result.failed.push(FailedRow {
+                    line_no: record.line_no,
+                    fields: vec![record.raw],
+                    error: err,
+                });
+                continue;
+            }
+        };
 
-        if !header_seen && is_header(&line) {
+        if !header_seen && is_header(&fields) {
             header_seen = true;
             continue;
         }
-        if line.trim().is_empty() {
+        if is_blank_record(&fields) {
             continue;
         }
 
@@ -124,22 +148,15 @@ pub fn parse_csv_with_limit<R: BufRead>(
             });
         }
 
-        match split_cells(&line) {
-            Ok(fields) => match try_parse_row(&fields) {
-                Ok(sanitized) => result.rows.push(sanitized),
-                Err(err) => result.failed.push(FailedRow {
-                    line_no,
-                    fields,
-                    error: CsvParseError::Row {
-                        line_no,
-                        source: err,
-                    },
-                }),
-            },
+        match try_parse_row(&fields) {
+            Ok(sanitized) => result.rows.push(sanitized),
             Err(err) => result.failed.push(FailedRow {
-                line_no,
-                fields: vec![line],
-                error: err,
+                line_no: record.line_no,
+                fields,
+                error: CsvParseError::Row {
+                    line_no: record.line_no,
+                    source: err,
+                },
             }),
         }
     }
@@ -158,27 +175,26 @@ pub fn parse_csv_bytes(data: &[u8]) -> Result<ParsedCsv, CsvParseError> {
     parse_csv(BufReader::new(strip_bom(data)))
 }
 
-/// Checks whether a line is the CSV header.
+/// A blank record: a single field that is empty/whitespace (an empty line).
+/// A line of only commas (",,,,") is NOT blank — it is a data row that fails
+/// validation (same semantics as the line-based parser).
+fn is_blank_record(fields: &[String]) -> bool {
+    matches!(fields, [f] if f.trim().is_empty())
+}
+
+/// Checks whether the split fields form the CSV header.
 ///
 /// Case-insensitive and whitespace-trimming, so a header exported by Excel/
-/// LibreOffice with different casing (e.g. `Domain,Username,...`) is still
-/// recognized and skipped. Mirrors the additive mapping parser's
-/// case-insensitive column matching.
-fn is_header(line: &str) -> bool {
-    let mut cells = line.split(',').map(str::trim);
-    let mut expected = CSV_HEADER.iter().copied();
-    loop {
-        match (cells.next(), expected.next()) {
-            (Some(c), Some(h)) => {
-                if !c.eq_ignore_ascii_case(h) {
-                    return false;
-                }
-            }
-            (None, None) => return true,
-            // one iterator longer than the other → not a header
-            _ => return false,
-        }
+/// LibreOffice with different casing (e.g. `Domain,Username,...`) — including
+/// a quoted one — is still recognized and skipped.
+fn is_header(fields: &[String]) -> bool {
+    if fields.len() != EXPECTED_CSV_COLUMNS {
+        return false;
     }
+    fields
+        .iter()
+        .zip(CSV_HEADER.iter())
+        .all(|(cell, expected)| cell.trim().eq_ignore_ascii_case(expected))
 }
 
 /// Parses raw fields into a `SanitizedUserRow` via the core-domain typestate pipeline.
@@ -317,18 +333,124 @@ mod tests {
 
     #[test]
     fn detects_header_case_insensitively_trimmed() {
+        // Splits like a simple unquoted line for header-detection purposes.
+        let cells = |line: &str| line.split(',').map(str::to_string).collect::<Vec<_>>();
         // Canonical lower-case header.
-        assert!(is_header("domain,username,password,display_name,quota_mb"));
+        assert!(is_header(&cells(
+            "domain,username,password,display_name,quota_mb"
+        )));
         // Whitespace-trimmed.
-        assert!(is_header(
+        assert!(is_header(&cells(
             " domain , username , password , display_name , quota_mb "
-        ));
+        )));
         // Different casing (as exported by Excel/LibreOffice) — must still match.
-        assert!(is_header("Domain,Username,Password,Display_Name,Quota_MB"));
-        assert!(is_header("DOMAIN,USERNAME,PASSWORD,DISPLAY_NAME,QUOTA_MB"));
+        assert!(is_header(&cells(
+            "Domain,Username,Password,Display_Name,Quota_MB"
+        )));
+        assert!(is_header(&cells(
+            "DOMAIN,USERNAME,PASSWORD,DISPLAY_NAME,QUOTA_MB"
+        )));
         // A real data line must NOT be mistaken for a header.
-        assert!(!is_header("domain,username"));
-        assert!(!is_header("example.com,user,S3cur3P@ss1,User,1024"));
+        assert!(!is_header(&cells("domain,username")));
+        assert!(!is_header(&cells("example.com,user,S3cur3P@ss1,User,1024")));
+    }
+
+    // A quoted header (as Excel writes it) is recognized: unquoting happens
+    // in the record reader before header matching.
+    #[test]
+    fn quoted_header_is_recognized_and_skipped() -> Result<(), Box<dyn std::error::Error>> {
+        let data = concat!(
+            "\"domain\",\"username\",\"password\",\"display_name\",\"quota_mb\"\n",
+            "example.com,ivan.petrov,S3cr3P@ss1,Ivan Petrov,1024\n",
+        );
+        let parsed = parse_csv_bytes(data.as_bytes())?;
+        assert_eq!(
+            parsed.rows.len(),
+            1,
+            "the quoted header is skipped as a header"
+        );
+        assert!(parsed.failed.is_empty());
+        Ok(())
+    }
+
+    // RFC 4180 data: commas/quotes inside quoted fields survive parsing —
+    // MailGrit's own (and Excel's) exports can be imported back.
+    #[test]
+    fn quoted_fields_parse_as_data() -> Result<(), Box<dyn std::error::Error>> {
+        // display_name with a comma and doubled inner quotes: `Petrov, Ivan "IV"`.
+        let data = concat!(
+            "domain,username,password,display_name,quota_mb\n",
+            "example.com,ivan.petrov,S3cr3,\"Petrov, Ivan \"\"IV\"\"\",1024\n",
+        );
+        let parsed = parse_csv_bytes(data.as_bytes())?;
+        assert_eq!(parsed.rows.len(), 1);
+        assert!(parsed.failed.is_empty(), "failed: {:?}", parsed.failed);
+        assert_eq!(
+            parsed
+                .rows
+                .first()
+                .ok_or("missing row 0")?
+                .display_name
+                .as_str(),
+            "Petrov, Ivan \"IV\""
+        );
+        Ok(())
+    }
+
+    // Round-trip with the export side: escape_field output parses back into
+    // the original values (formula-neutralized values gain the apostrophe).
+    #[test]
+    fn own_export_round_trips() -> Result<(), Box<dyn std::error::Error>> {
+        let display_name = "Petrov, Ivan \"IV\"";
+        let mut line = String::from("example.com,ivan.petrov,S3cr3,");
+        line.push_str(&crate::escape::escape_field(display_name));
+        line.push_str(",1024\n");
+        let parsed = parse_csv_bytes(line.as_bytes())?;
+        assert_eq!(parsed.rows.len(), 1);
+        assert_eq!(
+            parsed
+                .rows
+                .first()
+                .ok_or("missing row 0")?
+                .display_name
+                .as_str(),
+            display_name
+        );
+        Ok(())
+    }
+
+    // Invalid UTF-8 no longer aborts the whole file (the old `lines()` made it
+    // a fatal I/O error): the row fails, its neighbours still import.
+    #[test]
+    fn invalid_utf8_is_per_row_failure() -> Result<(), Box<dyn std::error::Error>> {
+        let mut data = b"good.com,u,p,n,100\n".to_vec();
+        data.extend_from_slice(&[0xff, 0xfe, 0x0a]);
+        data.extend_from_slice(b"good.com,u2,p2,n2,200\n");
+        let parsed = parse_csv_bytes(&data)?;
+        assert_eq!(parsed.rows.len(), 2);
+        assert_eq!(parsed.failed.len(), 1);
+        assert!(matches!(
+            parsed.failed.first().ok_or("missing failed 0")?.error,
+            CsvParseError::InvalidUtf8 { line_no: 2 }
+        ));
+        Ok(())
+    }
+
+    // An endless line over the cap is a per-row failure and the parser
+    // resynchronizes on the next record.
+    #[test]
+    fn endless_line_is_per_row_failure_and_parsing_continues()
+    -> Result<(), Box<dyn std::error::Error>> {
+        let mut data = vec![b'a'; crate::record::MAX_RECORD_BYTES + 50];
+        data.extend_from_slice(b"\ngood.com,u,p,n,100\n");
+        let parsed = parse_csv_bytes(&data)?;
+        assert_eq!(parsed.rows.len(), 1);
+        assert_eq!(parsed.failed.len(), 1);
+        assert!(matches!(
+            parsed.failed.first().ok_or("missing failed 0")?.error,
+            CsvParseError::LineTooLong { line_no: 1, .. }
+        ));
+        Ok(())
     }
 
     // Boundary limit tests (kill the `>` ↔ `==`/`>=` mutants in util::split_cells):

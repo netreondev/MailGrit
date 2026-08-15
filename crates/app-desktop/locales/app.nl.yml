@@ -225,6 +225,7 @@ err.csv.too_many_rows: "CSV overschrijdt het maximum aantal rijen: %{actual} > %
 err.csv.line_too_long: "regel %{line_no} overschrijdt %{max} bytes"
 err.csv.field_too_long: "veld op regel %{line_no} overschrijdt %{max} bytes"
 err.csv.io: "CSV-leesfout: %{error}"
+err.csv.invalid_utf8: "regel %{line_no} is geen geldige UTF-8"
 err.csv.row: "regel %{line_no}: %{detail}"
 err.pw.too_short: "wachtwoord te kort: %{actual} tekens, nodig ≥ %{min}"
 err.pw.missing_uppercase: "geen hoofdletter (A–Z)"

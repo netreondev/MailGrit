@@ -225,6 +225,7 @@ err.csv.too_many_rows: "CSV przekracza maksymalną liczbę wierszy: %{actual} > 
 err.csv.line_too_long: "wiersz %{line_no} przekracza %{max} bajtów"
 err.csv.field_too_long: "pole w wierszu %{line_no} przekracza %{max} bajtów"
 err.csv.io: "błąd odczytu CSV: %{error}"
+err.csv.invalid_utf8: "wiersz %{line_no} nie jest prawidłowym UTF-8"
 err.csv.row: "wiersz %{line_no}: %{detail}"
 err.pw.too_short: "hasło za krótkie: %{actual} znaków, wymagane ≥ %{min}"
 err.pw.missing_uppercase: "brak wielkiej litery (A–Z)"

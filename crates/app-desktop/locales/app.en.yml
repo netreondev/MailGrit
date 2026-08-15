@@ -248,6 +248,7 @@ err.csv.too_many_rows: "CSV exceeds the maximum number of rows: %{actual} > %{ma
 err.csv.line_too_long: "line %{line_no} exceeds %{max} bytes"
 err.csv.field_too_long: "field on line %{line_no} exceeds %{max} bytes"
 err.csv.io: "CSV read error: %{error}"
+err.csv.invalid_utf8: "line %{line_no} is not valid UTF-8"
 err.csv.row: "line %{line_no}: %{detail}"
 # PasswordWarning (core-domain password_policy)
 err.pw.too_short: "password too short: %{actual} characters, needs ≥ %{min}"
