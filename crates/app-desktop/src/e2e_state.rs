@@ -82,8 +82,8 @@ pub fn apply_e2e_overrides(state: &Signal<AppState>) {
     s.session_ok = true;
     s.auth_status = AuthStatus::Connected;
     s.base_url = "https://mail.example.com/iredadmin".to_string();
-    s.csv = Some(Arc::new(parsed));
-    s.column_mapping = Some(Arc::new(mapping));
-    s.editable_rows = Some(editable);
+    s.csv.rows = Some(Arc::new(parsed));
+    s.csv.column_mapping = Some(Arc::new(mapping));
+    s.csv.editable_rows = Some(editable);
     tracing::debug!("E2E: dashboard state applied");
 }

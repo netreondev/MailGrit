@@ -63,9 +63,9 @@ fn apply_loaded_csv(state: &mut Signal<AppState>, bytes: &[u8]) {
             let editable: Vec<EditableUserRow> =
                 parsed.rows.iter().map(EditableUserRow::from).collect();
             let mut s = state.write();
-            s.csv = Some(Arc::new(parsed));
-            s.column_mapping = Some(Arc::new(mapping));
-            s.editable_rows = Some(editable);
+            s.csv.rows = Some(Arc::new(parsed));
+            s.csv.column_mapping = Some(Arc::new(mapping));
+            s.csv.editable_rows = Some(editable);
             s.error_msg = (summary.failed > 0).then(|| {
                 t!(
                     "csv.loaded_summary",
@@ -133,7 +133,7 @@ pub fn collect_sanitized_rows(
     state: &Signal<AppState>,
 ) -> (Vec<SanitizedUserRow>, Vec<(usize, String)>) {
     let read = state.read();
-    let Some(rows) = read.editable_rows.as_ref() else {
+    let Some(rows) = read.csv.editable_rows.as_ref() else {
         return (Vec::new(), Vec::new());
     };
     let mut valid = Vec::with_capacity(rows.len());

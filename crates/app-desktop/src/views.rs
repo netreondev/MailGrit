@@ -17,7 +17,7 @@ use std::sync::Arc;
 /// Preview of CSV rows for delete confirmation (in a Modal).
 pub fn preview_csv_rows(state: &Signal<AppState>) -> Element {
     let read = state.read();
-    let Some(csv) = read.csv.as_ref() else {
+    let Some(csv) = read.csv.rows.as_ref() else {
         return rsx! { p { class: "muted", {tr!("csv.preview_empty")} } };
     };
     let preview: Vec<String> = csv
@@ -110,7 +110,7 @@ pub fn failed_csv_rows_view(state: &Signal<AppState>) -> Element {
     // Collect the data to display under the read-guard, releasing it before rendering.
     let (total, rows): (usize, Vec<(usize, String, String)>) = {
         let read = state.read();
-        read.csv.as_ref().map_or_else(
+        read.csv.rows.as_ref().map_or_else(
             || (0, Vec::new()),
             |csv| {
                 let rows = csv
@@ -169,7 +169,7 @@ pub fn batch_result_view() -> Element {
     let state = use_context::<Signal<AppState>>();
     // Read the language to re-render the localized strings.
     crate::i18n::subscribe_to_language(state);
-    let result = state.read().batch_result.clone();
+    let result = state.read().csv.batch_result.clone();
 
     let Some(result) = result else {
         return rsx! { p { class: "muted", {tr!("result.none_yet")} } };
@@ -325,6 +325,7 @@ pub fn mapping_panel_view(
     let op_status = state.read().op_status;
     let mapping_info = state
         .read()
+        .csv
         .column_mapping
         .as_ref()
         .map(|m| (m.bindings.len(), m.profile.fields.len(), m.header.clone()));
@@ -345,11 +346,11 @@ pub fn mapping_panel_view(
                     // Re-detect the mapping from the loaded CSV header.
                     let s = state.read();
                     let profile = s.effective_profile();
-                    if let Some(m) = &s.column_mapping {
+                    if let Some(m) = &s.csv.column_mapping {
                         let header = m.header.clone();
                         let mapping = detect_mapping(&header, &profile);
                         drop(s);
-                        state.write().column_mapping = Some(Arc::new(mapping));
+                        state.write().csv.column_mapping = Some(Arc::new(mapping));
                     }
                 },
                 {tr!("mapping.auto_detect")}

@@ -42,6 +42,7 @@ mod auth_bridge;
 mod batch;
 mod brand;
 mod components;
+mod csv_card;
 mod csv_summary;
 #[cfg(feature = "e2e")]
 mod e2e_state;
@@ -63,6 +64,7 @@ mod op_label;
 mod operations_view;
 mod ops;
 mod ops_export;
+mod password_controls;
 mod screens;
 mod settings;
 mod state;

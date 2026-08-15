@@ -39,7 +39,7 @@ pub fn launch_op(state: &mut Signal<AppState>, target: OperationTarget, kind: Bu
             state.write().error_msg = Some(t!("operr.no_session").to_string());
             return;
         }
-        if read.editable_rows.as_ref().is_none_or(Vec::is_empty) {
+        if read.csv.editable_rows.as_ref().is_none_or(Vec::is_empty) {
             drop(read);
             state.write().error_msg = Some(t!("operr.no_rows").to_string());
             return;
@@ -181,7 +181,7 @@ pub fn launch_op(state: &mut Signal<AppState>, target: OperationTarget, kind: Bu
                 tracing::warn!("audit record failed: {e}");
             }
             let mut s = state_clone.write();
-            s.batch_result = Some(Arc::new(result));
+            s.csv.batch_result = Some(Arc::new(result));
             s.op_status = OpStatus::Idle;
             s.refresh_audit();
         } else {
@@ -239,6 +239,7 @@ fn successful_credentials(
 pub fn run_diag(state: &mut Signal<AppState>) {
     let domain = state
         .read()
+        .csv
         .editable_rows
         .as_ref()
         .and_then(|rows| rows.first())

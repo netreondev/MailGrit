@@ -33,19 +33,11 @@ pub struct AppState {
     pub session_ok: bool,
     /// Session cookie name (from config.toml; default webpy_session_id). Informational.
     pub session_cookie_name: String,
-    /// Loaded CSV (the parse result).
-    pub csv: Option<Arc<mailgrit_core_csv::ParsedCsv>>,
-    /// Editable table rows (the plain-`String` layer). `None` until the CSV is loaded
-    /// or when the target changes.
-    pub editable_rows: Option<Vec<EditableUserRow>>,
-    /// Current bulk operation target: User/Domain/Admin. Default `User`.
-    pub current_target: OperationTarget,
-    /// Operation profile the CSV is parsed against. `None` = default `for_user_create`.
-    pub current_profile: Option<Arc<mailgrit_core_domain::OperationProfile>>,
-    /// Mapping of CSV columns to profile fields. `None` until auto-detected by the user.
-    pub column_mapping: Option<Arc<mailgrit_core_csv::ColumnMapping>>,
-    /// Result of the last bulk operation.
-    pub batch_result: Option<Arc<BatchResult>>,
+    /// Everything CSV/bulk-operation related (the loaded data, the target and
+    /// profile it is parsed against, the editable layer, and the last result).
+    /// Grouped into a sub-state: AppState used to be a flat bag of 27 pub
+    /// fields mixing routing, auth, CSV, audit, and modals.
+    pub csv: CsvState,
     /// Audit log (hash-chained).
     pub audit: Option<Arc<AuditWriter>>,
     /// Current operation execution status.
@@ -79,6 +71,48 @@ pub struct AppState {
     pub export_encrypt: bool,
 }
 
+/// CSV / bulk-operation sub-state of [`AppState`].
+#[derive(Clone)]
+pub struct CsvState {
+    /// Loaded CSV (the parse result).
+    pub rows: Option<Arc<mailgrit_core_csv::ParsedCsv>>,
+    /// Editable table rows (the plain-`String` layer). `None` until the CSV is
+    /// loaded or when the target changes.
+    pub editable_rows: Option<Vec<EditableUserRow>>,
+    /// Current bulk operation target: User/Domain/Admin. Default `User`.
+    pub current_target: OperationTarget,
+    /// Operation profile the CSV is parsed against. `None` = default
+    /// `for_user_create`.
+    pub current_profile: Option<Arc<mailgrit_core_domain::OperationProfile>>,
+    /// Mapping of CSV columns to profile fields. `None` until auto-detected.
+    pub column_mapping: Option<Arc<mailgrit_core_csv::ColumnMapping>>,
+    /// Result of the last bulk operation.
+    pub batch_result: Option<Arc<BatchResult>>,
+}
+
+impl Default for CsvState {
+    fn default() -> Self {
+        Self {
+            rows: None,
+            editable_rows: None,
+            current_target: OperationTarget::User,
+            current_profile: None,
+            column_mapping: None,
+            batch_result: None,
+        }
+    }
+}
+
+impl CsvState {
+    /// Clears the loaded data (keeping the selected target).
+    pub fn clear_data(&mut self) {
+        self.rows = None;
+        self.column_mapping = None;
+        self.current_profile = None;
+        self.editable_rows = None;
+    }
+}
+
 /// Awaiting-confirmation modal flags. Grouped (3 bools) to stay below clippy's
 /// `struct_excessive_bools` limit; each flag independently gates one modal.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -104,7 +138,21 @@ pub struct ExportState {
     pub pending_export_after_unlock: bool,
     /// Export is being performed by a background task (dialog + KDF + file write).
     /// Blocks repeated export button presses / disables the UI for the duration.
+    /// Toggle ONLY via [`begin`](Self::begin)/[`finish`](Self::finish).
     pub export_in_progress: bool,
+}
+
+impl ExportState {
+    /// Marks an export as running (the single way to set the flag — previously
+    /// 6 call sites flipped the raw bool by hand).
+    pub const fn begin(&mut self) {
+        self.export_in_progress = true;
+    }
+
+    /// Clears the running flag (completion, cancel, or failure).
+    pub const fn finish(&mut self) {
+        self.export_in_progress = false;
+    }
 }
 
 /// Audit entry for display in the UI (without the raw hash bytes).
@@ -196,12 +244,7 @@ impl AppState {
             language: Language::from_config(&config.language),
             session_ok: false,
             session_cookie_name: config.session_cookie_name.clone(),
-            csv: None,
-            editable_rows: None,
-            current_target: OperationTarget::User,
-            current_profile: None,
-            column_mapping: None,
-            batch_result: None,
+            csv: CsvState::default(),
             audit: None,
             op_status: OpStatus::Idle,
             modals: ModalState::default(),
@@ -250,11 +293,8 @@ impl AppState {
         self.session_ok = false;
         self.auth_status = AuthStatus::None;
         self.screen = Screen::Login;
-        self.batch_result = None;
-        self.csv = None;
-        self.column_mapping = None;
-        self.current_profile = None;
-        self.editable_rows = None;
+        self.csv.clear_data();
+        self.csv.batch_result = None;
         // Wipe the master password together with the session (Zeroizing drop).
         self.master_password = None;
         self.modals.pending_delete = false;
@@ -283,7 +323,8 @@ impl AppState {
     /// Effective operation profile: the currently selected one, or the default `for_user_create`.
     #[must_use]
     pub fn effective_profile(&self) -> Arc<mailgrit_core_domain::OperationProfile> {
-        self.current_profile
+        self.csv
+            .current_profile
             .clone()
             .unwrap_or_else(|| Arc::new(mailgrit_core_domain::OperationProfile::for_user_create()))
     }
@@ -291,14 +332,12 @@ impl AppState {
     /// Sets the bulk operation target and the matching default create profile.
     /// On target change, the CSV and editable rows are reset.
     pub fn set_current_target(&mut self, target: OperationTarget) {
-        self.current_target = target;
-        self.current_profile = Some(Arc::new(match target {
+        self.csv.current_target = target;
+        self.csv.current_profile = Some(Arc::new(match target {
             OperationTarget::User => mailgrit_core_domain::OperationProfile::for_user_create(),
             OperationTarget::Domain => mailgrit_core_domain::OperationProfile::for_domain_create(),
             OperationTarget::Admin => mailgrit_core_domain::OperationProfile::for_admin_create(),
         }));
-        self.csv = None;
-        self.column_mapping = None;
-        self.editable_rows = None;
+        self.csv.clear_data();
     }
 }
