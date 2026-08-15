@@ -13,6 +13,9 @@ workspace = true
 [dependencies]
 thiserror = "2.0.19"
 rand = "0.10.2"
+# Zeroizes the generated-password transient so it does not linger in memory
+# after the value has been handed off to the UI layer.
+zeroize = "1.9.0"
 
 # Kani note: formal verification is wired in through `cargo kani`, which sets
 # cfg(kani) and provides the `kani` crate from its own sysroot.

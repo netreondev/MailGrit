@@ -244,8 +244,8 @@ fn load_or_create_persistent_key(
         let (salt, stored_token) = data.split_at(mailgrit_core_security::SALT_LEN);
         let derived = mailgrit_core_security::derive_key(master_password, salt)
             .map_err(|e| AuditError::Storage(e.to_string()))?;
-        let derived_key =
-            EncryptionKey::from_bytes(&derived).map_err(|e| AuditError::Storage(e.to_string()))?;
+        let derived_key = EncryptionKey::from_bytes(derived.as_slice())
+            .map_err(|e| AuditError::Storage(e.to_string()))?;
         // Verify-token: an HMAC with the derived key over the tag. Compared with
         // the stored one constant-time: the token is cryptographic; a classic
         // `!=` would reveal the position of the first mismatch via timing (a
@@ -268,8 +268,8 @@ fn create_new_key(
     let salt = mailgrit_core_security::generate_salt();
     let derived = mailgrit_core_security::derive_key(master_password, &salt)
         .map_err(|e| AuditError::Storage(e.to_string()))?;
-    let derived_key =
-        EncryptionKey::from_bytes(&derived).map_err(|e| AuditError::Storage(e.to_string()))?;
+    let derived_key = EncryptionKey::from_bytes(derived.as_slice())
+        .map_err(|e| AuditError::Storage(e.to_string()))?;
     let verify_token = compute_verify_token(&derived_key, verify_tag)?;
     // Assemble the file: salt || verify_token.
     let mut file_data = Vec::with_capacity(salt.len().saturating_add(verify_token.len()));

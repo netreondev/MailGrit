@@ -41,6 +41,9 @@ tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
 url = "2.5.8"
 wry = "0.53"
 rust-i18n = "4.2.1"
+# The in-memory master password (and the modal inputs) are wrapped in
+# Zeroizing/zeroize so the secret is wiped on drop/clear.
+zeroize = "1.9.0"
 
 [lints]
 workspace = true

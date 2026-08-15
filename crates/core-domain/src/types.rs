@@ -213,9 +213,16 @@ impl SanitizedDisplayName {
 /// Note: the value is stored as `Arc<str>` and is NOT zeroed from memory when
 /// it goes out of scope (memory zeroization is not implemented at this layer).
 /// Access is via [`as_secret_str`](Self::as_secret_str), to emphasize the
-/// sensitivity of the value at its use sites.
-#[derive(Debug, Clone, PartialEq, Eq)]
+/// sensitivity of the value at its use sites. The manual `Debug` impl never
+/// prints the secret — `{:?}` on rows/parse results stays log-safe.
+#[derive(Clone, PartialEq, Eq)]
 pub struct ValidatedPassword(Arc<str>);
+
+impl std::fmt::Debug for ValidatedPassword {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ValidatedPassword([REDACTED])")
+    }
+}
 
 impl ValidatedPassword {
     /// Returns the inner value (the secret).
@@ -391,6 +398,17 @@ mod tests {
             ValidatedPassword::parse("pass,word"),
             Err(PasswordError::ContainsComma)
         ));
+    }
+
+    // `{:?}` must never leak the secret — rows embedding ValidatedPassword are
+    // debug-logged (ParsedCsv, SanitizedUserRow derive Debug).
+    #[test]
+    fn password_debug_output_is_redacted() -> Result<(), PasswordError> {
+        let p = ValidatedPassword::parse("S3cret-Value!")?;
+        let dbg = format!("{p:?}");
+        assert_eq!(dbg, "ValidatedPassword([REDACTED])");
+        assert!(!dbg.contains("S3cret"));
+        Ok(())
     }
 
     #[test]

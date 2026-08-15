@@ -427,7 +427,9 @@ where
 /// Generates a password for a single row (the lock button in the password cell).
 fn generate_one(state: &mut Signal<AppState>, idx: usize) {
     let pw = state.read().password_generator.generate();
-    set_field(state, idx, |r| r.password = pw);
+    // Zeroizing → plain String at the table-row boundary (the editable layer
+    // stores plain Strings by design; the transient itself is zeroized).
+    set_field(state, idx, |r| pw.as_str().clone_into(&mut r.password));
 }
 
 /// Fills a password only for rows with an empty password (manual/loaded ones are
@@ -442,7 +444,7 @@ fn fill_empty_passwords(state: &mut Signal<AppState>) {
     if let Some(rows) = state.write().editable_rows.as_mut() {
         for r in rows.iter_mut() {
             if r.password_is_empty() {
-                r.password = pw_gen.generate();
+                pw_gen.generate().as_str().clone_into(&mut r.password);
                 filled = filled.saturating_add(1);
             }
         }
@@ -464,7 +466,7 @@ fn regenerate_all_passwords(state: &mut Signal<AppState>) {
     let mut count = 0usize;
     if let Some(rows) = state.write().editable_rows.as_mut() {
         for r in rows.iter_mut() {
-            r.password = pw_gen.generate();
+            pw_gen.generate().as_str().clone_into(&mut r.password);
             count = count.saturating_add(1);
         }
     }

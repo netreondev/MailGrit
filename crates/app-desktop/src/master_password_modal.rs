@@ -14,6 +14,7 @@ use crate::components::icon::Icon;
 use crate::components::modal::{Modal, ModalFooter};
 use crate::state::AppState;
 use dioxus::prelude::*;
+use zeroize::Zeroize;
 
 /// Minimum master password length.
 const MIN_PASSWORD_LEN: usize = 8;
@@ -43,8 +44,8 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
                 let mut s = state.write();
                 s.modals.pending_master_password = false;
                 s.export.pending_export_after_unlock = false;
-                s.master_password_input.clear();
-                s.master_password_confirm.clear();
+                s.master_password_input.zeroize();
+                s.master_password_confirm.zeroize();
             },
             p {
                 if is_create {
@@ -102,8 +103,8 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
                         let mut s = state.write();
                         s.modals.pending_master_password = false;
                         s.export.pending_export_after_unlock = false;
-                        s.master_password_input.clear();
-                        s.master_password_confirm.clear();
+                        s.master_password_input.zeroize();
+                        s.master_password_confirm.zeroize();
                     },
                     {tr!("master_password.cancel")}
                 }

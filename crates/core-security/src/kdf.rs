@@ -14,6 +14,7 @@
 use crate::error::SecurityError;
 use argon2::{Algorithm, Argon2, Params, Version};
 use rand::Rng;
+use zeroize::Zeroizing;
 
 /// KDF salt length in bytes (16 is the RFC 9106 recommendation).
 pub const SALT_LEN: usize = 16;
@@ -45,11 +46,17 @@ pub fn generate_salt() -> [u8; SALT_LEN] {
 /// must be unique for each protected secret; the master password is not stored.
 /// With an incorrect master password, the derived key will not match the one
 /// used during protection → decryption/verification will fail with an error.
+/// The returned key is [`Zeroizing`]: it is wiped when the handle is dropped
+/// (Spec §10); callers are expected to move it straight into an
+/// [`EncryptionKey`](crate::EncryptionKey) (zeroed on Drop as well).
 ///
 /// # Errors
 ///
 /// - [`SecurityError::Kdf`] — invalid salt length or an internal Argon2 error.
-pub fn derive_key(password: &[u8], salt: &[u8]) -> Result<[u8; DERIVED_KEY_LEN], SecurityError> {
+pub fn derive_key(
+    password: &[u8],
+    salt: &[u8],
+) -> Result<Zeroizing<[u8; DERIVED_KEY_LEN]>, SecurityError> {
     if salt.len() != SALT_LEN {
         return Err(SecurityError::Kdf(format!(
             "invalid salt length: {} (expected {})",
@@ -61,9 +68,9 @@ pub fn derive_key(password: &[u8], salt: &[u8]) -> Result<[u8; DERIVED_KEY_LEN],
     let params = Params::new(M_COST, T_COST, P_COST, Some(DERIVED_KEY_LEN))
         .map_err(|e| SecurityError::Kdf(format!("invalid Argon2 parameters: {e}")))?;
     let argon2 = Argon2::new(Algorithm::Argon2id, Version::V0x13, params);
-    let mut out = [0u8; DERIVED_KEY_LEN];
+    let mut out = Zeroizing::new([0u8; DERIVED_KEY_LEN]);
     argon2
-        .hash_password_into(password, salt, &mut out)
+        .hash_password_into(password, salt, &mut *out)
         .map_err(|e| SecurityError::Kdf(e.to_string()))?;
     Ok(out)
 }

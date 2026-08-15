@@ -10,6 +10,7 @@ use crate::nav::DashboardSection;
 use crate::theme::Theme;
 use mailgrit_core_domain::{EditableUserRow, OperationTarget, PasswordGenerator};
 use std::sync::Arc;
+use zeroize::{Zeroize, Zeroizing};
 
 /// Application state (which screen to show + data).
 #[derive(Clone)]
@@ -62,8 +63,9 @@ pub struct AppState {
     /// Password generator settings for auto-placement in the editable table.
     pub password_generator: PasswordGenerator,
     /// Entered master password (protects the audit/export key via the Argon2 KDF).
-    /// `None` until the user enters it via the modal; stored only in memory.
-    pub master_password: Option<String>,
+    /// `None` until the user enters it via the modal; stored only in memory,
+    /// wrapped in [`Zeroizing`] so it is wiped when replaced/cleared.
+    pub master_password: Option<Zeroizing<String>>,
     /// Master password input fields in the modal (twice, for confirmation on creation).
     pub master_password_input: String,
     /// Confirmation field for the master password (must match `master_password_input`).
@@ -221,10 +223,10 @@ impl AppState {
     pub fn unlock_audit(&mut self, master_password: &str) -> Result<(), String> {
         match AuditWriter::open(master_password) {
             Ok(audit) => {
-                self.master_password = Some(master_password.to_string());
+                self.master_password = Some(Zeroizing::new(master_password.to_string()));
                 self.modals.pending_master_password = false;
-                self.master_password_input.clear();
-                self.master_password_confirm.clear();
+                self.master_password_input.zeroize();
+                self.master_password_confirm.zeroize();
                 let audit = Arc::new(audit);
                 // Load recent entries for display.
                 if let Err(e) = audit.recent(10) {

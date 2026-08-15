@@ -130,16 +130,15 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
         //    is needed.
         let plaintext_bytes = plaintext.into_bytes();
         let outcome: WriteOutcome = if encrypt {
-            let Some(master_password) = master_password.as_deref() else {
+            let Some(pw) = master_password.clone() else {
                 // Unreachable: checked above, but fail-closed.
                 let mut s = state_clone.write();
                 s.export.export_in_progress = false;
                 s.error_msg = Some(t!("master_password.export_no_audit").to_string());
                 return;
             };
-            let pw = master_password.to_string();
             let join = crate::tokio_runtime().spawn_blocking(move || -> WriteOutcome {
-                let file_bytes = build_encrypted_bytes(&pw, &plaintext_bytes)?;
+                let file_bytes = build_encrypted_bytes(pw.as_str(), &plaintext_bytes)?;
                 std::fs::write(&path, file_bytes).map_err(|e| e.to_string())
             });
             match join.await {
@@ -282,8 +281,8 @@ fn build_encrypted_bytes(master_password: &str, plaintext: &[u8]) -> Result<Vec<
     let salt = mailgrit_core_security::generate_salt();
     let derived = mailgrit_core_security::derive_key(master_password.as_bytes(), &salt)
         .map_err(|e| e.to_string())?;
-    let export_key =
-        mailgrit_core_security::EncryptionKey::from_bytes(&derived).map_err(|e| e.to_string())?;
+    let export_key = mailgrit_core_security::EncryptionKey::from_bytes(derived.as_slice())
+        .map_err(|e| e.to_string())?;
     let ciphertext = mailgrit_core_security::encrypt(&export_key, plaintext, b"MailGrit-export-v1")
         .map_err(|e| e.to_string())?;
     // Assemble the file: salt(16) || ciphertext (the nonce is already included in

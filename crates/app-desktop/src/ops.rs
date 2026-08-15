@@ -154,6 +154,8 @@ pub fn launch_op(state: &mut Signal<AppState>, target: OperationTarget, kind: Bu
                 s.screen = Screen::Login;
                 s.batch_result = None;
                 s.csv = None;
+                // Wipe the master password together with the session.
+                s.master_password = None;
                 s.modals.pending_delete = false;
                 return;
             }

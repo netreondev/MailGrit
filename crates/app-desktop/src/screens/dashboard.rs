@@ -147,6 +147,8 @@ fn context_bar(
                     s.column_mapping = None;
                     s.current_profile = None;
                     s.editable_rows = None;
+                    // Wipe the master password together with the session.
+                    s.master_password = None;
                     s.modals.pending_delete = false;
                     s.modals.pending_password_regenerate = false;
                     s.error_msg = None;
