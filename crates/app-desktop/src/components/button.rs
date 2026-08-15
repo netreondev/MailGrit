@@ -89,6 +89,9 @@ pub fn Button(
     /// Extra CSS classes (e.g. "btn-icon" for a square button).
     #[props(default)]
     class: String,
+    /// Tooltip (the HTML title attribute; empty = none).
+    #[props(default)]
+    title: String,
     /// Click handler.
     onclick: Option<EventHandler<MouseEvent>>,
     children: Element,
@@ -111,6 +114,7 @@ pub fn Button(
         button {
             class: "{base.trim()}",
             disabled: is_disabled,
+            title: "{title}",
             onclick: move |e| {
                 if let Some(handler) = &onclick {
                     handler.call(e);

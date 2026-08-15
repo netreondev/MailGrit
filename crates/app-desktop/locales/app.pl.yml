@@ -29,6 +29,7 @@ theme.dark: "Ciemny motyw"
 theme.toggle: "Przełącz motyw"
 logout: "Wyloguj"
 donate.label: "Wesprzyj"
+donate.tooltip: "Wesprzyj MailGrit — otwiera stronę wsparcia w przeglądarce"
 
 # ── (cel × operacja) — macierz 3×3 ─────────────────────────────────────────
 op_label.user.create: "Tworzenie użytkownika"

@@ -4,6 +4,7 @@
 
 use crate::components::button::{Button, ButtonKind, ButtonSize};
 use crate::components::card::Card;
+use crate::components::donate_button::DonateButton;
 use crate::components::icon::{Icon, IconSize, IconView, Logo};
 use crate::components::input::{Field, TextField};
 use crate::components::language_selector::LanguageSelector;
@@ -126,20 +127,12 @@ pub fn login_screen() -> Element {
                     IconView { icon: Icon::Lock, size: IconSize::Small }
                     {tr!("login.footer")}
                 }
-                // Donate / support link. The href stays for semantics
-                // (middle-click / copy URL / assistive tech), but a normal
-                // click is intercepted: a plain href would navigate the APP's
-                // own webview away — external URLs go to the SYSTEM browser
-                // (see util::open_in_system_browser).
-                a {
-                    class: "login-donate",
-                    href: crate::brand::DONATE_URL,
-                    onclick: move |e: dioxus::prelude::Event<dioxus::prelude::MouseData>| {
-                        e.prevent_default();
-                        crate::util::open_in_system_browser(crate::brand::DONATE_URL);
-                    },
-                    IconView { icon: Icon::Heart, size: IconSize::Small }
-                    {tr!("donate.label")}
+                // Donate / support — the SAME button as on the dashboard
+                // (shared component): heart + label + tooltip, opens the page
+                // in the system browser. The old muted text link here was
+                // illegible — it read as an unexplained heart glyph.
+                div { class: "login-donate-row",
+                    DonateButton { state: state }
                 }
             }
             // Language selector + theme toggle — tucked into the top-right corner

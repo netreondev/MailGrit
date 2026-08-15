@@ -35,6 +35,7 @@ theme.dark: "Dark theme"
 theme.toggle: "Toggle theme"
 logout: "Log out"
 donate.label: "Donate"
+donate.tooltip: "Support MailGrit — opens the donation page in your browser"
 
 # ── (target x kind) labels — 3x3 matrix ─────────────────────────────────────
 op_label.user.create: "Creating user"

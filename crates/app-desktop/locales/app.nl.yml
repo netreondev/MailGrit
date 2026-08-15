@@ -29,6 +29,7 @@ theme.dark: "Donker thema"
 theme.toggle: "Thema wisselen"
 logout: "Afmelden"
 donate.label: "Doneren"
+donate.tooltip: "MailGrit steunen — opent de donatiepagina in de browser"
 
 # ── (doel × bewerking) — 3×3 matrix ────────────────────────────────────────
 op_label.user.create: "Gebruiker aanmaken"

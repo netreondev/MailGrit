@@ -29,6 +29,7 @@ theme.dark: "Thème sombre"
 theme.toggle: "Changer de thème"
 logout: "Déconnexion"
 donate.label: "Faire un don"
+donate.tooltip: "Soutenir MailGrit — ouvre la page de don dans le navigateur"
 
 # ── (cible × opération) — matrice 3×3 ──────────────────────────────────────
 op_label.user.create: "Création d'utilisateur"

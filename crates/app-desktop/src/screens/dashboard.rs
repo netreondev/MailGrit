@@ -10,6 +10,7 @@
 use crate::components::badge::{Badge, BadgeKind, Dot, DotKind};
 use crate::components::button::{Button, ButtonKind, ButtonSize};
 use crate::components::card::Card;
+use crate::components::donate_button::DonateButton;
 use crate::components::icon::{Icon, IconView};
 use crate::components::language_selector::LanguageSelector;
 use crate::components::segmented::Segmented;
@@ -101,17 +102,7 @@ fn context_bar(
             // Language selector + theme toggle (shared components with the login screen).
             LanguageSelector { current: language, state: state }
             ThemeToggle { class: "btn btn-ghost btn-icon".to_string(), state: state }
-            Button {
-                kind: ButtonKind::Ghost,
-                size: ButtonSize::Small,
-                icon_left: Some(Icon::Heart),
-                onclick: move |_| {
-                    // The OS browser, not the webview: window.open from inside
-                    // WebView2 is a silent no-op (see util::open_in_system_browser).
-                    crate::util::open_in_system_browser(crate::brand::DONATE_URL);
-                },
-                {tr!("donate.label")}
-            }
+            DonateButton { state: state }
             Button {
                 kind: ButtonKind::Ghost,
                 size: ButtonSize::Small,
