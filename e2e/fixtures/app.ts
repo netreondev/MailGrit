@@ -97,10 +97,13 @@ async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: b
   const { exe, dir } = stageIsolatedCopy(srcExe);
 
   // WebView2: open Chrome DevTools on a fixed port. The variable is read BEFORE
-  // the WebView2 environment is created inside the process.
+  // the WebView2 environment is created inside the process. --disable-gpu:
+  // CI Windows runners have no interactive GPU session; without it
+  // msedgewebview2 may never bring up the DevTools endpoint there (fine on a
+  // developer desktop, silently failing on the runner — seen 2026-08-16).
   const env: NodeJS.ProcessEnv = {
     ...process.env,
-    WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${CDP_PORT}`,
+    WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${CDP_PORT} --disable-gpu`,
     RUST_LOG: process.env.RUST_LOG ?? 'warn',
   };
   if (dashboardMode) {
