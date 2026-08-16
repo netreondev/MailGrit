@@ -655,7 +655,15 @@ jobs:
     name: Formal verification (Miri + cargo-mutants)
     runs-on: ubuntu-latest
     needs: quality
-    timeout-minutes: 30
+    # 60 min: the mutation workload grew from 212 to 269 mutants (2026-08-16
+    # hardening: new logic + tests) AND cargo-mutants now runs with
+    # cap_lints=true (.cargo/mutants.toml), so mutants previously killed by
+    # workspace deny-lints before their tests now execute the test suite.
+    # The old 30-minute budget tuned for 212 lint-assisted mutants was
+    # exhausted mid-run and the job cancelled (run 31964918991). 2× headroom
+    # over the measured ~40-minute demand keeps the gate green without
+    # weakening a single check.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
