@@ -34,7 +34,7 @@ export default defineConfig({
   testDir: './tests',
   fullyParallel: false, // only one desktop process at a time (shared CDP port)
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: 0, // no retries anywhere: a flaky test must FAIL loudly, not pass on the second attempt
   workers: 1, // strictly one worker: one .exe + one CDP port
   reporter: [['list'], ['html', { open: 'never' }]],
   timeout: 60_000,

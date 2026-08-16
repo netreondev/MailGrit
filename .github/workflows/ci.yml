@@ -59,6 +59,10 @@ jobs:
   supply-chain:
     name: Supply chain, SAST & secrets
     runs-on: ubuntu-latest
+    # Every other job in this workflow carries an explicit timeout; a hung
+    # action (e.g. gitleaks on a stalled clone) must not burn the default
+    # 360-minute job budget.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
@@ -141,9 +145,10 @@ jobs:
       - name: Unused deps — cargo-machete
         run: cargo machete --skip-target-dir
 
-      # The version is spelled out in 8 manually-synced sites across 4 files
-      # (workspace manifest + dep pins, fuzz manifest, docs JSON-LD). A
-      # forgotten bump fails HERE instead of shipping an inconsistent release.
+      # The version is spelled out in 10 manually-synced sites across 6 files
+      # (workspace manifest + dep pins, fuzz manifest, docs JSON-LD, e2e
+      # package.json + package-lock.json). A forgotten bump fails HERE
+      # instead of shipping an inconsistent release.
       # Pure-Python and OS-independent — runs once in this Linux job instead
       # of three times in the quality matrix below.
       - name: Version consistency (all manifests + docs)
@@ -472,17 +477,22 @@ jobs:
         working-directory: fuzz
         run: |
           set -e
-          # For each target with a committed seed dir, run the fuzzer over those
-          # exact inputs (-runs=0 means "only the corpus, no random mutation").
+          # For each target, replay its committed seed dir (-runs=0 means
+          # "only the corpus, no random mutation"). A target WITHOUT committed
+          # seeds is an ERROR, not a skip: every target listed above ships
+          # seeds today, so the "no seeds" branch is dead code that must never
+          # come alive silently — a newly added fuzz target must bring its
+          # seeds (previously this degraded to a ::notice and the target's
+          # regressions rode through CI un-replayed).
           for tgt in parse_csv_bytes parse_domain parse_username parse_quota url_parse; do
             seed_dir="seeds/$tgt"
-            if [ -d "$seed_dir" ] && [ -n "$(ls -A "$seed_dir" 2>/dev/null)" ]; then
-              echo "::group::Replaying $tgt"
-              cargo +nightly fuzz run "fuzz_$tgt" "$seed_dir" -- -runs=0
-              echo "::endgroup::"
-            else
-              echo "::notice::No committed seeds for $tgt — skipped (exploratory fuzz job still covers it)."
+            if [ ! -d "$seed_dir" ] || [ -z "$(ls -A "$seed_dir" 2>/dev/null)" ]; then
+              echo "::error::No committed seeds for $tgt — seed corpus is mandatory for regression replay (add inputs under fuzz/seeds/$tgt/)."
+              exit 1
             fi
+            echo "::group::Replaying $tgt"
+            cargo +nightly fuzz run "fuzz_$tgt" "$seed_dir" -- -runs=0
+            echo "::endgroup::"
           done
 
   # ==========================================================================

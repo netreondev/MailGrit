@@ -37,7 +37,7 @@ jobs:
   # Previously the pipeline went straight to build → attest → sign → publish:
   # a tag on an untested commit produced signed, attested, "verified" release
   # binaries. Nothing checked the tag against workspace.package.version either
-  # (the version is spelled out in 8 manually-synced sites across 4 files —
+  # (the version is spelled out in 10 manually-synced sites across 6 files —
   # see scripts/check_version.py).
   # ==========================================================================
   verify:
@@ -57,18 +57,33 @@ jobs:
       - name: Install Linux system dependencies
         uses: ./.github/actions/linux-deps
 
-      - name: Install cargo-nextest
+      - name: Install cargo tools (nextest, semver-checks, msrv)
         uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
-          tool: cargo-nextest@0.9.143
+          # Same pins as the ci.yml quality job: a release must be verified
+          # by exactly the tool versions CI verified the commit with.
+          tool: cargo-nextest@0.9.143,cargo-semver-checks@0.50.0,cargo-msrv@0.19.3
 
       - name: Formatting check
         run: cargo fmt --all -- --check
 
       - name: Clippy (strict)
         run: cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::multiple_crate_versions
+
+      # SemVer + MSRV: previously these ran ONLY in the ci.yml quality job,
+      # so a tag whose public API broke semver (or dropped below the declared
+      # MSRV) could still produce a release if CI had not run on that exact
+      # commit. The verify job now enforces release parity with CI quality.
+      - name: SemVer checks (public API of internal crates)
+        run: cargo semver-checks --workspace
+
+      # --rust-version passed explicitly: cargo-msrv 0.19.x cannot read the
+      # inherited workspace.package.rust-version (see the ci.yml quality job
+      # note). Keep the value in sync with [workspace.package].rust-version.
+      - name: MSRV verify (declared minimum supported Rust version)
+        run: cargo msrv --workspace verify --rust-version 1.97.1
 
       - name: Tests (nextest, process-isolated, --all-features)
         run: cargo nextest run --workspace --profile ci --all-features

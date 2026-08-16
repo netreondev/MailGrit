@@ -10,6 +10,10 @@ The version lives in several places that cargo cannot keep in sync by itself:
   - fuzz/Cargo.toml             (excluded from the workspace — its own copy)
   - docs/index.html             JSON-LD "softwareVersion"
   - docs/uk/index.html          JSON-LD "softwareVersion"
+  - e2e/package.json            "version" (the Playwright suite's npm package)
+  - e2e/package-lock.json       root "version" (lockfile v3 mirrors
+                                 package.json; matched as the first "version"
+                                 key, which in v3 layout is the root's)
 
 A forgotten bump used to be discoverable only by a reader; now it fails CI
 (the quality job) and the release pipeline (which additionally asserts the
@@ -43,6 +47,13 @@ SINGLE_SITES: list[tuple[Path, str, str]] = [
     (REPO_ROOT / "fuzz" / "Cargo.toml", r'(?m)^version = "([^"]+)"', "fuzz package version"),
     (REPO_ROOT / "docs" / "index.html", r'"softwareVersion": "([^"]+)"', "docs JSON-LD softwareVersion"),
     (REPO_ROOT / "docs" / "uk" / "index.html", r'"softwareVersion": "([^"]+)"', "docs/uk JSON-LD softwareVersion"),
+    # e2e/package.json: the first "version" key is the root package version
+    # ("name" and "version" lead the file). e2e/package-lock.json (lockfile
+    # v3): the first "version" key is the ROOT package's — the nested
+    # packages[""] copy repeats the same value further down, and every other
+    # "version" key belongs to node_modules entries that follow it.
+    (REPO_ROOT / "e2e" / "package.json", r'"version": "([^"]+)"', "e2e package.json version"),
+    (REPO_ROOT / "e2e" / "package-lock.json", r'"version": "([^"]+)"', "e2e package-lock.json version"),
 ]
 
 # The four path-dep version pins in the root Cargo.toml.
