@@ -8,7 +8,10 @@
 pub fn app_data_dir() -> std::path::PathBuf {
     // Path of the executable -> sibling mailgrit-data folder.
     // Fallback (None): mailgrit-data in the current directory.
-    std::env::current_exe()
+    // Rationale: the value only locates the portable data directory next to
+    // the binary; it never gates a security decision (an attacker able to
+    // control the reported exe path is already executing code as this user).
+    std::env::current_exe() // nosemgrep: rust.lang.security.current-exe.current-exe
         .ok()
         .and_then(|p| p.parent().map(std::path::Path::to_path_buf))
         .map_or_else(

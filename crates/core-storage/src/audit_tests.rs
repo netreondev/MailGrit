@@ -140,13 +140,16 @@ fn recent_returns_newest_first_and_respects_limit() -> Result<(), Box<dyn std::e
 #[test]
 #[cfg_attr(miri, ignore)]
 fn open_path_creates_file_and_appends() -> Result<(), Box<dyn std::error::Error>> {
-    let dir = std::env::temp_dir().join(format!(
-        "mailgrit-storage-test-{}-{}",
-        std::process::id(),
-        std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)?
-            .as_nanos()
-    ));
+    // Rationale: test-only scratch directory with a pid+nanoseconds unique
+    // name; no security decision is made on this path.
+    let dir = std::env::temp_dir() // nosemgrep: rust.lang.security.temp-dir.temp-dir
+        .join(format!(
+            "mailgrit-storage-test-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)?
+                .as_nanos()
+        ));
     std::fs::create_dir_all(&dir)?;
     let result = (|| {
         let key = mailgrit_core_security::EncryptionKey::generate();

@@ -16,8 +16,10 @@ struct TempDir(PathBuf);
 impl TempDir {
     fn new() -> Result<Self, std::io::Error> {
         let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-        let dir =
-            std::env::temp_dir().join(format!("mailgrit-audit-test-{}-{n}", std::process::id()));
+        // Rationale: test-only scratch directory with a pid+counter unique
+        // name; no security decision is made on this path.
+        let dir = std::env::temp_dir() // nosemgrep: rust.lang.security.temp-dir.temp-dir
+            .join(format!("mailgrit-audit-test-{}-{n}", std::process::id()));
         std::fs::create_dir_all(&dir)?;
         Ok(Self(dir))
     }

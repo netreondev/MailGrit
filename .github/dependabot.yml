@@ -5,6 +5,9 @@
 # cargo-deny + cargo-audit + cargo-vet before it can merge.
 #
 # Schedule: weekly (Monday). Grouped to reduce PR noise.
+# Cooldown: every ecosystem waits 7 days before proposing a newly published
+# version (supply-chain attacks are often published-then-yanked within days;
+# security updates bypass the cooldown by default).
 version: 2
 
 updates:
@@ -17,6 +20,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
     # Group patch/minor updates together; major versions get isolated PRs so
     # breaking changes are reviewed one crate at a time.
     groups:
@@ -46,6 +51,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    cooldown:
+      default-days: 7
     groups:
       github-actions:
         update-types: ["minor", "patch"]
@@ -65,6 +72,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "deps"
       include: "scope"
@@ -80,6 +89,8 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 3
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: "deps"
       include: "scope"

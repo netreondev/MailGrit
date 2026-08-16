@@ -311,9 +311,15 @@ jobs:
 
       - name: Determine tag
         id: tag
+        # Expressions reach the shell only through env variables: a ${{ ... }}
+        # interpolated directly into run: would let a dispatch caller control
+        # the script (inputs.tag is user input, not a constant).
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG_INPUT: ${{ inputs.tag }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "tag=${TAG_INPUT}" >> "$GITHUB_OUTPUT"
           else
             echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
           fi
