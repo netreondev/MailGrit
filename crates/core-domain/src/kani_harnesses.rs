@@ -57,7 +57,22 @@ fn any_string() -> String {
 /// short, whitespace, control characters, edge bytes), and the no-panic
 /// property stays meaningful for the contract the parser actually has.
 fn any_ascii_str() -> String {
-    let len: usize = kani::any_where(|n| *n <= INPUT_BUF_LEN);
+    any_ascii_str_bounded(INPUT_BUF_LEN)
+}
+
+/// Like [`any_ascii_str`], with an explicit per-harness length cap.
+///
+/// `SanitizedDisplayName::parse` additionally runs `chars().filter().collect()`
+/// over the symbolic input: every extra symbolic character doubles the path
+/// count through the collection/allocation chain. Even with valid-ASCII input
+/// (see [`any_ascii_str`]) the 8-byte bound left the CI solver grinding a
+/// single SAT query for 35+ minutes (run 31967364663, 2026-08-16). 4 bytes —
+/// the same convergence-driven reduction as INPUT_BUF_LEN 16→8 above — still
+/// covers every parser branch reachable by short input (empty, whitespace,
+/// control characters; the TooLong branch needs >`MAX_DISPLAY_NAME_LEN`
+/// chars and is covered by unit tests).
+fn any_ascii_str_bounded(max_len: usize) -> String {
+    let len: usize = kani::any_where(|n| *n <= max_len);
     let mut buf = String::new();
     for _ in 0..len {
         let byte: u8 = kani::any_where(|b| *b <= 0x7F);
@@ -187,7 +202,7 @@ fn verify_password_parse_rejects_comma() {
 // state space tractable while covering the bounded input fully.
 #[kani::unwind(12)]
 fn verify_display_name_parse_no_panic() {
-    let input = any_ascii_str();
+    let input = any_ascii_str_bounded(4);
     let _ = SanitizedDisplayName::parse(&input);
 }
 
