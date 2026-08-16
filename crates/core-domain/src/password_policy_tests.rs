@@ -182,3 +182,23 @@ fn special_chars_include_punctuation() {
         );
     }
 }
+
+/// A SPACE is not a special character (only ASCII punctuation is). The
+/// classification loop reaches `is_special_char` only for characters that are
+/// not uppercase, not lowercase, and not numeric — so a mutant making the
+/// predicate return `true` is invisible to letter/digit-only passwords. This
+/// test drives the space through that exact branch: upper, lower, and digit
+/// are present, the only non-letter is a space, and the special requirement
+/// must still be reported as missing.
+#[test]
+fn space_is_not_a_special_character() {
+    let policy = PasswordPolicy::default_policy();
+    // "Password 1": upper P, lowercase, digit 1, a space — 10 chars ≥ min_len.
+    let warnings = policy.validate("Password 1");
+    assert_eq!(
+        warnings.len(),
+        1,
+        "only MissingSpecial is expected for \"Password 1\": {warnings:?}"
+    );
+    assert_eq!(warnings.first(), Some(&PasswordWarning::MissingSpecial));
+}
