@@ -271,6 +271,20 @@ jobs:
         working-directory: e2e
         run: npm ci
 
+      # The runner image does NOT ship the WebView2 Evergreen Runtime (verified
+      # 2026-08-16: the EdgeUpdate registry key is absent), and without it the
+      # app cannot create a WebView2 window at all — every test then times out
+      # waiting for the CDP endpoint. Install the Evergreen bootstrapper
+      # silently (~40s); the preflight step below verifies it took effect.
+      - name: Install WebView2 Runtime
+        shell: pwsh
+        run: |
+          $boot = Join-Path $env:TEMP 'MicrosoftEdgeWebview2Setup.exe'
+          Invoke-WebRequest 'https://go.microsoft.com/fwlink/p/?LinkId=2124703' -OutFile $boot
+          Start-Process -Wait -FilePath $boot -ArgumentList '/silent', '/install'
+          $rt = Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' -ErrorAction SilentlyContinue
+          if ($rt) { "WebView2 runtime installed: $($rt.pv)" } else { throw 'WebView2 runtime still not registered after install' }
+
       # Evidence-first gate: if WebView2 cannot bring up the DevTools endpoint
       # on this runner, fail HERE in under a minute with the app's own logs —
       # instead of every one of the 74 tests burning its 30s CDP wait until the
@@ -285,10 +299,11 @@ jobs:
           Copy-Item $exe (Join-Path $tmp 'mailgrit-app-desktop.exe')
           $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = '--remote-debugging-port=9333 --disable-gpu'
           $env:RUST_LOG = 'info'
+          $out = Join-Path $tmp 'out.log'
+          $err = Join-Path $tmp 'err.log'
           $p = Start-Process -PassThru -WorkingDirectory $tmp `
               -FilePath (Join-Path $tmp 'mailgrit-app-desktop.exe') `
-              -RedirectStandardOutput (Join-Path $tmp 'out.log') `
-              -RedirectStandardError (Join-Path $tmp 'err.log')
+              -RedirectStandardOutput $out -RedirectStandardError $err
           $deadline = (Get-Date).AddSeconds(25)
           $ok = $false
           while ((Get-Date) -lt $deadline -and -not $p.HasExited) {
@@ -298,14 +313,12 @@ jobs:
               if ($r.StatusCode -eq 200) { $ok = $true; break }
             } catch { }
           }
-          '--- WebView2 runtime (registry) ---'
-          Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' -ErrorAction SilentlyContinue | Select-Object pv
-          '--- app process ---'
-          "HasExited: $($p.HasExited); ExitCode: $(if ($p.HasExited) { $p.ExitCode } else { 'still running' })"
-          '--- app stdout ---'
-          Get-Content (Join-Path $tmp 'out.log') -ErrorAction SilentlyContinue
-          '--- app stderr ---'
-          Get-Content (Join-Path $tmp 'err.log') -ErrorAction SilentlyContinue
+          Write-Output "--- app process ---"
+          Write-Output ("HasExited: {0}; ExitCode: {1}" -f $p.HasExited, $(if ($p.HasExited) { $p.ExitCode } else { 'still running' }))
+          Write-Output "--- app stdout ---"
+          if (Test-Path $out) { Get-Content $out | ForEach-Object { Write-Output $_ } }
+          Write-Output "--- app stderr ---"
+          if (Test-Path $err) { Get-Content $err | ForEach-Object { Write-Output $_ } }
           if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
           if (-not $ok) { throw 'CDP endpoint did not come up — see the app logs above' }
 
