@@ -65,7 +65,12 @@ jobs:
           # time; the config is now SPDX-3.0-clean, but the tool version is
           # pinned to 0.20.2 (current latest) so parsing behavior is
           # deterministic and does not drift with the manifest.
-          tool: cargo-deny@0.20.2,cargo-audit,cargo-vet@0.10.2,cargo-machete
+          # cargo-audit pinned: the manifest's "latest" resolves to 0.21.2,
+          # which cannot parse current advisory-db entries carrying CVSS 4.0
+          # vectors (e.g. RUSTSEC-2026-0066, present since 2026-03) and fails
+          # at database load. Pinned to 0.22.2 (current latest), verified
+          # against the live advisory-db.
+          tool: cargo-deny@0.20.2,cargo-audit@0.22.2,cargo-vet@0.10.2,cargo-machete
 
       # --- Secret scanning (gitleaks) -----------------------------------------
       # Scans the full git history + the diff for accidentally-committed secrets.
