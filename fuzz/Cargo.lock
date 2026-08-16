@@ -221,7 +221,7 @@ checksum = "92daf443525c4cce67b150400bc2316076100ce0b3686209eb8cf3c31612e6f0"
 
 [[package]]
 name = "mailgrit-core-csv"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "mailgrit-core-domain",
  "thiserror",
@@ -230,15 +230,16 @@ dependencies = [
 
 [[package]]
 name = "mailgrit-core-domain"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "rand",
  "thiserror",
+ "zeroize",
 ]
 
 [[package]]
 name = "mailgrit-fuzz"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "libfuzzer-sys",
  "mailgrit-core-csv",
@@ -528,6 +529,12 @@ dependencies = [
  "syn 2.0.119",
  "synstructure",
 ]
+
+[[package]]
+name = "zeroize"
+version = "1.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e13c156562582aa81c60cb29407084cdb54c4164760106ab78e6c5b0858cf64e"
 
 [[package]]
 name = "zerotrie"
