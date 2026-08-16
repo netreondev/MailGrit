@@ -135,6 +135,50 @@ fn reason_login_path() {
     assert!(is_session_expired_reason("redirected to /login"));
 }
 
+// Regression: hosts whose NAME starts with `login` must not be mistaken for a
+// /login redirect — `contains("/login")` matched the `//login` of the authority
+// and silently reset the session (wiping the loaded CSV) whenever a deployment
+// sat on e.g. login.mail.example.com.
+#[test]
+fn reason_login_hostname_is_not_a_path() {
+    assert!(!is_session_expired_reason(
+        "connect ECONNREFUSED https://login.example.com/iredadmin"
+    ));
+    assert!(!is_session_expired_reason("host login.example.com is down"));
+    assert!(!is_session_expired_reason("path /login2 blocked"));
+    // …while real path mentions at segment boundaries still match.
+    assert!(is_session_expired_reason(
+        "redirected to /login?msg=LOGIN_REQUIRED"
+    ));
+    assert!(is_session_expired_reason(
+        "final url https://x/iredadmin/login"
+    ));
+}
+
+// The URL-based detector: same hostname-vs-path distinction, on the parsed URLs.
+#[test]
+fn session_not_expired_login_hostname() {
+    // An all-rows-fail batch on a login.* host with a real server error —
+    // previously misclassified as session expiry (session reset + CSV wipe).
+    assert!(!is_session_expired(
+        200,
+        &err("Account already exists"),
+        Some("https://login.example.com/iredadmin/users/d?msg=ALREADY_EXISTS"),
+        None
+    ));
+}
+
+#[test]
+fn session_expired_login_path_on_login_hostname() {
+    // A REAL login redirect on a login.* host still matches (the path segment).
+    assert!(is_session_expired(
+        200,
+        &err("HTTP 200"),
+        Some("https://login.example.com/iredadmin/login"),
+        None
+    ));
+}
+
 #[test]
 fn reason_clean_error() {
     assert!(!is_session_expired_reason("Domain does not exist"));

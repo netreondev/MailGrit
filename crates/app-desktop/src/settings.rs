@@ -9,7 +9,7 @@ use mailgrit_core_domain::PasswordGenerator;
 use std::path::PathBuf;
 
 /// Settings loaded from TOML.
-#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct Settings {
     /// Base URL of iRedAdmin (e.g. https://mail.example.com/iredadmin).
     #[serde(default)]
@@ -65,7 +65,7 @@ impl Default for Settings {
 /// threshold. The TOML schema is unchanged: the four flags still serialize as the
 /// flat keys `require_uppercase`/`require_lowercase`/`require_number`/
 /// `require_special` (derived serde + `#[serde(flatten)]`).
-#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct PasswordPolicyConfig {
     /// Minimum password length (in characters). Default 8 (like iRedAdmin).
     #[serde(default = "default_pp_min_len")]
@@ -113,7 +113,7 @@ impl PasswordPolicyConfig {
 /// threshold. The TOML schema is unchanged: the flags still serialize as the flat
 /// keys `use_uppercase`/`use_lowercase`/`use_digits`/`use_special`
 /// (derived serde + `#[serde(flatten)]`).
-#[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct PasswordGeneratorConfig {
     /// Target password length (in characters). Default 16.
     #[serde(default = "default_pg_length")]
@@ -261,9 +261,10 @@ pub fn config_path() -> PathBuf {
     crate::app_data_dir().join("config.toml")
 }
 
-/// Saves the current settings back to config.toml. Errors are logged, no panic.
-pub fn save(settings: &Settings) {
-    let path = config_path();
+/// Saves settings to an explicit path (the only writer — production code
+/// reaches it through the serialized [`save_field_at`] cycle). Errors are
+/// logged, no panic.
+fn save_to(path: &std::path::Path, settings: &Settings) {
     if let Some(parent) = path.parent()
         && let Err(e) = std::fs::create_dir_all(parent)
     {
@@ -279,7 +280,7 @@ pub fn save(settings: &Settings) {
                  # language: \"en\", \"de\", \"fr\", \"es\", \"it\", \"pt\", \"nl\", \
                  \"pl\", \"uk\".\n\n{toml_str}"
             );
-            if let Err(e) = std::fs::write(&path, with_header) {
+            if let Err(e) = std::fs::write(path, with_header) {
                 tracing::warn!("writing config.toml: {e}");
             }
         }
@@ -287,39 +288,73 @@ pub fn save(settings: &Settings) {
     }
 }
 
-/// Updates only the theme field in config.toml, preserving the other settings.
+/// Serializes concurrent read-modify-write cycles of config.toml.
+///
+/// Two detached field saves (e.g. the theme toggled and the language switched
+/// in quick succession) used to interleave: the later writer loaded a STALE
+/// snapshot before the earlier writer saved, silently reverting its field.
+/// The guard spans the whole load→modify→save, so every cycle starts from the
+/// previous cycle's result.
+static CONFIG_WRITE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+/// Runs one serialized load→modify→save cycle on config.toml (the sync core of
+/// [`save_field`]; separate so tests can drive it without the tokio runtime).
+/// The lock recovers from poisoning: a panic mid-cycle leaves the file either
+/// fully written or untouched (`fs::write` is a single call), so the next
+/// cycle may proceed.
+fn save_field_blocking(apply: impl FnOnce(&mut Settings)) {
+    save_field_at(&config_path(), apply);
+}
+
+/// The path-parameterized core of [`save_field_blocking`] — the REAL
+/// config.toml is only ever touched through `config_path()`, tests drive a
+/// temp path. The lock serializes cycles regardless of the target path: the
+/// production writers all target the same file.
+fn save_field_at(path: &std::path::Path, apply: impl FnOnce(&mut Settings)) {
+    let _guard = CONFIG_WRITE_LOCK
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let mut settings = load_from(path);
+    apply(&mut settings);
+    save_to(path, &settings);
+}
+
+/// Updates one field of config.toml in place, preserving the other settings.
+///
 /// The read-modify-write runs via `spawn_blocking`: `block_in_place` PANICS on
 /// a current-thread runtime (the fallback infra.rs may build), and would still
 /// stall the event loop on a slow disk. Fire-and-forget: the UI applies the
-/// theme immediately, config.toml follows.
-pub fn save_theme(theme: &str) {
-    let theme = theme.to_string();
+/// change immediately, config.toml follows (serialized by
+/// [`CONFIG_WRITE_LOCK`]).
+fn save_field(apply: impl FnOnce(&mut Settings) + Send + 'static) {
     // Detached: dropping the handle leaves the task running (fire-and-forget).
-    let join = crate::tokio_runtime().spawn_blocking(move || {
-        let mut settings = load_or_create();
-        settings.theme = theme;
-        save(&settings);
-    });
+    let join = crate::tokio_runtime().spawn_blocking(move || save_field_blocking(apply));
     drop(join);
 }
 
+/// Updates only the theme field in config.toml, preserving the other settings.
+/// See [`save_field`] for the concurrency/spawn_blocking rationale.
+pub fn save_theme(theme: &str) {
+    let theme = theme.to_string();
+    save_field(move |s| s.theme = theme);
+}
+
 /// Updates only the language field in config.toml, preserving the other settings.
-/// Same spawn_blocking rationale as [`save_theme`].
+/// See [`save_field`] for the concurrency/spawn_blocking rationale.
 pub fn save_language(language: &str) {
     let language = language.to_string();
-    // Detached (see save_theme).
-    let join = crate::tokio_runtime().spawn_blocking(move || {
-        let mut settings = load_or_create();
-        settings.language = language;
-        save(&settings);
-    });
-    drop(join);
+    save_field(move |s| s.language = language);
 }
 
 /// Loads settings from TOML. If the file is missing, it creates a sample and
 /// returns the defaults. Parse errors yield the defaults with a warning (no panic).
 pub fn load_or_create() -> Settings {
-    let path = config_path();
+    load_from(&config_path())
+}
+
+/// Loads settings from an explicit path (the testable core of
+/// [`load_or_create`]).
+fn load_from(path: &std::path::Path) -> Settings {
     if !path.exists() {
         // Create the directory and a sample config (the user will edit it as needed).
         // Errors are logged, no panic — in-memory settings are the defaults and valid.
@@ -332,13 +367,13 @@ pub fn load_or_create() -> Settings {
         if let Ok(toml_str) = toml::to_string_pretty(&sample) {
             let with_header =
                 format!("# MailGrit configuration. Edit for your iRedAdmin.\n\n{toml_str}");
-            if let Err(e) = std::fs::write(&path, with_header) {
+            if let Err(e) = std::fs::write(path, with_header) {
                 tracing::warn!("writing sample config.toml {}: {e}", path.display());
             }
         }
         return sample;
     }
-    match std::fs::read_to_string(&path) {
+    match std::fs::read_to_string(path) {
         Ok(contents) => {
             let mut settings: Settings = toml::from_str(&contents).unwrap_or_else(|e| {
                 tracing::warn!("config.toml failed to parse ({e}), using defaults");
@@ -358,3 +393,7 @@ pub fn load_or_create() -> Settings {
         }
     }
 }
+
+#[cfg(test)]
+#[path = "settings_tests.rs"]
+mod tests;

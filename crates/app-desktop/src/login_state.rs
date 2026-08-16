@@ -22,6 +22,13 @@ pub fn login_state() -> Arc<LoginWindowState> {
     LOGIN_STATE.with(|cell| cell.get_or_init(LoginWindowState::new).clone())
 }
 
+/// Locks `m` with poison recovery (`into_inner`) — the concrete form of the
+/// mutex policy documented on [`LoginWindowState`]: a dropped request is far
+/// worse for the user than acting on possibly-stale state.
+pub fn lock<T>(m: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    m.lock().unwrap_or_else(std::sync::PoisonError::into_inner)
+}
+
 /// Shared login-window state — reachable from both the UI and the event-loop
 /// handler. Internally `Arc` + `Mutex` (the handler is `FnMut + 'static`).
 pub struct LoginWindowState {
@@ -92,39 +99,23 @@ impl LoginWindowState {
     /// Requests opening the login window (called from a UI button).
     pub fn request_open(&self, base_url: String) {
         tracing::info!("request to open the login window: {base_url}");
-        let mut req = self
-            .request
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        *req = Some(LoginRequest { base_url });
+        *lock(&self.request) = Some(LoginRequest { base_url });
     }
 
     /// Registers the successful-auth callback (called from `app()`).
     pub fn set_on_login(&self, cb: Box<dyn Fn()>) {
-        let mut slot = self
-            .on_login
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        *slot = Some(cb);
+        *lock(&self.on_login) = Some(cb);
     }
 
     /// Stores the session cookie name (from config.toml) for the login predicate.
     pub fn set_session_cookie_name(&self, name: String) {
-        let mut slot = self
-            .session_cookie_name
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        *slot = Some(name);
+        *lock(&self.session_cookie_name) = Some(name);
     }
 
     /// Records the login-webview load event (called from page_load_handler).
     /// `final_url` is the final URL after redirects (for the `/dashboard` predicate).
     pub fn report_page_load(&self, base_url: String, final_url: String) {
-        let mut ev = self
-            .auth_event
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        *ev = Some(crate::login_types::AuthEvent {
+        *lock(&self.auth_event) = Some(crate::login_types::AuthEvent {
             base_url,
             final_url,
         });
@@ -146,10 +137,7 @@ impl LoginWindowState {
             crate::op_label::operation_label(target, kind),
         );
         {
-            let mut req = self
-                .op_request
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let mut req = lock(&self.op_request);
             if req.is_some() {
                 tracing::warn!("batch operation request rejected: a request is already pending");
                 return None;
@@ -171,10 +159,7 @@ impl LoginWindowState {
         let (tx, rx) = tokio::sync::oneshot::channel::<String>();
         tracing::info!("request for form diagnostics for domain {domain}");
         {
-            let mut req = self
-                .diag_request
-                .lock()
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            let mut req = lock(&self.diag_request);
             if req.is_some() {
                 tracing::warn!("diagnostics request rejected: a request is already pending");
                 return None;
@@ -186,11 +171,7 @@ impl LoginWindowState {
 
     /// Hides the login window (after a successful login).
     pub fn hide(&self) {
-        let win = self
-            .window
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        if let Some(w) = win.as_ref() {
+        if let Some(w) = lock(&self.window).as_ref() {
             w.set_visible(false);
             tracing::info!("login window hidden");
         }
@@ -198,10 +179,18 @@ impl LoginWindowState {
 
     /// Reads cookies while holding the webview mutex. Returns `None` if the window is not open.
     pub fn with_webview_cookies<R>(&self, f: impl FnOnce(&wry::WebView) -> R) -> Option<R> {
-        let guard = self
-            .webview
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
-        guard.as_ref().map(f)
+        lock(&self.webview).as_ref().map(f)
+    }
+
+    /// Evaluates `js` in the login webview; `Err` ("login webview is gone")
+    /// when the webview is closed — the single mapping of "no webview" to a
+    /// `wry` error for the batch/diag dispatch paths.
+    pub fn evaluate_script(&self, js: &str) -> wry::Result<()> {
+        self.with_webview_cookies(|wv| wv.evaluate_script(js))
+            .unwrap_or_else(|| {
+                Err(wry::Error::Io(std::io::Error::other(
+                    "login webview is gone",
+                )))
+            })
     }
 }

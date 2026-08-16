@@ -74,7 +74,10 @@ CI runs on every push and pull request:
   attestation; the large majority of the transitive tree is currently covered by
   exemptions rather than first-party audits. The practical value of this gate is
   that a PR introducing a **brand-new** dependency that is neither audited nor
-  exempted fails the build, forcing a conscious decision.
+  exempted fails the build, forcing a conscious decision. Every exemption
+  carries an explicit note and an `expire-date`: once it lapses, `cargo vet
+  check` fails until the crate is either audited or the exemption is
+  consciously renewed — the bootstrap debt cannot sit silently forever.
 - `cargo machete` — unused-dependency hygiene.
 - `cargo semver-checks` — public-API compatibility.
 - `gitleaks` — scans git history for accidentally-committed secrets.

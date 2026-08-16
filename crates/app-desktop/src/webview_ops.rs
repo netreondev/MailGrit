@@ -48,14 +48,14 @@ pub struct OpResult {
     /// "401/403", as the old detector expected).
     pub status: i64,
     /// The final response URL (after redirects), from `dump.responseUrl`.
-    /// Contains `/login` on session expiry → the detector (P0). `None` if JS did
-    /// not pass dump (network failure).
+    /// Its path has the `login` segment on session expiry → the detector (P0).
+    /// `None` if JS did not pass dump (network failure).
     pub resp_url: Option<String>,
     /// The final post-verification URL (profile GET), from `dump.verifyUrl`.
     /// The session may expire between a successful POST and the verify-GET: then
-    /// this URL contains `/login`, while `resp_url` (the POST-url) does not.
-    /// Without this field, the detector missed session expiry in the verify
-    /// window (P0).
+    /// this URL's path has the `login` segment, while `resp_url` (the POST-url)
+    /// does not. Without this field, the detector missed session expiry in the
+    /// verify window (P0).
     pub verify_url: Option<String>,
 }
 

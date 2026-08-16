@@ -3,6 +3,7 @@
 
 import { test, expect } from '../fixtures/app';
 import { SEL } from '../helpers/selectors';
+import { viewport, viewportWithScreen } from '../helpers/layout';
 
 /**
  * Window control buttons in the titlebar (minimize/maximize). Close is NOT
@@ -21,18 +22,48 @@ test.describe('Window controls', () => {
     await expect(page.locator(SEL.winBtnClose)).toBeVisible();
   });
 
-  test('maximize toggles window state (button stays interactive)', async ({ app }) => {
+  test('maximize toggles the real window state (metrics, not liveness)', async ({ app }) => {
     const { page } = app;
 
     const maxBtn = page.locator(`${SEL.winBtn}[aria-label="Maximize"]`);
     await expect(maxBtn).toBeEnabled();
 
-    // The click must not crash the application — the UI stays alive after maximize.
-    await maxBtn.click();
-    await expect(page.locator(SEL.titlebar)).toBeVisible();
+    // Real window metrics (innerWidth/innerHeight track the OS window; the
+    // old version of this test asserted only that the UI stayed alive — a
+    // no-op maximize handler passed it). The resize is asynchronous (winit →
+    // OS → WebView2 → JS metrics), so the reads are POLLED, never one-shot.
+    const before = await viewport(page);
 
-    // A second click — restore. The window returns. The UI is still responsive.
     await maxBtn.click();
-    await expect(page.locator(SEL.titlebarName)).toHaveText('MailGrit');
+    // On a normal desktop maximize grows the window to fill the screen; on a
+    // CI runner that already clamps the window to the full desktop nothing
+    // can grow, and the fill condition simply holds from the start.
+    await expect
+      .poll(
+        async () => {
+          const v = await viewportWithScreen(page);
+          return v.width >= v.availWidth - 16 && v.height >= v.availHeight - 64;
+        },
+        { message: 'maximize must fill the available desktop', timeout: 15_000 },
+      )
+      .toBe(true);
+    const maximized = await viewport(page);
+
+    // A second click — restore: the window returns to its restored size.
+    await maxBtn.click();
+    await expect
+      .poll(
+        async () => {
+          const v = await viewport(page);
+          return v.width <= before.width && v.height <= before.height;
+        },
+        {
+          message:
+            `restore must return to the restored size ` +
+            `(before ${before.width}x${before.height}, maximized ${maximized.width}x${maximized.height})`,
+          timeout: 15_000,
+        },
+      )
+      .toBe(true);
   });
 });

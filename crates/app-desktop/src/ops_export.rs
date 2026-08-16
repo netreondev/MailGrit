@@ -110,7 +110,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
     // the user the export "did not work".
     if encrypt && master_password.is_none() {
         state.write().export.pending_export_after_unlock = true;
-        state.write().modals.pending_master_password = true;
+        state.write().open_master_password_modal();
         state.write().error_msg = Some(t!("master_password.export_no_audit").to_string());
         return;
     }

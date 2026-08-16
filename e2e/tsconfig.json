@@ -8,7 +8,11 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "noEmit": true,
-    "types": ["node"]
+    "types": ["node"],
+    // js-smoke/run.mjs is included for SYNTAX-level checking (unbalanced
+    // braces, stray tokens); full checkJs would require JSDoc-typing the
+    // whole DOM-shim harness — deliberately not done yet.
+    "allowJs": true
   },
-  "include": ["fixtures/**/*.ts", "helpers/**/*.ts", "tests/**/*.ts", "playwright.config.ts"]
+  "include": ["fixtures/**/*.ts", "helpers/**/*.ts", "tests/**/*.ts", "playwright.config.ts", "js-smoke/**/*.mjs"]
 }

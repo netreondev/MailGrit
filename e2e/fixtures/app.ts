@@ -31,13 +31,16 @@
  *    `e2e_state.rs` (a no-op without the env var — production is unaffected).
  */
 import { test as base, expect, chromium, type Page } from '@playwright/test';
-import { spawn, type ChildProcess } from 'node:child_process';
+import { execFile, spawn, type ChildProcess } from 'node:child_process';
+import { promisify } from 'node:util';
 import { existsSync, mkdirSync, copyFileSync, openSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { CDP_PORT } from '../playwright.config';
 import { DASH, SEL } from '../helpers/selectors';
+
+const execFileAsync = promisify(execFile);
 
 /** Path to the built .exe (debug profile). */
 function resolveExePath(): string {
@@ -47,10 +50,38 @@ function resolveExePath(): string {
   if (!existsSync(candidate)) {
     throw new Error(
       `.exe not found: ${candidate}\n` +
-        'Build the application:  cargo build -p mailgrit-app-desktop',
+        'Build the application:  cargo build -p mailgrit-app-desktop --features e2e\n' +
+        '(the --features e2e part is REQUIRED: without it the binary exists but the\n' +
+        'MAILGRIT_E2E_DASHBOARD hook is not compiled in, and every dashboard test\n' +
+        'then fails with an opaque 20-second sentinel timeout).',
     );
   }
   return candidate;
+}
+
+/**
+ * Fails fast when something already serves the CDP port — typically a
+ * leftover msedgewebview2.exe from an earlier crashed run. Without this
+ * check, waitForCdp() succeeds against the STALE browser and the tests fail
+ * with misleading page/sentinel errors instead of naming the real problem.
+ */
+async function assertCdpPortFree(): Promise<void> {
+  try {
+    const res = await fetch(`http://127.0.0.1:${CDP_PORT}/json/version`);
+    if (res.ok) {
+      throw new Error(
+        `Port ${CDP_PORT} is already serving a DevTools endpoint — a stale ` +
+          'msedgewebview2.exe (or another CDP app) holds it. Kill it first, e.g.:\n' +
+          '  PowerShell:  Stop-Process -Name msedgewebview2 -Force',
+      );
+    }
+  } catch (e) {
+    if (e instanceof TypeError) {
+      // fetch network error = connection refused = port free.
+      return;
+    }
+    throw e;
+  }
 }
 
 /**
@@ -92,9 +123,19 @@ export type AppFixture = {
 /**
  * Launches an isolated copy of the .exe and connects to its WebView2 over CDP.
  * `dashboardMode=true` → env `MAILGRIT_E2E_DASHBOARD=1` (start in the dashboard).
+ * `testInfo` is used to preserve the app's stdio log for failed tests.
  */
-async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: boolean): Promise<void> {
+async function launchApp(
+  use: (f: AppFixture) => Promise<void>,
+  dashboardMode: boolean,
+  testInfo: { outputDir: string; status?: string },
+): Promise<void> {
   const srcExe = resolveExePath();
+  // The port check runs BEFORE staging the copy: its whole purpose is the
+  // stale-msedgewebview2 case, and a throw after stageIsolatedCopy would
+  // leak the full .exe copy into %TEMP% (the try/finally below is not yet
+  // active at that point).
+  await assertCdpPortFree();
   const { exe, dir } = stageIsolatedCopy(srcExe);
 
   // WebView2: open Chrome DevTools on a fixed port. The variable is read BEFORE
@@ -161,14 +202,25 @@ async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: b
       // The CDP connection may already be broken — not critical.
     }
   } finally {
+    // On failure, copy the app's own diagnostics into the Playwright output
+    // BEFORE the temp dir is deleted — the stdio-log comment above promises
+    // them, and teardown used to destroy them unconditionally.
+    if (testInfo.status !== undefined && testInfo.status !== 'passed') {
+      try {
+        mkdirSync(testInfo.outputDir, { recursive: true });
+        copyFileSync(join(dir, 'app-stdio.log'), join(testInfo.outputDir, 'app-stdio.log'));
+      } catch {
+        // best effort — never mask the original failure
+      }
+    }
     if (child && !child.killed) {
       if (process.platform === 'win32' && child.pid) {
-        // Kill the whole tree: child.kill() only terminates the app process,
-        // leaving msedgewebview2.exe browser subprocesses behind — a survivor
-        // keeps serving port 9333 and the NEXT test would connect to a
-        // headless leftover browser instead of its own fresh instance.
+        // Kill the whole tree AWAITED: child.kill() only terminates the app
+        // process, leaving msedgewebview2.exe browser subprocesses behind — a
+        // survivor keeps serving the CDP port and the NEXT test would connect
+        // to a headless leftover browser instead of its own fresh instance.
         try {
-          spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+          await execFileAsync('taskkill', ['/pid', String(child.pid), '/T', '/F']);
         } catch {
           // the process may have already exited
         }
@@ -180,12 +232,19 @@ async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: b
         }
       }
     }
-    // Give the OS time to release the .exe (Windows holds the file handle) before deleting.
-    await new Promise((r) => setTimeout(r, 400));
-    try {
-      rmSync(dir, { recursive: true, force: true });
-    } catch {
-      // Windows sometimes does not release the .exe immediately — leave the folder in temp.
+    // Windows may hold the .exe handle briefly even after taskkill /F
+    // completes — retry the removal instead of a fixed sleep.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        rmSync(dir, { recursive: true, force: true });
+        break;
+      } catch {
+        // After the last attempt: leave the folder in temp (swallowed on
+        // purpose — cleanup must not mask a test failure).
+        if (attempt < 2) {
+          await new Promise((r) => setTimeout(r, 200));
+        }
+      }
     }
   }
 }
@@ -195,8 +254,8 @@ async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: b
  * (normal start — login screen). For login tests.
  */
 export const test = base.extend<{ app: AppFixture }>({
-  app: async ({}, use) => {
-    await launchApp(use, false);
+  app: async ({}, use, testInfo) => {
+    await launchApp(use, false, testInfo);
   },
 });
 
@@ -205,8 +264,8 @@ export const test = base.extend<{ app: AppFixture }>({
  * (env `MAILGRIT_E2E_DASHBOARD=1`) with pre-filled test rows.
  */
 export const testDashboard = base.extend<{ app: AppFixture }>({
-  app: async ({}, use) => {
-    await launchApp(use, true);
+  app: async ({}, use, testInfo) => {
+    await launchApp(use, true, testInfo);
   },
 });
 

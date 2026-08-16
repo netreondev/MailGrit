@@ -45,9 +45,12 @@ example.com,bob.demo,Str0ng!Pass2,Bob Demo,2048
 /// observe the already-overridden state.
 ///
 /// Fail-soft: on a parse error of the test CSV a warning is logged, and the
-/// state is NOT switched to the dashboard (the E2E test will time out waiting
-/// for `.dashboard` — a clear signal that the embedded CSV is out of sync with
-/// the validator).
+/// state is NOT switched to the dashboard (the E2E test then times out waiting
+/// for the dashboard sentinel — a clear signal that the embedded CSV is out of
+/// sync with the validator). The warning lands in `app-stdio.log`, which the
+/// Playwright fixture PRESERVES into its test-results output on any failure —
+/// so this path is diagnosable post-mortem (previously the log was deleted by
+/// teardown and the timeout was fully opaque).
 pub fn apply_e2e_overrides(state: &Signal<AppState>) {
     if std::env::var(E2E_DASHBOARD_ENV).is_err() {
         return;

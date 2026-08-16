@@ -151,6 +151,14 @@ pub(super) struct DoOpSpec {
     pub log_id_js: &'static str,
 }
 
+/// Max characters of a response HEADER VALUE kept in the dump (a header value
+/// is diagnostic metadata; the rest is truncated).
+const RESP_HEADER_VALUE_MAX: usize = 200;
+/// Max characters of the response BODY kept in the dump (`responseBodyFull`) —
+/// the "full operation dump" contract: enough HTML for debugging an iRedAdmin
+/// verdict, bounded so a huge error page does not balloon the IPC message.
+const RESP_BODY_MAX: usize = 5000;
+
 /// Builds the unified JS function `doOp(base, row)` — the pipeline of a single
 /// request to an iRedAdmin OSE form for any operation target.
 ///
@@ -160,8 +168,8 @@ pub(super) struct DoOpSpec {
 /// semantically it is a single pipeline.
 ///
 /// The response dump is uniform across all targets: it includes `csrfInputs` and
-/// `responseBodyFull` (up to 5000 characters) — matching the "Full operation
-/// dump" contract (README).
+/// `responseBodyFull` (up to [`RESP_BODY_MAX`] characters) — matching the "Full
+/// operation dump" contract (README).
 //
 // A single doOp JS pipeline whose fragments are interpolated into each other.
 // Further splitting would break the pipeline's locality.
@@ -203,7 +211,7 @@ pub(super) fn build_do_op_js(spec: &DoOpSpec) -> String {
         // 4. Full response dump.
         const respBody = await r.text().catch(() => '');
         const respHeaders = {{}};
-        r.headers.forEach((val, key) => {{ respHeaders[key] = val.slice(0, 200); }});
+        r.headers.forEach((val, key) => {{ respHeaders[key] = val.slice(0, {RESP_HEADER_VALUE_MAX}); }});
         // r.ok is sufficient: fetch uses redirect:'follow' (by default), so
         // r.status is the final code after the redirect (never 302/303). Earlier
         // there were dead `r.status === 302/303` checks here, unreachable under follow.
@@ -256,7 +264,7 @@ pub(super) fn build_do_op_js(spec: &DoOpSpec) -> String {
                 responseUrl: r.url,
                 responseHeaders: respHeaders,
                 responseBodyLen: respBody.length,
-                responseBodyFull: respBody.slice(0, 5000),
+                responseBodyFull: respBody.slice(0, {RESP_BODY_MAX}),
                 successMarker: hasSuccess,
                 errorMsg: isErrorMsg,
                 verified: verified,

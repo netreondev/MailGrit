@@ -33,6 +33,23 @@ export async function viewport(page: Page): Promise<{ width: number; height: num
 }
 
 /**
+ * Viewport metrics plus the available screen area, for "fills the desktop"
+ * assertions: on CI runners that clamp the window to the full desktop a
+ * maximize cannot grow either dimension, so the honest postcondition is
+ * "covers the available screen", not "larger than before".
+ */
+export async function viewportWithScreen(
+  page: Page,
+): Promise<{ width: number; height: number; availWidth: number; availHeight: number }> {
+  return page.evaluate(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+    availWidth: window.screen.availWidth,
+    availHeight: window.screen.availHeight,
+  }));
+}
+
+/**
  * The element is fully inside the viewport (not clipped, not pushed off-edge).
  * Allows small negative x/y values for elements with shadow/glow.
  */

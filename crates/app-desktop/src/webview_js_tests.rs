@@ -184,3 +184,27 @@ fn generated_js_is_balanced_iife_for_all_kinds() -> Result<(), Box<dyn std::erro
     }
     Ok(())
 }
+
+// SECURITY: `htmlHead` is embedded in the failure dump when the CSRF token is
+// not found (csrfResult goes into the dump verbatim), and Rust logs the dump
+// at INFO. The raw page HTML carries the CSRF token in a hidden value
+// attribute — so `getCsrf` must redact every value attribute BEFORE slicing,
+// in ALL THREE HTML quoting forms (unquoted `value=token` is valid HTML5).
+// These are string-level guards on the emitted JS; the behavioral proof runs
+// in e2e/js-smoke against the real script.
+#[test]
+fn get_csrf_redacts_value_attributes_in_html_head() {
+    let js = super::helpers::get_csrf_js("CSRF");
+    assert!(
+        js.contains("value=\"(redacted)\""),
+        "htmlHead must redact value attributes before the slice"
+    );
+    assert!(
+        js.contains(r#"("[^"]*"|'[^']*'|[^\s>]+)"#),
+        "the redaction regex must cover unquoted value=token attributes too"
+    );
+    assert!(
+        !js.contains("htmlHead: html.slice"),
+        "htmlHead slices RAW html — CSRF token leak into the INFO dump"
+    );
+}

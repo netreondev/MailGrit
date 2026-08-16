@@ -36,6 +36,20 @@ env:
   # globally would make cargo-deny/audit/vet/fuzz/kani/mutants crash with
   # "No such file or directory" trying to invoke the missing sccache binary.
 
+  # The CDP port for the e2e suite. Single source of truth: e2e/playwright.config.ts
+  # reads this env var (falling back to the same default locally); the HKLM
+  # policy, the preflight probe, and the policy value below all interpolate it
+  # so the four can never drift apart again.
+  CDP_PORT: "9333"
+
+# Least privilege at the workflow level: read-only for every job. No job in
+# this workflow needs to write repo contents or mint OIDC identities (the
+# supply-chain job checks out full history and runs third-party action code —
+# the narrower its inherited token, the smaller the blast radius of a
+# compromised action).
+permissions:
+  contents: read
+
 jobs:
   # ============================================================================
   # Supply-chain, SAST, secret scanning — fast, gating, Linux-only.
@@ -83,8 +97,9 @@ jobs:
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Fail on any finding (no baseline / allowlist beyond .gitleaks.toml).
-          GITLEAKS_ENABLE_COMMENTS: "true"
+          # No GITLEAKS_ENABLE_COMMENTS: PR comments need pull-requests: write,
+          # and this workflow is deliberately read-only — the finding fails the
+          # job, which is the signal that matters.
 
       # --- SAST (Semgrep) -----------------------------------------------------
       # Rule set: Rust security, secrets, common audit findings.
@@ -114,14 +129,25 @@ jobs:
       - name: Supply-chain — cargo-vet (audited / imported attestations)
         # Refresh the imported third-party audits (Mozilla/Google/Bytecode
         # Alliance/Embark) from their sources, then verify every dependency is
-        # either vetted, imported, or explicitly exempted with a reason. Fails
-        # the build on any unaudited crate.
+        # either vetted, imported, or explicitly exempted with a reason.
+        # Honest scope: most transitive crates are still bootstrap EXEMPTIONS
+        # (annotated + expire-dated in supply-chain/config.toml), so this gate
+        # primarily catches NEW unaudited dependencies and lapsed exemptions —
+        # it is not yet a first-party audit of the whole tree.
         run: |
           cargo vet regenerate imports
           cargo vet check --verbose=info
 
       - name: Unused deps — cargo-machete
         run: cargo machete --skip-target-dir
+
+      # The version is spelled out in 8 manually-synced sites across 4 files
+      # (workspace manifest + dep pins, fuzz manifest, docs JSON-LD). A
+      # forgotten bump fails HERE instead of shipping an inconsistent release.
+      # Pure-Python and OS-independent — runs once in this Linux job instead
+      # of three times in the quality matrix below.
+      - name: Version consistency (all manifests + docs)
+        run: python scripts/check_version.py
 
   # ============================================================================
   # Quality & tests — three-platform matrix.
@@ -133,11 +159,11 @@ jobs:
     timeout-minutes: 45
     # No sccache. It is a build-speed optimization, but sccache routes its cache
     # through GitHub's Actions Cache backend (ghac), which has been persistently
-    # unstable for this repo: both a direct RUSTC_WRAPPER=sccache AND a probe-and
-    # -fallback wrapper (.github/sccache-wrapper.sh, retained as a reference)
-    # failed the build when ghac was unavailable — the wrapper added its own
-    # failure mode on cargo's startup version-probe. Build correctness must not
-    # depend on ghac availability; CI compiles deterministically uncached.
+    # unstable for this repo: a direct RUSTC_WRAPPER=sccache (and, historically,
+    # a probe-and-fallback wrapper, since removed) failed the build when ghac
+    # was unavailable — the wrapper added its own failure mode on cargo's
+    # startup version-probe. Build correctness must not depend on ghac
+    # availability; CI compiles deterministically uncached.
     strategy:
       fail-fast: false
       matrix:
@@ -163,23 +189,8 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Install Linux system dependencies (mold linker + Dioxus desktop / webkit2gtk)
-        # On Linux the app-desktop crate (Dioxus desktop via wry/webkit2gtk) needs
-        # the GTK/WebKit development headers to compile (gdk-sys/gtk-sys link
-        # against gdk-3.0 etc.). Without them, clippy/build fail with
-        # "system library `gdk-3.0` required by crate `gdk-sys` was not found".
-        # Keep this list in sync with release.yml's Linux deps step. macOS/Windows
-        # use native system toolchains and need none of these.
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libssl-dev \
-            libxdo-dev \
-            mold
+        uses: ./.github/actions/linux-deps
 
       - name: Install cargo tools
         uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
@@ -271,17 +282,37 @@ jobs:
         working-directory: e2e
         run: npm ci
 
+      # Playwright transpiles TypeScript via esbuild and IGNORES type errors —
+      # without this gate a type-broken suite still "passes" transpilation and
+      # only fails at runtime with confusing errors (or worse: dead code like
+      # unused imports/locators accumulates silently).
+      - name: Type-check the e2e suite (tsc --noEmit)
+        working-directory: e2e
+        run: npm run typecheck
+
       # The runner image does NOT ship the WebView2 Evergreen Runtime (verified
       # 2026-08-16: the EdgeUpdate registry key is absent), and without it the
       # app cannot create a WebView2 window at all — every test then times out
       # waiting for the CDP endpoint. Install the Evergreen bootstrapper
       # silently (~40s); the preflight step below verifies it took effect.
+      # The bootstrapper link is deliberately NOT version-pinned: it is
+      # Microsoft's Evergreen redirect, which always resolves to the current
+      # runtime — the runtime is auto-updating by design, and pinning a cached
+      # installer would test an artificially old WebView2. The trade-off is a
+      # nondeterministic runtime version in CI (a runtime update CAN change
+      # behavior — it already forced fixes 7e906d3 and bb75224).
       # Runtime 150+ also ignores WEBVIEW2_* environment variables when the
       # host process is elevated (High Integrity) — which a GitHub Actions
       # runner always is — so the debug-port arguments are additionally set
       # via the HKLM policy, the one channel honored from elevated processes
       # (MicrosoftEdge/WebView2Feedback#5645). The env vars stay for local,
       # non-elevated runs.
+      #
+      # WARNING (do NOT copy this policy to a dev machine): the
+      # AdditionalBrowserArguments\* value applies to EVERY WebView2
+      # application on the host and opens a remote-debugging (CDP) port in
+      # all of them — any local process can then drive those browsers. It is
+      # only acceptable on an ephemeral, single-purpose CI runner.
       - name: Install WebView2 Runtime and set the CDP policy
         shell: pwsh
         run: |
@@ -294,14 +325,16 @@ jobs:
           # -EnvironmentWithOptions): AdditionalBrowserArguments is a KEY with
           # one REG_SZ value per app exe name ('*' = every app) — a string
           # directly under ...\WebView2 is silently ignored.
+          # The port comes from the workflow-level CDP_PORT env (single source
+          # of truth, shared with playwright.config.ts and the preflight below).
           $policyRoot = 'HKLM:\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments'
           New-Item -Path $policyRoot -Force | Out-Null
-          Set-ItemProperty -Path $policyRoot -Name '*' -Value '--remote-debugging-port=9333 --disable-gpu' -Type String
-          'HKLM WebView2 AdditionalBrowserArguments\* policy set'
+          Set-ItemProperty -Path $policyRoot -Name '*' -Value "--remote-debugging-port=$env:CDP_PORT --disable-gpu" -Type String
+          "HKLM WebView2 AdditionalBrowserArguments\* policy set (port $env:CDP_PORT)"
 
       # Evidence-first gate: if WebView2 cannot bring up the DevTools endpoint
       # on this runner, fail HERE in under a minute with the app's own logs —
-      # instead of every one of the 74 tests burning its 30s CDP wait until the
+      # instead of every test burning its 30s CDP wait until the
       # 40-minute job timeout cancels the run (the pre-fix failure mode:
       # cancelled mid-suite with no diagnostics, 2026-08-16).
       - name: Preflight — launch the app once and probe the CDP endpoint
@@ -311,7 +344,7 @@ jobs:
           $tmp = Join-Path $env:TEMP ("mailgrit-preflight-" + [guid]::NewGuid().ToString('N').Substring(0,8))
           New-Item -ItemType Directory -Path $tmp | Out-Null
           Copy-Item $exe (Join-Path $tmp 'mailgrit-app-desktop.exe')
-          $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = '--remote-debugging-port=9333 --disable-gpu'
+          $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=$env:CDP_PORT --disable-gpu"
           $env:WEBVIEW2_USER_DATA_FOLDER = (Join-Path $tmp 'webview2-profile')
           $env:RUST_LOG = 'info'
           $out = Join-Path $tmp 'out.log'
@@ -324,7 +357,7 @@ jobs:
           while ((Get-Date) -lt $deadline -and -not $p.HasExited) {
             Start-Sleep -Milliseconds 500
             try {
-              $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:9333/json/version' -TimeoutSec 2
+              $r = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$env:CDP_PORT/json/version" -TimeoutSec 2
               if ($r.StatusCode -eq 200) { $ok = $true; break }
             } catch { }
           }
@@ -339,8 +372,8 @@ jobs:
           Write-Output "--- app process command line ---"
           Get-CimInstance Win32_Process -Filter "name = 'mailgrit-app-desktop.exe'" -ErrorAction SilentlyContinue |
             ForEach-Object { Write-Output ("pid {0}: {1}" -f $_.ProcessId, $_.CommandLine) }
-          Write-Output "--- port 9333 ---"
-          netstat -ano | Select-String ':9333' | ForEach-Object { Write-Output $_.Line }
+          Write-Output "--- port $env:CDP_PORT ---"
+          netstat -ano | Select-String ":$env:CDP_PORT" | ForEach-Object { Write-Output $_.Line }
           Write-Output "--- app stdout ---"
           if (Test-Path $out) { Get-Content $out | ForEach-Object { Write-Output $_ } }
           Write-Output "--- app stderr ---"
@@ -350,6 +383,12 @@ jobs:
           # instance keeps the profile and defeats the next launch's arguments.
           Stop-Process -Name msedgewebview2 -Force -ErrorAction SilentlyContinue
           if (-not $ok) { throw 'CDP endpoint did not come up — see the diagnostics above' }
+
+      # Type-check the e2e suite BEFORE running it (see the typecheck step) —
+      # the smoke harness needs the same --features e2e build.
+      - name: Batch-JS smoke harness (execute the real generated webview JS)
+        working-directory: e2e
+        run: npm run test:jsmoke
 
       - name: Run Playwright suite
         working-directory: e2e
@@ -393,20 +432,11 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal
       - name: Add target
         run: rustup target add ${{ matrix.target }}
-      # Same Linux GTK/webkit deps as the quality job: app-desktop (Dioxus
-      # desktop / webkit2gtk) needs gdk-3.0 & friends to compile on Linux.
+      # Same Linux GTK/webkit deps as the quality job (composite action — the
+      # list lives in one place, .github/actions/linux-deps).
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libssl-dev \
-            libxdo-dev \
-            mold
+        uses: ./.github/actions/linux-deps
       # Default features: `e2e` is test-only and must not be compiled into
       # release binaries (the quality job still lints/tests --all-features).
       - name: Build release (default features, warnings-as-errors)
@@ -429,8 +459,15 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Install nightly Rust
         run: rustup toolchain install nightly
-      - name: Install cargo-fuzz
-        run: cargo +nightly install cargo-fuzz
+      # cargo-fuzz is NOT in taiki-e/install-action's manifest (checked:
+      # TOOLS.md has no cargo-fuzz), so it must be built from source — but
+      # VERSION-PINNED and --locked. The previous `cargo +nightly install
+      # cargo-fuzz` compiled whatever was latest on crates.io against a
+      # floating nightly: non-reproducible fuzz results, wasted CI minutes,
+      # crates.io supply-chain exposure. The nightly toolchain itself stays
+      # floating (fuzz targets fundamentally require it).
+      - name: Install cargo-fuzz (pinned, --locked)
+        run: cargo +nightly install cargo-fuzz --version 0.13.2 --locked
       - name: Replay seed corpus against every fuzz target
         working-directory: fuzz
         run: |
@@ -469,16 +506,7 @@ jobs:
       # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
       # needs the GTK/webkit headers on Linux (same as quality/build-release).
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libssl-dev \
-            libxdo-dev \
-            mold
+        uses: ./.github/actions/linux-deps
       - name: Install nightly Rust (with Miri)
         run: rustup toolchain install nightly --component miri
       - name: Install cargo-mutants
@@ -526,8 +554,9 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Install nightly Rust
         run: rustup toolchain install nightly
-      - name: Install cargo-fuzz
-        run: cargo +nightly install cargo-fuzz
+      # Pinned + --locked, same rationale as the fuzz-regression job.
+      - name: Install cargo-fuzz (pinned, --locked)
+        run: cargo +nightly install cargo-fuzz --version 0.13.2 --locked
       # Exploratory fuzzing: a newly-found crash FAILS the PR (no
       # continue-on-error). 60s budget per target.
       - name: Run fuzz targets (limited duration in CI)

@@ -59,7 +59,14 @@ pub(super) fn get_csrf_js(log_tag: &str) -> String {
             const allInputs = Array.from(doc.querySelectorAll('input,select')).map(i => i.name + '(' + i.type + ')');
             const ms = Math.round(performance.now() - t0);
             console.log('[{log_tag}] url=' + formUrl + ' status=' + r.status + ' token=' + (token ? 'present(' + token.length + ')' : 'EMPTY') + ' inputs=[' + allInputs.join(',') + '] ' + ms + 'ms');
-            return {{token: token, status: r.status, inputs: allInputs, ms: ms, htmlHead: html.slice(0, 800)}};
+            // htmlHead flows into the failure dump (when the CSRF token is not
+            // found, csrfResult is embedded in the dump verbatim) which Rust
+            // logs at INFO — so every value attribute (the CSRF token lives in
+            // one) is redacted BEFORE slicing. All three HTML quoting forms are
+            // covered, including unquoted value=token. Length-only, same rule
+            // as mfMask.
+            const redacted = html.replace(/value\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, 'value="(redacted)"');
+            return {{token: token, status: r.status, inputs: allInputs, ms: ms, htmlHead: redacted.slice(0, 800)}};
         }} catch(e) {{
             console.error('[{log_tag}] ERROR ' + e);
             return {{token: '', error: String(e)}};

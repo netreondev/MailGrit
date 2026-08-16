@@ -16,9 +16,9 @@ import { DASH, SEL } from '../helpers/selectors';
 test.describe('Dashboard — accessibility (a11y)', () => {
   test('segmented controls have role=radiogroup/radio with aria-checked', async ({ app }) => {
     const { page } = app;
-    // Section-nav — radiogroup.
+    // Section-nav — the container is the radiogroup.
     const navGroup = page.locator(`${DASH.sectionNav} [role="radiogroup"], ${DASH.sectionNav}[role="radiogroup"]`);
-    // The segmented control renders role=radiogroup; if not, we check the radios inside.
+    await expect(navGroup, 'section-nav renders a radiogroup container').toBeVisible();
     const navRadios = page.locator(DASH.sectionRadio);
     await expect(navRadios.first()).toBeVisible();
     const radioCount = await navRadios.count();
@@ -78,24 +78,71 @@ test.describe('Dashboard — accessibility (a11y)', () => {
     }
   });
 
-  test('tabbable elements receive a visible focus-ring', async ({ app }) => {
+  test('tabbable elements receive a visible focus indicator', async ({ app }) => {
     const { page } = app;
-    // There is no URL input on the dashboard, but table cell inputs are tabbable.
-    // Focus the first cell input and verify the outline is not none.
+    // Table cell inputs are tabbable. The ACTUAL visible mechanism for them is
+    // NOT an outline: .editable-table .input-cell:focus sets `outline: none`
+    // and substitutes a border-color + background change (app.css). The old
+    // assertion here checked `outline.color !== 'rgb(0,0,0)'`, which computed
+    // styles make essentially always true (outline-color resolves to
+    // currentcolor — a light token on the dark theme) — the test could not
+    // fail even with ALL focus styling deleted. Assert the real delta instead:
+    // the computed border/background must CHANGE between unfocused and focused.
+    // POLLED: WebView2 applies the :focus style recalc a frame after
+    // activeElement flips (verified: single-shot reads race it).
     const firstCell = page.locator(DASH.inputCell).first();
+    const readStyle = () =>
+      firstCell.evaluate((el) => {
+        const cs = getComputedStyle(el);
+        return { borderColor: cs.borderColor, background: cs.backgroundColor };
+      });
+    const unfocused = await readStyle();
     await firstCell.focus();
-    // Check the computed outline-style (must not be none when focused).
-    const outline = await firstCell.evaluate((el) => {
-      const cs = getComputedStyle(el);
-      return { style: cs.outlineStyle, width: cs.outlineWidth, color: cs.outlineColor };
-    });
-    // outline-style may be 'auto' or 'solid'; the key is it is not fully hidden.
-    // We allow auto (the standard browser focus-ring) or a non-empty color.
-    const hasFocusIndicator =
-      outline.style !== 'none' ||
-      (outline.width !== '0px' && outline.width !== 'medium') ||
-      outline.color !== 'rgb(0, 0, 0)';
-    expect(hasFocusIndicator, 'cell input has a visible focus indicator').toBe(true);
+    await expect
+      .poll(
+        async () => {
+          const s = await readStyle();
+          return (
+            s.borderColor !== unfocused.borderColor || s.background !== unfocused.background
+          );
+        },
+        {
+          timeout: 5_000,
+          message:
+            `focus must change the visible style of a tabbable cell input ` +
+            `(unfocused: ${unfocused.borderColor}/${unfocused.background})`,
+        },
+      )
+      .toBe(true);
+  });
+
+  test('keyboard focus (:focus-visible) shows the global outline ring', async ({ app }) => {
+    const { page } = app;
+    // Programmatic .focus() does not trigger :focus-visible in Chromium; a
+    // real Tab keypress does. The global ring lives in base.css (:focus-visible
+    // { outline: ... }). Focus must land on the first tabbable element and show
+    // a non-none outline. POLLED for the same WebView2 style-recalc lag as the
+    // focus-indicator test above.
+    await page.keyboard.press('Tab');
+    await expect
+      .poll(
+        async () => {
+          const outline = await page.evaluate(() => {
+            const el = document.activeElement;
+            if (!el) return null;
+            const cs = getComputedStyle(el);
+            return { tag: el.tagName, style: cs.outlineStyle, width: cs.outlineWidth };
+          });
+          return outline !== null && outline.style !== 'none' && outline.width !== '0px'
+            ? outline
+            : null;
+        },
+        {
+          timeout: 5_000,
+          message: 'a keyboard-focused element must show the :focus-visible outline',
+        },
+      )
+      .not.toBeNull();
   });
 
   test('all visible buttons in the ops card have an accessible name (text or aria-label/title)', async ({ app }) => {

@@ -39,10 +39,16 @@ jobs:
       # rustc 1.93.0) which is OLDER than this workspace's MSRV (1.97.1).
       # Cargo's rust-version gate rejects the build. Temporarily lower the
       # declared rust-version so Kani's bundled toolchain can compile the crates.
-      # The real MSRV (1.97.1) is enforced by ci.yml's quality job (cargo-msrv)
-      # and restored here after verification.
+      # The real MSRV (1.97.1) is enforced by ci.yml's quality job (cargo-msrv);
+      # the sed here touches only the EPHEMERAL runner's checkout — nothing is
+      # restored because nothing was changed in the repository.
       - name: Temporarily lower rust-version for Kani's pinned nightly
         run: |
+          # Fail loudly if the line format ever changes: a sed that silently
+          # matches nothing would let the rust-version gate fail the build with
+          # a confusing error instead. No `$` anchor: the line carries a
+          # trailing inline comment.
+          grep -q '^rust-version = "1.97.1"' Cargo.toml
           sed -i 's/^rust-version = "1.97.1"/rust-version = "1.93.0"/' Cargo.toml
 
       # --solver kissat: faster SAT solver. --default-unwind 20 bounds the
@@ -52,8 +58,3 @@ jobs:
         uses: model-checking/kani-github-action@f838096619a707b0f6b2118cf435eaccfa33e51f # v1.1
         with:
           args: "-p mailgrit-core-domain -Z unstable-options --solver kissat --default-unwind 20"
-
-      - name: Restore MSRV
-        if: always()
-        run: |
-          sed -i 's/^rust-version = "1.93.0"/rust-version = "1.97.1"/' Cargo.toml

@@ -3,7 +3,7 @@
 
 import { testDashboard as test, expect } from '../fixtures/app';
 import { DASH } from '../helpers/selectors';
-import { assertInViewport, assertNoOverlap } from '../helpers/layout';
+import { assertNoOverlap } from '../helpers/layout';
 
 /**
  * Editable row table: adding/removing/editing cells, format validation

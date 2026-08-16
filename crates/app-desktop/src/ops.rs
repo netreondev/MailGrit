@@ -335,7 +335,6 @@ fn format_diag(json: &str) -> String {
 fn summarize_forms(v: &serde_json::Value) -> String {
     let Some(forms) = v
         .get("forms_in_response")
-        .or_else(|| v.get("forms_on_page"))
         .and_then(serde_json::Value::as_array)
     else {
         return t!("operr.diag_no_forms").to_string();
@@ -367,16 +366,22 @@ fn summarize_forms(v: &serde_json::Value) -> String {
 ///
 /// Relies on objective signals:
 /// - **HTTP status** 401/403 — an explicit authentication error;
-/// - **the final URL of the POST response** (`resp_url`) contains `/login` —
-///   iRedAdmin redirects to the login form on session expiry (after `fetch` with
-///   `redirect:'follow'` the status stays 200, but the URL reveals the redirect);
-/// - **the final post-verification URL** (`verify_url`) contains `/login` — the
-///   session may expire BETWEEN a successful POST and the verify-GET; previously
-///   only the POST-url was checked, and expiry in the verify window was missed
-///   (the reason "profile not found after create" carries no sign of session).
-///   P0 fix;
+/// - **the final URL of the POST response** (`resp_url`) has the path segment
+///   `login` — iRedAdmin redirects to the login form on session expiry (after
+///   `fetch` with `redirect:'follow'` the status stays 200, but the URL reveals
+///   the redirect);
+/// - **the final post-verification URL** (`verify_url`) has the path segment
+///   `login` — the session may expire BETWEEN a successful POST and the
+///   verify-GET; previously only the POST-url was checked, and expiry in the
+///   verify window was missed (the reason "profile not found after create"
+///   carries no sign of session). P0 fix;
 /// - **the reason text** (fallback) — `login_required`, `csrf token not found`,
 ///   `401`/`403`.
+///
+/// The URL checks compare WHOLE path segments (`util::url_path_has_segment`):
+/// a plain `contains("/login")` also matched hosts like
+/// `login.example.com` (the `//login` in the authority), silently resetting the
+/// session on deployments whose hostname merely starts with `login`.
 ///
 /// A real server error (e.g. `NO_SUCH_ACCOUNT` at `status=200`) is NOT counted as
 /// session expiry.
@@ -390,10 +395,10 @@ fn is_session_expired(
     if status == 401 || status == 403 {
         return true;
     }
-    if resp_url.is_some_and(|u| u.contains("/login")) {
+    if resp_url.is_some_and(|u| crate::util::url_path_has_segment(u, "login")) {
         return true;
     }
-    if verify_url.is_some_and(|u| u.contains("/login")) {
+    if verify_url.is_some_and(|u| crate::util::url_path_has_segment(u, "login")) {
         return true;
     }
     // Fallback by the reason text.
@@ -417,7 +422,7 @@ pub fn is_session_expired_reason(reason: &str) -> bool {
         .split(|c: char| !c.is_ascii_digit())
         .any(|tok| tok == "401" || tok == "403");
     status_match
-        || r.contains("/login")
+        || crate::util::text_mentions_path_segment(&r, "login")
         || r.contains("login_required")
         || r.contains("csrf token not found")
 }

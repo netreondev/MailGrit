@@ -28,6 +28,8 @@ Protocol** — без окремого браузера; тестується р
 cargo build -p mailgrit-app-desktop --features e2e   # з кореня репозиторія
 cd e2e
 npm ci
+npm run typecheck                 # tsc --noEmit (Playwright ігнорує типові помилки)
+npm run test:jsmoke               # виконує реальний згенерований batch-JS (mocked fetch)
 npm test                          # усі тести (підключення до власного WebView2 застосунку)
 npm run test:headed               # з видимим вікном (зручно під час дебагу)
 npm run report                    # HTML-звіт останнього прогону
@@ -37,17 +39,32 @@ npm run report                    # HTML-звіт останнього прог�
 підключається до власного WebView2 застосунку — НЕ запускайте
 `npx playwright install chromium` (він завантажує браузер, який суіт не використовує).
 stdout/stderr застосунку кожного прогону пишуться в `app-stdio.log`
-у тимчасовому каталозі прогону.
+у тимчасовому каталозі прогону; упалений тест зберігає цей лог у вивід
+Playwright (`test-results/…/app-stdio.log`) перед очищенням — діагностика
+застосунку переживає падіння.
 
 ## Як це працює
 
 1. `fixtures/app.ts` знаходить `.exe` і **копіює його до тимчасового каталогу**
    (ізолюючи `mailgrit-data/` — кожен прогон стартує з чистим config/cookie-store).
+   Перед spawn також перевіряється, що CDP-порт ВІЛЬНИЙ — завислий
+   `msedgewebview2.exe`, який тримає порт, завершує прогон одразу з названою
+   причиною замість вводячих в оману помилок сторінок.
 2. Перед spawn інжектується
-   `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`.
-3. Після старту процесу чекаємо на CDP endpoint -> `chromium.connectOverCDP(...)`
-   -> беремо сторінку вікна MailGrit -> передаємо її в тест як `{ page }`.
-4. Teardown завершує процес і видаляє тимчасовий каталог.
+   `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<CDP_PORT>`
+   (порт за замовчуванням визначений один раз у `playwright.config.ts`; CI
+   передає те саме значення через змінну середовища `CDP_PORT`).
+3. Після старту процесу чекаємо на CDP endpoint ->
+   `chromium.connectOverCDP(...)` -> беремо сторінку вікна MailGrit -> передаємо її в тест як `{ page }`.
+4. Teardown завершує дерево процесів (await-нений `taskkill /T /F`) і видаляє
+   тимчасовий каталог.
+
+> **НЕ копіюйте HKLM-політику з CI на робочу машину.** CI встановлює
+> `HKLM\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments\*`,
+> бо підвищені (elevated) раннери ігнорують змінні `WEBVIEW2_*` (Runtime 150+).
+> Ця політика застосовується до **КОЖНОГО WebView2-застосунку на хості** і
+> відкриває remote-debugging (CDP) порт у всіх них — будь-який локальний
+> процес зможе керувати тими браузерами. Це прийнятно лише на ефемерному раннері.
 
 `workers: 1` (один `.exe` + один CDP-порт одночасно).
 

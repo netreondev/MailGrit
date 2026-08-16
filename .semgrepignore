@@ -13,13 +13,18 @@ target/
 # not inherit workspace lints. Its quality is enforced separately.
 fuzz/
 
-# Playwright e2e suite is TypeScript, out of the Rust SAST scope (gitleaks covers
-# secret scanning there).
+# Playwright e2e suite: only its dependencies are excluded. The TS sources
+# themselves are scanned by the p/secrets + p/owasp-top-ten rulesets (the
+# suite spawns processes and sets env vars — it is attack-relevant code);
+# previously the whole e2e/ dir was skipped, leaving it covered by no
+# security tool at all.
 e2e/node_modules/
-e2e/
+e2e/test-results/
+e2e/playwright-report/
 
-# Generated GitHub Pages site assets (static HTML/CSS) — not audited Rust.
-docs/
+# Generated/binary GitHub Pages site assets are out of scope; the static site
+# itself (HTML/CSS/JS — publicly deployed!) IS scanned.
+docs/assets/
 
 # Lockfiles are machine-generated; scanning them produces deterministic noise.
 Cargo.lock

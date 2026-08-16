@@ -233,6 +233,14 @@ impl ValidatedPassword {
 
     /// Canonical password parser.
     ///
+    /// Deliberately does NOT enforce a minimum length or character classes:
+    /// this type is shared by Create/Edit/Delete rows (the latter two need no
+    /// password at all), and the strength rules differ per deployment (the
+    /// `[password_policy]` section). The policy is applied as a NON-blocking
+    /// indicator in the UI (`password_policy.rs` — informs rather than blocks),
+    /// so an operator may import a CSV whose passwords the server still
+    /// accepts. Only the hard transport constraints are enforced here:
+    ///
     /// # Errors
     /// - [`PasswordError::TooLong`] — length > [`MAX_PASSWORD_LEN`].
     /// - [`PasswordError::ContainsComma`] — contains `,` (breaks CSV).

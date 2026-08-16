@@ -36,7 +36,7 @@ pub fn csv_card(state: Signal<AppState>) -> Element {
         (summary.failed > 0).then(|| format!("{} {}", summary.failed, tr!("csv.rejected")))
     });
     rsx! {
-        Card {
+        Card { data_card: "csv".to_string(),
             h2 { IconView { icon: Icon::Upload } {tr!("csv.card_title")} }
             p { class: "muted", {tr!("csv.format_hint")} }
 

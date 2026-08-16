@@ -33,9 +33,22 @@ fn main() {
             "(c) 2026 Netreon™ and contributors (MIT OR Apache-2.0)",
         );
         if let Err(err) = res.compile() {
-            // winres requires the Windows SDK (rc.exe / windres). If the toolchain
-            // is incomplete, do not fail the build: the runtime icon is still set
-            // via with_window_icon. Log a warning to the build output.
+            // winres requires the Windows SDK (rc.exe / windres). In a DEBUG
+            // build an incomplete local toolchain is tolerable: the runtime
+            // icon is still set via with_window_icon, so only warn. A RELEASE
+            // build ships to users — there the Explorer/taskbar branding must
+            // not silently vanish (the "no silent fallback" rule,
+            // .cargo/config.toml), so the build FAILS (non-zero exit rather
+            // than a panic: a uniform exit code and cargo's own error
+            // formatting for a missing-toolchain failure).
+            if std::env::var("PROFILE").as_deref() == Ok("release") {
+                println!(
+                    "cargo:warning=winres: failed to embed the icon into the RELEASE .exe ({err}). \
+                     A release build must not silently ship without its Explorer/taskbar icon; \
+                     fix the Windows SDK toolchain (rc.exe)."
+                );
+                std::process::exit(1);
+            }
             println!(
                 "cargo:warning=winres: failed to embed the icon into the .exe ({err}). \
                  The window icon will be set at runtime via with_window_icon."

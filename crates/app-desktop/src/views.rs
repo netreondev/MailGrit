@@ -14,6 +14,12 @@ use dioxus::prelude::*;
 use mailgrit_core_csv::detect_mapping;
 use std::sync::Arc;
 
+/// Rows shown in the delete-confirmation preview (the rest is summarized as
+/// "+N more" — a modal must not grow unbounded).
+const PREVIEW_ROWS_SHOWN: usize = 15;
+/// Failed rows listed in the parse-errors card (the full list stays in the log).
+const FAILED_ROWS_SHOWN: usize = 20;
+
 /// Preview of CSV rows for delete confirmation (in a Modal).
 pub fn preview_csv_rows(state: &Signal<AppState>) -> Element {
     let read = state.read();
@@ -23,7 +29,7 @@ pub fn preview_csv_rows(state: &Signal<AppState>) -> Element {
     let preview: Vec<String> = csv
         .rows
         .iter()
-        .take(15)
+        .take(PREVIEW_ROWS_SHOWN)
         .map(|r| format!("{}@{}", r.username.as_str(), r.domain.as_str()))
         .collect();
     let more = csv.rows.len().saturating_sub(preview.len());
@@ -116,7 +122,7 @@ pub fn failed_csv_rows_view(state: &Signal<AppState>) -> Element {
                 let rows = csv
                     .failed
                     .iter()
-                    .take(20)
+                    .take(FAILED_ROWS_SHOWN)
                     // Localized reason via error_i18n (the core crate has no i18n).
                     .map(|f| {
                         (
@@ -226,7 +232,7 @@ pub fn audit_view() -> Element {
                 button {
                     class: "btn btn-primary",
                     onclick: move |_| {
-                        state.write().modals.pending_master_password = true;
+                        state.write().open_master_password_modal();
                     },
                     {tr!("master_password.unlock")}
                 }

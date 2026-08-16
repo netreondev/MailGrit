@@ -31,7 +31,13 @@ pub fn master_password_modal(mut state: Signal<AppState>) -> Element {
     if !pending {
         return rsx! {};
     }
-    let is_create = !audit_key_exists();
+    // Create-vs-unlock was snapshotted at modal OPEN time
+    // (`AppState::open_master_password_modal`) — reading it here avoids a
+    // filesystem probe on every re-render (each keystroke re-renders).
+    let is_create = matches!(
+        state.read().master_password_mode,
+        crate::state::MasterPasswordMode::Create
+    );
     let input = state.read().master_password_input.clone();
     let confirm = state.read().master_password_confirm.clone();
     // While the Argon2id unlock task is running, both footer buttons are
@@ -189,11 +195,4 @@ fn confirm_master_password(state: &mut Signal<AppState>, is_create: bool) {
             }
         }
     });
-}
-
-/// Checks whether an audit key file of the correct length exists
-/// (→ unlock vs create mode). Delegates the length check to audit_ui, where the
-/// `AUDIT_KEY_FILE_LEN` constant lives.
-fn audit_key_exists() -> bool {
-    crate::audit_ui::audit_key_file_is_valid()
 }

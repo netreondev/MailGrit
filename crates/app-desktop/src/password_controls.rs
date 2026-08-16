@@ -56,13 +56,15 @@ pub fn password_controls_view(mut state: Signal<AppState>) -> Element {
                             value: "{pw_gen.length}",
                             disabled: op_running,
                             oninput: move |ev: FormEvent| {
-                                // Range slider: clamp to [length_min, 32] instead
-                                // of a silent substitution on a parse failure.
+                                // Range slider: clamp to [length_min, ui_max]
+                                // (UI_MAX_LENGTH — the single source shared with
+                                // the domain clamp) instead of a silent
+                                // substitution on a parse failure.
                                 let v = ev
                                     .value()
                                     .parse::<usize>()
                                     .ok()
-                                    .map_or(state.read().password_generator.length, |n| n.clamp(length_min, 32));
+                                    .map_or(state.read().password_generator.length, |n| n.clamp(length_min, ui_max));
                                 state.write().password_generator.length = v;
                             },
                         }

@@ -2,26 +2,35 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 # Copyright (c) 2026 Netreon™ and contributors
 
-"""Generate placeholder site assets (favicon icons + OG image) for MailGrit.
+"""Generate placeholder site assets (favicon icons) for MailGrit.
 
 Produces clean, on-brand placeholders so referenced assets are no longer 404:
   docs/assets/icon-192.png  (PWA / apple-touch-icon)
   docs/assets/icon-512.png  (favicon / PWA / JSON-LD logo)
-  docs/assets/og.png        (1200x630 Open Graph / Twitter card banner)
+
+The OG banner (docs/assets/og.png) is NOT generated here: .meta/og-render.html
+is the canonical, hand-tuned OG generator (palette #08080C/#2563EB) — this
+script's old og.png generator had drifted apart from it (palette
+#0b1020/#58a6ff), and two generators for one asset eventually overwrite each
+other's output.
 
 Replace these with polished brand artwork later; this only removes the broken
 links that hurt SEO/social-preview/PWA rendering today.
 """
+from pathlib import Path
+
 from PIL import Image, ImageDraw, ImageFont
 
-# Brand palette (matches meta theme-color + site CSS tokens)
+# Brand palette (matches meta theme-color + site CSS tokens) — only the colors
+# make_icon actually uses; the OG render has its own palette in .meta/.
 BG = (11, 16, 32)          # #0b1020
 BORDER = (31, 42, 74)      # #1f2a4a
-ACCENT = (88, 166, 255)    # #58a6ff
 FG = (232, 236, 248)       # #e8ecf8
-MUTED = (139, 148, 178)    # #8b94b2
 
-ASSETS = r"C:\ISO\MailGrit\docs\assets"
+# Resolved relative to THIS FILE so the script works from any checkout / cwd
+# (previously a hardcoded C:\ISO\MailGrit\... absolute path — it only ever
+# worked on one specific dev machine).
+ASSETS = Path(__file__).resolve().parents[1] / "docs" / "assets"
 
 
 def _font(size, bold=False):
@@ -67,68 +76,8 @@ def make_icon(size, path):
     print(f"wrote {path}  ({size}x{size})")
 
 
-def make_og(path):
-    W, H = 1200, 630
-    img = Image.new("RGB", (W, H), BG)
-    d = ImageDraw.Draw(img)
-
-    # decorative top accent line
-    d.rectangle([0, 0, W, 6], fill=ACCENT)
-
-    # brand square + mark
-    box = 150
-    bx, by = 90, 110
-    d.rounded_rectangle([bx, by, bx + box, by + box], radius=30, fill=(20, 28, 56))
-    d.rounded_rectangle(
-        [bx, by, bx + box, by + box], radius=30, outline=BORDER, width=2
-    )
-    m_font = _font(100, bold=True)
-    bbox = d.textbbox((0, 0), "M", font=m_font)
-    mw, mh = bbox[2] - bbox[0], bbox[3] - bbox[1]
-    d.text(
-        (bx + (box - mw) / 2 - bbox[0], by + (box - mh) / 2 - bbox[1] - 2),
-        "M",
-        font=m_font,
-        fill=FG,
-    )
-
-    # wordmark
-    name_font = _font(86, bold=True)
-    d.text((bx + box + 40, by + 18), "MailGrit", font=name_font, fill=FG)
-
-    # tagline
-    tag_font = _font(34, bold=False)
-    d.text((bx + box + 46, by + 118), "Bulk iRedAdmin automation, from the desktop.",
-           font=tag_font, fill=ACCENT)
-
-    # feature bullets
-    feats = [
-        "Cross-platform Rust desktop app  -  Windows / Linux / macOS ARM",
-        "Bulk create, edit and delete mail accounts on iRedAdmin servers",
-        "Works behind FortiWeb / WAF via an embedded authenticated browser",
-        "Encrypted, tamper-evident audit log  -  9 UI languages",
-    ]
-    feat_font = _font(28, bold=False)
-    y = 330
-    for line in feats:
-        d.text((bx, y), "  -  " + line, font=feat_font, fill=MUTED)
-        y += 52
-
-    # footer
-    foot_font = _font(26, bold=False)
-    d.text((bx, H - 70), "Free & open source  -  MIT OR Apache-2.0",
-           font=foot_font, fill=FG)
-    d.text((W - 410, H - 70), "github.com/netreondev/MailGrit",
-           font=foot_font, fill=MUTED)
-
-    img.save(path, "PNG", optimize=True)
-    print(f"wrote {path}  ({W}x{H})")
-
-
 if __name__ == "__main__":
-    import os
-    os.makedirs(ASSETS, exist_ok=True)
-    make_icon(192, f"{ASSETS}\\icon-192.png")
-    make_icon(512, f"{ASSETS}\\icon-512.png")
-    make_og(f"{ASSETS}\\og.png")
-    print("done.")
+    ASSETS.mkdir(parents=True, exist_ok=True)
+    make_icon(192, ASSETS / "icon-192.png")
+    make_icon(512, ASSETS / "icon-512.png")
+    print("done. (og.png is generated from .meta/og-render.html — see the module docstring)")

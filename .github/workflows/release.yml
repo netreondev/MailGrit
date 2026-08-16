@@ -21,18 +21,78 @@ on:
           default: "v0.1.4"
 
 # id-token: write is REQUIRED for cosign keyless (OIDC) signing and for the
-# provenance attestation. contents: write is needed to attach assets to the
-# release. The provenance job additionally grants attestations: write.
-permissions:
-  contents: write
-  id-token: write
+# provenance attestation; contents: write is needed to attach assets to the
+# release. Both are granted at JOB level (provenance/release; sign needs only
+# id-token), not here: the workflow-level default is read-only so the
+# compile-only jobs (verify, build) cannot write repo contents or mint OIDC
+# identities.
+permissions: {}
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  # ==========================================================================
+  # Verify — tests + version consistency BEFORE anything is built or signed.
+  # Previously the pipeline went straight to build → attest → sign → publish:
+  # a tag on an untested commit produced signed, attested, "verified" release
+  # binaries. Nothing checked the tag against workspace.package.version either
+  # (the version is spelled out in 8 manually-synced sites across 4 files —
+  # see scripts/check_version.py).
+  # ==========================================================================
+  verify:
+    name: Verify (tests + tag/version match)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        # A shallow checkout is enough: check_version.py reads the working
+        # tree only (the tag arrives via GITHUB_REF / the dispatch input).
+        with:
+          fetch-depth: 1
+
+      - name: Install Rust toolchain (pinned 1.97.1)
+        run: rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
+
+      - name: Install Linux system dependencies
+        uses: ./.github/actions/linux-deps
+
+      - name: Install cargo-nextest
+        uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-nextest@0.9.143
+
+      - name: Formatting check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy (strict)
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::multiple_crate_versions
+
+      - name: Tests (nextest, process-isolated, --all-features)
+        run: cargo nextest run --workspace --profile ci --all-features
+
+      - name: Doc tests (--all-features)
+        run: cargo test --workspace --doc --all-features
+
+      # Tag ↔ version: a mistag (or a forgotten version bump) must fail HERE,
+      # not as an inconsistent release. Expressions reach the shell only
+      # through env (inputs.tag is user input — see the release job note).
+      - name: Version consistency + tag match
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          TAG_INPUT: ${{ inputs.tag }}
+        run: |
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            python scripts/check_version.py --tag "$TAG_INPUT"
+          else
+            python scripts/check_version.py --tag "${GITHUB_REF#refs/tags/}"
+          fi
+
   build:
     name: Build (${{ matrix.name }})
+    needs: verify
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -72,17 +132,8 @@ jobs:
           tool: cargo-auditable,cargo-cyclonedx,cargo-bloat
 
       - name: Install Linux system dependencies (Dioxus desktop / webkit2gtk)
+        uses: ./.github/actions/linux-deps
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libssl-dev \
-            libxdo-dev \
-            mold
 
       # cargo-auditable wraps `cargo build`: it injects a `.dep-vices` section
       # into the binary with the full dependency list + known advisories at
@@ -229,7 +280,9 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      # Least privilege: this job only downloads artifacts, signs them with an
+      # OIDC-issued ephemeral key, and uploads artifacts — it never touches
+      # repo contents.
       id-token: write
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
@@ -308,9 +361,19 @@ jobs:
           TAG_INPUT: ${{ inputs.tag }}
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            echo "tag=${TAG_INPUT}" >> "$GITHUB_OUTPUT"
+            # Heredoc delimiter form: a multi-line dispatch input cannot
+            # inject an extra output key the way `echo "tag=$VAR"` would.
+            {
+              echo "tag<<MAILGRIT_TAG_EOF"
+              echo "${TAG_INPUT}"
+              echo "MAILGRIT_TAG_EOF"
+            } >> "$GITHUB_OUTPUT"
           else
-            echo "tag=${GITHUB_REF#refs/tags/}" >> "$GITHUB_OUTPUT"
+            {
+              echo "tag<<MAILGRIT_TAG_EOF"
+              echo "${GITHUB_REF#refs/tags/}"
+              echo "MAILGRIT_TAG_EOF"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create / update release with binaries, SBOMs and signatures
