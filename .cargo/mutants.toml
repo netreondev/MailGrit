@@ -18,6 +18,15 @@
 # (core-domain/csv/storage/security) carry the real testable business logic and
 # ARE mutation-tested. Exclude app-desktop entirely.
 #
+# Pilot 2026-08-16 (qa-reports/10b-pilot-app-desktop.md): the crate holds 530
+# mutants; a 7-logic-file sample (140 mutants) scored 56 caught / 60 missed /
+# 24 unviable, and 43 new unit tests killed 55 of the 60 missed (rerun: 110
+# caught / 5 missed / 25 unviable; the 5 left need a real window/webview or are
+# equivalent/platform-gated). rsx!-rendering files carry 110/530 (21%) of the
+# mutants — unobservable by unit tests, covered by the Playwright E2E suite.
+# A full-crate run costs ~2.5 h locally (~17 s/mutant) — does not fit the
+# 30-min CI job.
+#
 # Run: `cargo +nightly mutants --workspace --in-place`
 
 exclude_globs = [
@@ -26,6 +35,16 @@ exclude_globs = [
     # GUI layer — covered by E2E (Playwright), not unit tests (see header).
     "crates/app-desktop/**",
 ]
+
+# A mutant must die from a TEST, not from a lint. Without this the workspace
+# deny-lints (pedantic & co. in [workspace.lints]) reject many mutated bodies
+# at compile time (`replace fn with ()` trips missing_docs/dead_code etc.),
+# reporting them as UNVIABLE and silently masking real test-coverage gaps.
+# Stage 10a evidence: core-storage scored 5 caught / 15 lint-killed before;
+# with cap_lints it is 15 caught / 5 unviable / 0 missed — same total, and the
+# "unviable" bucket now contains only genuinely unbuildable mutants. Verified
+# on all 4 core crates (10a).
+cap_lints = true
 
 # Intrinsically untestable mutants — their effect is not observable from any
 # unit test, so they survive forever and would block the gate for no benefit.
