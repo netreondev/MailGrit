@@ -298,13 +298,14 @@ jobs:
           New-Item -ItemType Directory -Path $tmp | Out-Null
           Copy-Item $exe (Join-Path $tmp 'mailgrit-app-desktop.exe')
           $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = '--remote-debugging-port=9333 --disable-gpu'
+          $env:WEBVIEW2_USER_DATA_FOLDER = (Join-Path $tmp 'webview2-profile')
           $env:RUST_LOG = 'info'
           $out = Join-Path $tmp 'out.log'
           $err = Join-Path $tmp 'err.log'
           $p = Start-Process -PassThru -WorkingDirectory $tmp `
               -FilePath (Join-Path $tmp 'mailgrit-app-desktop.exe') `
               -RedirectStandardOutput $out -RedirectStandardError $err
-          $deadline = (Get-Date).AddSeconds(25)
+          $deadline = (Get-Date).AddSeconds(60)
           $ok = $false
           while ((Get-Date) -lt $deadline -and -not $p.HasExited) {
             Start-Sleep -Milliseconds 500
@@ -315,12 +316,20 @@ jobs:
           }
           Write-Output "--- app process ---"
           Write-Output ("HasExited: {0}; ExitCode: {1}" -f $p.HasExited, $(if ($p.HasExited) { $p.ExitCode } else { 'still running' }))
+          Write-Output "--- msedgewebview2 processes ---"
+          $wv2 = Get-Process msedgewebview2 -ErrorAction SilentlyContinue
+          if ($wv2) { $wv2 | ForEach-Object { Write-Output ("pid {0}" -f $_.Id) } } else { Write-Output 'none' }
+          Write-Output "--- port 9333 ---"
+          netstat -ano | Select-String ':9333' | ForEach-Object { Write-Output $_.Line }
           Write-Output "--- app stdout ---"
           if (Test-Path $out) { Get-Content $out | ForEach-Object { Write-Output $_ } }
           Write-Output "--- app stderr ---"
           if (Test-Path $err) { Get-Content $err | ForEach-Object { Write-Output $_ } }
           if (-not $p.HasExited) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
-          if (-not $ok) { throw 'CDP endpoint did not come up — see the app logs above' }
+          # The WebView2 browser subprocesses can outlive the app; a surviving
+          # instance keeps the profile and defeats the next launch's arguments.
+          Stop-Process -Name msedgewebview2 -Force -ErrorAction SilentlyContinue
+          if (-not $ok) { throw 'CDP endpoint did not come up — see the diagnostics above' }
 
       - name: Run Playwright suite
         working-directory: e2e

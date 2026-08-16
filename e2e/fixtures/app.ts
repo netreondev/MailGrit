@@ -101,9 +101,15 @@ async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: b
   // CI Windows runners have no interactive GPU session; without it
   // msedgewebview2 may never bring up the DevTools endpoint there (fine on a
   // developer desktop, silently failing on the runner — seen 2026-08-16).
+  // WEBVIEW2_USER_DATA_FOLDER: a fresh browser profile per staged copy. When
+  // the default profile is reused, a msedgewebview2.exe that survived an
+  // earlier launch keeps serving that profile — the new app instance then
+  // attaches to the EXISTING browser process and our additional arguments
+  // (the debug port) are never applied.
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS: `--remote-debugging-port=${CDP_PORT} --disable-gpu`,
+    WEBVIEW2_USER_DATA_FOLDER: join(dir, 'webview2-profile'),
     RUST_LOG: process.env.RUST_LOG ?? 'warn',
   };
   if (dashboardMode) {
@@ -148,10 +154,22 @@ async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: b
     }
   } finally {
     if (child && !child.killed) {
-      try {
-        child.kill();
-      } catch {
-        // the process may have already exited
+      if (process.platform === 'win32' && child.pid) {
+        // Kill the whole tree: child.kill() only terminates the app process,
+        // leaving msedgewebview2.exe browser subprocesses behind — a survivor
+        // keeps serving port 9333 and the NEXT test would connect to a
+        // headless leftover browser instead of its own fresh instance.
+        try {
+          spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+        } catch {
+          // the process may have already exited
+        }
+      } else {
+        try {
+          child.kill();
+        } catch {
+          // the process may have already exited
+        }
       }
     }
     // Give the OS time to release the .exe (Windows holds the file handle) before deleting.
