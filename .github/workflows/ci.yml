@@ -290,10 +290,14 @@ jobs:
           Start-Process -Wait -FilePath $boot -ArgumentList '/silent', '/install'
           $rt = Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' -ErrorAction SilentlyContinue
           if ($rt) { "WebView2 runtime installed: $($rt.pv)" } else { throw 'WebView2 runtime still not registered after install' }
-          New-Item -Path 'HKLM:\Software\Policies\Microsoft\Edge\WebView2' -Force | Out-Null
-          Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Edge\WebView2' `
-              -Name 'AdditionalBrowserArguments' -Value '--remote-debugging-port=9333 --disable-gpu' -Type String
-          'HKLM WebView2 AdditionalBrowserArguments policy set'
+          # Policy structure (WebView2 docs, "elevated host" + CreateCoreWebView2
+          # -EnvironmentWithOptions): AdditionalBrowserArguments is a KEY with
+          # one REG_SZ value per app exe name ('*' = every app) — a string
+          # directly under ...\WebView2 is silently ignored.
+          $policyRoot = 'HKLM:\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments'
+          New-Item -Path $policyRoot -Force | Out-Null
+          Set-ItemProperty -Path $policyRoot -Name '*' -Value '--remote-debugging-port=9333 --disable-gpu' -Type String
+          'HKLM WebView2 AdditionalBrowserArguments\* policy set'
 
       # Evidence-first gate: if WebView2 cannot bring up the DevTools endpoint
       # on this runner, fail HERE in under a minute with the app's own logs —
