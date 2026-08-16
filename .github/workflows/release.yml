@@ -124,7 +124,12 @@ jobs:
           cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" stage/
           cp README.md README.uk.md LICENSE-MIT LICENSE-APACHE stage/
           # SBOM: cargo-cyclonedx writes <package>.cdx.json next to the manifest.
+          # One copy goes INTO the archive; one stays at the workspace root so
+          # the artifact upload keeps it FLAT (upload-artifact preserves the
+          # stage/ prefix, which made the release job's files: globs miss it —
+          # the reason no SBOM ever reached the v0.1.3-v0.1.4 drafts).
           cp mailgrit-app-desktop.cdx.json stage/mailgrit-sbom-${{ matrix.name }}.cdx.json
+          cp mailgrit-app-desktop.cdx.json mailgrit-sbom-${{ matrix.name }}.cdx.json
           7z a "${{ matrix.archive }}" ./stage/*
           ls -la "${{ matrix.archive }}"
 
@@ -135,6 +140,7 @@ jobs:
           cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" stage/
           cp README.md README.uk.md LICENSE-MIT LICENSE-APACHE stage/
           cp mailgrit-app-desktop.cdx.json stage/mailgrit-sbom-${{ matrix.name }}.cdx.json
+          cp mailgrit-app-desktop.cdx.json mailgrit-sbom-${{ matrix.name }}.cdx.json
           tar -czf "${{ matrix.archive }}" -C stage .
           ls -la "${{ matrix.archive }}"
 
@@ -149,7 +155,7 @@ jobs:
           #   macOS:  shasum -a 256
           #   Windows (Git Bash): neither — use PowerShell Get-FileHash.
           # Detect the first available one and emit the standard
-          # "<hash>  <file>" line (the SLSA generator + cosign format).
+          # "<hash>  <file>" line (the sha256sum text format).
           file="${{ matrix.archive }}"
           if command -v sha256sum >/dev/null 2>&1; then
             sha256sum "$file" > hashes-${{ matrix.name }}.txt
@@ -169,23 +175,15 @@ jobs:
           name: ${{ matrix.archive }}
           path: |
             ${{ matrix.archive }}
-            stage/mailgrit-sbom-${{ matrix.name }}.cdx.json
+            mailgrit-sbom-${{ matrix.name }}.cdx.json
             hashes-${{ matrix.name }}.txt
             bloat-${{ matrix.name }}.txt
           retention-days: 7
           if-no-files-found: error
 
   # ==========================================================================
-  # SLSA build provenance — attest the build origin of every archive.
-  # Uses the SLSA generic generator (keyless, via GitHub OIDC). Produces a
-  # DSSE/in-toto attestation that the archives were built from this workflow
-  # run. Verified with `slsa-verifier`.
-  #
-  # The SLSA generator is a *reusable workflow* — GitHub Actions requires it to
-  # be referenced at the job level (`provenance.uses`), NOT inside `steps`.
-  # A reusable-workflow job cannot contain its own steps, so the subject list
-  # (base64 of the merged sha256 hashes) is prepared in a separate job
-  # (`provenance-subjects`) and passed via outputs.
+  # Build provenance — GitHub-native artifact attestation. See the comment
+  # inside the job for the history (replaced slsa-github-generator).
   # ==========================================================================
   provenance:
     name: Build provenance (artifact attestation)
