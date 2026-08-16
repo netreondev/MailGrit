@@ -339,3 +339,55 @@ fn unmapped_empty_default_field_parses() -> Result<(), Box<dyn std::error::Error
     );
     Ok(())
 }
+
+/// The mapping/auto paths enforce the `MAX_CSV_ROWS` budget via
+/// `check_row_budget` with the FIXED constant (unlike the classic parser,
+/// which takes a configurable limit — that path is boundary-tested in
+/// `parser_tests::rejects_too_many_rows`). A mutant replacing the guard with
+/// `Ok(())` removes the DoS protection from these paths and is invisible to
+/// every small-fixture test. Drive the real boundary: exactly MAX_CSV_ROWS
+/// positional rows parse fine; one more is a fatal TooManyRows (rows are
+/// counted, not lines: all rows here are valid).
+#[test]
+fn auto_enforces_max_csv_rows_budget() -> Result<(), Box<dyn std::error::Error>> {
+    use mailgrit_core_csv::CsvParseError;
+    use mailgrit_core_domain::MAX_CSV_ROWS;
+
+    // No header: the first record does not bind all profile fields, so the
+    // auto parser stays in positional mode and every record is a data row.
+    let mut data = String::with_capacity((MAX_CSV_ROWS + 1) * 21);
+    for i in 0..=MAX_CSV_ROWS {
+        // Distinct usernames keep every row valid (a duplicate would still
+        // parse — rows are not deduplicated — but this mirrors real input).
+        data.push_str("good.com,u");
+        data.push_str(&i.to_string());
+        data.push_str(",p,n,200\n");
+    }
+
+    let profile = OperationProfile::for_user_create();
+    match parse_csv_bytes_auto(data.as_bytes(), &profile) {
+        Ok(_) => return Err("expected TooManyRows error, got Ok".into()),
+        Err(CsvParseError::TooManyRows { actual, max }) => {
+            assert_eq!(max, MAX_CSV_ROWS);
+            assert_eq!(actual, MAX_CSV_ROWS + 1);
+        }
+        Err(other) => return Err(format!("expected TooManyRows, got {other:?}").into()),
+    }
+
+    // Exact boundary: MAX_CSV_ROWS rows fit (the guard is `processed >= max`,
+    // so the row that would exceed the budget is the one that errors).
+    let mut exact = String::with_capacity(MAX_CSV_ROWS * 21);
+    for i in 0..MAX_CSV_ROWS {
+        exact.push_str("good.com,u");
+        exact.push_str(&i.to_string());
+        exact.push_str(",p,n,200\n");
+    }
+    let parsed = parse_csv_bytes_auto(exact.as_bytes(), &profile)?;
+    assert_eq!(
+        parsed.rows.len(),
+        MAX_CSV_ROWS,
+        "exactly MAX_CSV_ROWS rows must parse"
+    );
+    assert!(parsed.failed.is_empty());
+    Ok(())
+}
