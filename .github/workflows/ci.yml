@@ -127,9 +127,16 @@ jobs:
       # `--config p/<pack>` downloads from https://semgrep.dev/c/p/<pack>.
       # Counts at vendoring time (2026-08-16): rust 11, secrets 52,
       # security-audit 225, owasp-top-ten 560 rules (848 total).
+      # One deliberate deviation from the verbatim download: the Slack-webhook
+      # rule's `pattern-not` excludes the canonical placeholder example. The
+      # upstream literal form of that example is a real-shaped webhook URL,
+      # which GitHub push protection rejects as a secret. It is vendored as
+      # the regex-equivalent `https://hooks\.slack\.com/services/T0+/B0+/X+`
+      # (matches the same placeholder family, rule semantics unchanged).
       # Update procedure: re-download the four URLs over the vendored files,
-      # review the diff like any other dependency bump, and run BOTH passes
-      # below locally — an update must keep the gate meaningful.
+      # review the diff like any other dependency bump, re-apply this one
+      # substitution, and run BOTH passes below locally — an update must keep
+      # the gate meaningful.
       #
       # Severity policy — the gate blocks on ERROR/WARNING findings only
       # (`--severity` filters on the second pass). INFO is semgrep's tier for
