@@ -66,3 +66,56 @@ CI виконується при кожному push та pull request:
 - `cargo semver-checks` — сумісність публічного API.
 
 Зафіксований інструментарій Rust (`1.97.1`) для відтворюваних збірок.
+
+## Верифікація релізів
+
+Кожен опублікований бінарний файл збирається з укріпленням ланцюга
+постачання, щоб користувач міг самостійно перевірити автентичність та
+походження залежностей. Робочий процес релізу (`.github/workflows/release.yml`)
+створює, для кожної платформи:
+
+- **Вбудований перелік залежностей** — `cargo auditable build` компілює повне
+  дерево залежностей (назви крейтів + версії + відомі консультації на момент
+  збірки) у бінарний файл. Скануйте завантажений бінарний файл без доступу до
+  джерельного коду:
+
+  ```bash
+  cargo install cargo-audit cargo-auditable
+  cargo audit bin ./mailgrit-app-desktop.exe
+  ```
+
+- **CycloneDX SBOM** — `mailgrit-sbom-<platform>.cdx.json` додається до
+  кожного релізу та фіксує розв'язаний граф залежностей на момент збірки.
+
+- **Атестація походження збірки** — кожен архів несе атестацію походження
+  збірки (підписаний in-toto statement із SLSA-предикатом походження),
+  створену за допомогою
+  [actions/attest-build-provenance](https://github.com/actions/attest-build-provenance)
+  keyless-способом через ефемерну OIDC-ідентичність GitHub робочого процесу
+  (жодних ключів підписування в репозиторії) і збережену у сховищі атестацій
+  артефактів GitHub цього репозиторію. Це замінило сторонній робочий процес
+  slsa-github-generator, який більше не працює на поточних образах ранерів.
+  Перевірте, що бінарний файл зібрано саме з цього репозиторію:
+
+  ```bash
+  # Встановлення: https://cli.github.com/
+  gh attestation verify mailgrit-windows-x86_64.zip \
+    --repo netreondev/MailGrit
+  ```
+
+- **keyless-підписи cosign** — кожен архів (`*.zip` / `*.tar.gz`) несе
+  від'єднаний підпис `<archive>.sig` та сертифікат підписування `<archive>.pem`,
+  виданий через ефемерну ідентичність Fulcio робочого процесу та зафіксований
+  у публічному журналі прозорості Rekor. Перевірте автентичність:
+
+  ```bash
+  # Встановлення: https://github.com/sigstore/cosign/releases
+  cosign verify-blob \
+    --certificate mailgrit-windows-x86_64.zip.pem \
+    --signature mailgrit-windows-x86_64.zip.sig \
+    --certificate-identity-regexp 'https://github.com/netreondev/MailGrit/.*' \
+    --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+    mailgrit-windows-x86_64.zip
+  ```
+
+Не запускайте бінарний файл, який не пройшов перевірку походження чи підпису.

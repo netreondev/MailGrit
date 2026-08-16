@@ -20,3 +20,11 @@ slow-timeout = { period = "60s", terminate-after = 3 }
 # Archive for publishing degradation metrics.
 [profile.ci.junit]
 path = "junit.xml"
+
+# qa — диагностический профиль локального прогона (щедрые таймауты, чтобы отличить
+# зависание от медленной машины); CI использует ci.
+[profile.qa]
+fail-fast = false
+slow-timeout = { period = "5m", terminate-after = 4 }
+[profile.qa.junit]
+path = "qa-logs/junit-qa.xml"
