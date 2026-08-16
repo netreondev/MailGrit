@@ -211,4 +211,136 @@ mod tests {
         assert!(!url_openable("smb://nas/share"));
         assert!(!url_openable("not a url"));
     }
+
+    // --- validate_base_url (typed https+host requirement) ---
+
+    #[test]
+    fn validate_base_url_accepts_https_with_host() {
+        assert_eq!(
+            validate_base_url("https://mail.example.com/iredadmin"),
+            Ok(())
+        );
+    }
+
+    #[test]
+    fn validate_base_url_rejects_http_with_typed_error() {
+        let Err(err) = validate_base_url("http://mail.example.com/") else {
+            assert!(false, "plain http must be rejected as NotHttps");
+            return;
+        };
+        assert!(
+            matches!(err, UrlError::NotHttps { ref scheme } if scheme == "http"),
+            "plain http must be rejected as NotHttps: {err}"
+        );
+    }
+
+    #[test]
+    fn validate_base_url_rejects_unparseable_and_hostless() {
+        assert!(
+            matches!(validate_base_url("not a url"), Err(UrlError::Invalid)),
+            "garbage must be rejected as Invalid"
+        );
+        assert!(
+            validate_base_url("https://").is_err(),
+            "an https URL without a host must be rejected"
+        );
+    }
+
+    // --- now_rfc3339 (audit timestamps must be real RFC3339) ---
+
+    #[test]
+    fn now_rfc3339_is_a_parseable_rfc3339_timestamp() -> Result<(), Box<dyn std::error::Error>> {
+        let now = now_rfc3339();
+        assert!(!now.is_empty(), "the timestamp must not be empty");
+        assert_ne!(now, "xyzzy");
+        assert_ne!(now, "unknown", "the format fallback must not be hit");
+        time::OffsetDateTime::parse(&now, &time::format_description::well_known::Rfc3339)?;
+        Ok(())
+    }
+
+    // --- text_mentions_path_segment: authority vs path (extended) ---
+    //
+    // The mutants `at > 0` -> `at == 0`/`at < 0` in part_of_authority survive
+    // dotted-host tests because '.' is a path-continuation char. They are
+    // killed by a SINGLE-LABEL host or a bare "//login": there the needle is
+    // preceded by '/' and followed by a boundary, so only the authority check
+    // keeps them from counting as the path.
+
+    #[test]
+    fn text_path_segment_single_label_host_is_authority_not_path() {
+        // Internal deployments use single-label hosts; "https://login" is the
+        // AUTHORITY "login", not the path "/login".
+        assert!(!text_mentions_path_segment("https://login", "login"));
+        // A bare scheme-relative "//login" likewise.
+        assert!(!text_mentions_path_segment("blocked at //login", "login"));
+        // …while a real path on such a host still counts.
+        assert!(text_mentions_path_segment(
+            "redirect to https://x/iredadmin/login",
+            "login"
+        ));
+    }
+
+    #[test]
+    fn text_path_segment_dash_and_underscore_continue_the_segment() {
+        // "/login-x" and "/login_x" are single segments (same as "/login.example.com"):
+        // '-' and '_' are path-continuation characters and must not end a match.
+        assert!(!text_mentions_path_segment("path /login-x blocked", "login"));
+        assert!(!text_mentions_path_segment("path /login_x blocked", "login"));
+        // A non-continuation character right after the needle IS a boundary.
+        assert!(text_mentions_path_segment("go to /login?next=/x", "login"));
+        assert!(text_mentions_path_segment("see /login, then retry", "login"));
+    }
+
+    // --- open_in_system_browser: the shell-bridge guard ---
+    //
+    // The refusal (never hand a non-http(s) URL to cmd.exe) is observable via
+    // the emitted warning; the happy path opens a real browser and is covered
+    // by the ignored manual test below.
+
+    /// A `MakeWriter` that captures formatted log lines into shared storage.
+    #[derive(Clone, Default)]
+    struct SharedBuf(std::sync::Arc<std::sync::Mutex<Vec<u8>>>);
+    impl std::io::Write for SharedBuf {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            self.0
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .extend_from_slice(buf);
+            Ok(buf.len())
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+    struct CaptureMaker(SharedBuf);
+    impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for CaptureMaker {
+        type Writer = SharedBuf;
+        fn make_writer(&'a self) -> Self::Writer {
+            self.0.clone()
+        }
+    }
+
+    #[test]
+    fn system_browser_refuses_non_http_urls_before_spawning() {
+        let buf = SharedBuf::default();
+        let subscriber = tracing_subscriber::fmt()
+            .with_writer(CaptureMaker(buf.clone()))
+            .with_max_level(tracing::Level::INFO)
+            .finish();
+        tracing::subscriber::with_default(subscriber, || {
+            open_in_system_browser("file:///C:/Windows/System32/calc.exe");
+            open_in_system_browser("javascript:alert(1)");
+        });
+        let captured = buf
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .clone();
+        let out = String::from_utf8_lossy(&captured).into_owned();
+        assert_eq!(
+            out.matches("refusing to open a non-http(s) URL").count(),
+            2,
+            "both non-http(s) URLs must be refused (and logged): {out}"
+        );
+    }
 }

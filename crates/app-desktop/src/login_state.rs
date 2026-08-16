@@ -194,3 +194,7 @@ impl LoginWindowState {
             })
     }
 }
+
+#[cfg(test)]
+#[path = "login_state_tests.rs"]
+mod tests;
