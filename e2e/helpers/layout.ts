@@ -20,9 +20,16 @@ export interface Box {
   height: number;
 }
 
-/** Viewport size with a safe fallback to the default MailGrit window (1120x780). */
+/**
+ * The real window size. `page.viewportSize()` returns null for pages attached
+ * via `connectOverCDP` (Playwright did not launch this browser), so a hardcoded
+ * fallback silently mismatched whenever the OS clamps the window — e.g. GitHub
+ * runners clamp the 1120x780 request to the 1024x768 desktop, which skewed the
+ * centering assertions by exactly half the difference (46px, 2026-08-16).
+ * `window.innerWidth/innerHeight` is the truth for the actual window.
+ */
 export async function viewport(page: Page): Promise<{ width: number; height: number }> {
-  return (await page.viewportSize()) ?? { width: 1120, height: 780 };
+  return page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight }));
 }
 
 /**

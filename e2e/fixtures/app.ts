@@ -37,6 +37,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { randomBytes } from 'node:crypto';
 import { CDP_PORT } from '../playwright.config';
+import { DASH, SEL } from '../helpers/selectors';
 
 /** Path to the built .exe (debug profile). */
 function resolveExePath(): string {
@@ -144,6 +145,13 @@ async function launchApp(use: (f: AppFixture) => Promise<void>, dashboardMode: b
       page = await ctx.waitForEvent('page', { timeout: 20_000 });
     }
     await page.waitForLoadState('domcontentloaded');
+
+    // Dioxus mounts the UI asynchronously after domcontentloaded — on a slow
+    // CI runner the first test action can race the very first render (seen as
+    // a one-off 15s click timeout on the add-row button, 2026-08-16). Wait for
+    // the mode's root section before handing the page to the test.
+    const sentinel = dashboardMode ? DASH.opsCard : SEL.loginScreen;
+    await page.locator(sentinel).waitFor({ state: 'visible', timeout: 20_000 });
 
     await use({ page, dataDir: dir });
 
