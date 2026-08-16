@@ -39,6 +39,7 @@ pub use password_gen::{PasswordGenerator, UI_MAX_LENGTH, UI_MIN_LENGTH};
 pub use password_policy::{PasswordPolicy, PasswordWarning};
 pub use profile::{CLASSICAL_FIELD_NAMES, FieldSpec, OperationProfile};
 pub use types::{
-    SanitizedDisplayName, SanitizedUsername, ValidatedDomain, ValidatedPassword, ValidatedQuota,
+    MAX_QUOTA_MB, SanitizedDisplayName, SanitizedUsername, ValidatedDomain, ValidatedPassword,
+    ValidatedQuota,
 };
 pub use typestate::{EXPECTED_CSV_COLUMNS, RawCsvRow, Sanitized, SanitizedUserRow, Unverified};
