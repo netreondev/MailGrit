@@ -22,8 +22,8 @@
   </script>
 
   <title>MailGrit — Bulk iRedAdmin Automation Desktop App</title>
-  <meta name="description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Tamper-evident audit log, 9 languages.">
-  <meta name="keywords" content="iRedAdmin, bulk mail automation, desktop app, Rust, Dioxus, FortiWeb, WAF, mail server admin, mail account creation, tamper-evident audit log">
+  <meta name="description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. All data stays on your machine; 9 languages.">
+  <meta name="keywords" content="iRedAdmin, bulk mail automation, desktop app, Rust, Dioxus, FortiWeb, WAF, mail server admin, mail account creation, local-first">
   <meta name="author" content="Netreon™ and contributors">
   <meta name="robots" content="index, follow">
 
@@ -44,7 +44,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="MailGrit">
   <meta property="og:title" content="MailGrit — Bulk iRedAdmin Automation Desktop App">
-  <meta property="og:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Tamper-evident audit log, 9 languages.">
+  <meta property="og:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. All data stays on your machine; 9 languages.">
   <meta property="og:url" content="https://netreondev.github.io/MailGrit/">
   <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta property="og:image:secure_url" content="https://netreondev.github.io/MailGrit/assets/og.png">
@@ -58,7 +58,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MailGrit — Bulk iRedAdmin Automation Desktop App">
-  <meta name="twitter:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Tamper-evident audit log, 9 languages.">
+  <meta name="twitter:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. All data stays on your machine; 9 languages.">
   <meta name="twitter:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta name="twitter:image:alt" content="MailGrit — bulk iRedAdmin automation desktop app">
 
@@ -109,7 +109,7 @@
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "MailGrit — Bulk iRedAdmin Automation Desktop App",
-    "description": "Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. Tamper-evident audit log, 9 languages.",
+    "description": "Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. All data stays on your machine; 9 languages.",
     "url": "https://netreondev.github.io/MailGrit/",
     "inLanguage": "en",
     "isPartOf": {
@@ -165,10 +165,10 @@
       },
       {
         "@type": "Question",
-        "name": "Is MailGrit secure? How is the audit log protected?",
+        "name": "Where is my data stored? Is the audit log encrypted?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Every operation is appended to a tamper-evident hash chain (HMAC-SHA256) that protects integrity: any deletion, reordering or modification of a past entry is detected on verify. Encrypted exports and backups are protected at rest with streaming authenticated encryption (XChaCha20-Poly1305), with keys derived from a master password via Argon2id; the master password is never stored. The workspace enforces unsafe_code = forbid, so there is no unsafe code in the application crates."
+          "text": "Everything is stored locally in a mailgrit-data/ folder next to the executable — no cloud sync, no telemetry. The audit log is a local SQLite file chained with HMAC-SHA256; it is not encrypted at rest. Exports and backups can be encrypted (XChaCha20-Poly1305) with a key derived from a master password via Argon2id; the password is never stored. If you lose it, the audit log can no longer be verified and encrypted exports can no longer be unlocked."
         }
       },
       {
@@ -206,7 +206,7 @@
       </a>
       <nav class="nav-links" aria-label="Sections">
         <a href="#features">Features</a>
-        <a href="#security">Security</a>
+        <a href="#security">Data &amp; privacy</a>
         <a href="#languages">Languages</a>
         <a href="#faq">FAQ</a>
       </nav>
@@ -350,7 +350,7 @@
         <div class="stats">
           <div class="stat reveal"><div class="num" data-count="5">5</div><div class="label">Isolated workspace crates</div></div>
           <div class="stat reveal"><div class="num" data-count="9">9</div><div class="label">UI languages, embedded at compile time</div></div>
-          <div class="stat reveal"><div class="num" data-count="0">0</div><div class="label">Bytes of <code>unsafe</code> (workspace forbid)</div></div>
+          <div class="stat reveal"><div class="num">100%</div><div class="label">Local: all data stays on your machine</div></div>
           <div class="stat reveal"><div class="num" data-count="3">3</div><div class="label">Platforms in CI: Windows, Linux, macOS ARM</div></div>
         </div>
       </div>
@@ -372,13 +372,13 @@
           </article>
           <article class="card reveal">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
-            <h3>Tamper-evident hash-chained audit log</h3>
-            <p>Every operation is appended to a tamper-evident HMAC-SHA256 chain, so any deletion, reordering, or modification of a past entry is detected on verify. Exports and backups are encrypted at rest with streaming AEAD (XChaCha20-Poly1305).</p>
+            <h3>Hash-chained audit log</h3>
+            <p>Every operation is appended to a local log chained with HMAC-SHA256; the <code>verify</code> command checks the chain and reports mismatches. Exports and backups can be encrypted at rest with streaming AEAD (XChaCha20-Poly1305).</p>
           </article>
           <article class="card reveal">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-            <h3>Master-password key protection</h3>
-            <p>Derives the audit-log key and export key via Argon2id (memory-hard KDF). The password is never stored; lose it and the audit log can no longer be verified and encrypted exports can no longer be unlocked.</p>
+            <h3>Master password</h3>
+            <p>Derives the audit-log key and the export key via Argon2id (memory-hard KDF). The password is never stored; lose it and the audit log can no longer be verified and encrypted exports can no longer be unlocked.</p>
           </article>
           <article class="card reveal">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
@@ -403,26 +403,24 @@
     <section class="section" id="security">
       <div class="container">
         <div class="section-head reveal">
-          <span class="section-num">02 / Security model</span>
-          <h2>Built safe by default, enforced at compile time.</h2>
-          <p>Security is a workspace policy, not a best effort: <code>unsafe_code = "forbid"</code>, strict clippy, and supply-chain checks run on every supported platform in CI.</p>
+          <span class="section-num">02 / Data &amp; privacy</span>
+          <h2>Your data stays on your machine.</h2>
+          <p>MailGrit is a local application: settings, logs and the audit trail live in one folder next to the app. Exports can be encrypted with a master password. Details in <a href="https://github.com/netreondev/MailGrit/blob/main/PRIVACY.md" rel="noopener">PRIVACY.md</a> and <a href="https://github.com/netreondev/MailGrit/blob/main/SECURITY.md" rel="noopener">SECURITY.md</a>.</p>
         </div>
         <div class="split">
           <div class="panel reveal">
-            <h3>Policy that cannot drift</h3>
+            <h3>How MailGrit handles your data</h3>
             <ul class="checklist">
-              <li><strong><code>unsafe_code = "forbid"</code></strong> workspace-wide &mdash; no <code>unsafe</code> anywhere in the application crates.</li>
-              <li>Clippy <code>correctness</code>, <code>suspicious</code>, <code>complexity</code>, <code>perf</code>, <code>pedantic</code>, <code>nursery</code> and <code>cargo</code> groups all <code>deny</code>.</li>
-              <li><code>panic</code>, <code>unwrap_used</code>, <code>expect_used</code>, <code>indexing_slicing</code>, <code>arithmetic_side_effects</code> all <code>deny</code>.</li>
-              <li>Supply chain: <code>cargo-deny</code> (advisories, bans, licenses, sources) plus <code>cargo-audit</code>.</li>
-              <li>Audit log integrity: HMAC-SHA256 hash chain. Encrypted exports &amp; backups: streaming XChaCha20-Poly1305 AEAD.</li>
-              <li>Master password: Argon2id memory-hard KDF; never stored, never logged.</li>
+              <li>All files live in a single <code>mailgrit-data/</code> folder next to the executable &mdash; nothing is uploaded anywhere.</li>
+              <li>No telemetry, analytics, or crash reporting: the only network traffic goes to the iRedAdmin server you configure.</li>
+              <li>The audit log is a local SQLite file chained with HMAC-SHA256; it is <strong>not</strong> encrypted &mdash; its privacy depends on where you keep the app folder.</li>
+              <li>Exports and backups can be encrypted (streaming XChaCha20-Poly1305 AEAD) with a key derived from your master password.</li>
+              <li>The master password is processed via Argon2id (memory-hard KDF) and never stored or logged.</li>
             </ul>
           </div>
           <div class="code-window reveal" aria-label="Workspace lint policy excerpt">
             <div class="bar"><i></i><i></i><i></i><span class="title">Cargo.toml</span></div>
-<pre><span class="c"># No exceptions: wry 0.53 returns HttpOnly cookies natively.</span>
-<span class="c"># Every application crate is audited under this policy.</span>
+<pre><span class="c"># Workspace lint policy (excerpt).</span>
 [workspace.lints.rust]
 <span class="k">unsafe_code</span> = <span class="p">"forbid"</span>
 
@@ -524,7 +522,7 @@ core-domain ─┬─ core-csv ────┐
         <div class="section-head reveal">
           <span class="section-num">06 / FAQ</span>
           <h2>Frequently asked questions.</h2>
-          <p>What MailGrit is, how it works, and how it stays safe.</p>
+          <p>What MailGrit is, how it works, and where your data lives.</p>
         </div>
         <div class="faq reveal">
           <details class="faq-item">
@@ -544,8 +542,8 @@ core-domain ─┬─ core-csv ────┐
             <div class="answer">You sign in through the embedded browser using your real iRedAdmin credentials. The app detects a successful login data-driven, by the login webview navigating to <code>/dashboard</code>, rather than by guessing cookie names. It then executes operations as a <code>fetch</code> inside that same authenticated webview.</div>
           </details>
           <details class="faq-item">
-            <summary>Is MailGrit secure? How is the audit log protected? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
-            <div class="answer">Every operation is appended to a tamper-evident hash chain (HMAC-SHA256) that protects <strong>integrity</strong>: any deletion, reordering or modification of a past entry is detected on <code>verify</code>. Encrypted exports and backups are protected at rest with streaming authenticated encryption (XChaCha20-Poly1305), with keys derived from a master password via Argon2id; the master password is never stored. The workspace enforces <code>unsafe_code = "forbid"</code>, so there is no unsafe code in the application crates.</div>
+            <summary>Where is my data stored? Is the audit log encrypted? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
+            <div class="answer">Everything is stored locally in a <code>mailgrit-data/</code> folder next to the executable &mdash; no cloud sync, no telemetry. The audit log is a local SQLite file chained with HMAC-SHA256; it is <strong>not</strong> encrypted at rest. Exports and backups can be encrypted (XChaCha20-Poly1305) with a key derived from a master password via Argon2id; the password is never stored. If you lose it, the audit log can no longer be verified and encrypted exports can no longer be unlocked.</div>
           </details>
           <details class="faq-item">
             <summary>Is MailGrit free and what is its license? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>

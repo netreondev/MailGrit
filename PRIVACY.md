@@ -22,7 +22,7 @@ contains:
 |------|----------|------------|
 | `config.toml` | App settings (theme, selected language, server URL) | Low |
 | `mailgrit.log` | Rolling log file (operation dumps) | Medium (see masking below) |
-| `audit.db` | Hash-chained audit log of every operation | Encrypted at rest |
+| `mailgrit-audit.sqlite` | Hash-chained audit log of every operation | Not encrypted; see below |
 | cookies | The iRedAdmin session cookie store for the embedded browser | Session-only |
 
 **Nothing leaves your machine.** There is no cloud sync, no remote backup, and no
@@ -34,17 +34,17 @@ The CSV file you load contains **passwords**. Here is how they are handled:
 
 - **In memory**: passwords are held in application memory only for as long as
   needed to perform the requested operations.
-- **Audit log**: the audit log records operation metadata (target, action,
-  result) and is **encrypted at rest** with streaming AEAD
-  (XChaCha20-Poly1305). The encryption key is derived from your **master
-  password** via Argon2id (a memory-hard key-derivation function). The master
-  password is **never stored** on disk.
+- **Audit log**: the audit log records operation metadata (action, success and
+  failure counts, error texts) and is **not encrypted at rest** — entries are
+  stored as-is in a local SQLite file, chained with HMAC-SHA256. The chain key
+  is derived from your **master password** via Argon2id (a memory-hard
+  key-derivation function). The master password is **never stored** on disk.
 - **Export**: the optional CSV export can be written **encrypted** (sealed with
   XChaCha20-Poly1305, keyed by the master password) or as plain text. Plain-text
   export contains passwords in cleartext — the UI warns about this and it is off
   by default.
-- **If you lose the master password**, the encrypted audit log and encrypted
-  exports **cannot be recovered**.
+- **If you lose the master password**, the audit log can no longer be
+  **verified** and encrypted exports **cannot be unlocked**.
 
 ## PII masking in logs
 
@@ -67,13 +67,14 @@ To remove **all** MailGrit data:
 
 This removes config, logs, the audit database, and cookies. If you enabled
 encrypted export files, delete those files separately wherever you saved them.
-Note that once deleted, encrypted audit/export data is **unrecoverable** without
+Note that once deleted, encrypted exports are **unrecoverable** without
 the master password (and unrecoverable at all once the files are gone).
 
 ## Cryptography and export-control note
 
-MailGrit uses strong cryptography (XChaCha20-Poly1305 AEAD, Argon2id KDF,
-HMAC-SHA256). Some countries regulate the import, export, possession, or use of
+MailGrit uses standard cryptographic primitives (XChaCha20-Poly1305 AEAD,
+Argon2id KDF, HMAC-SHA256). Some countries regulate the import, export,
+possession, or use of
 encryption software. **You are responsible** for complying with any applicable
 export-control or encryption laws in your jurisdiction. This document is a
 factual description of the cryptography used, not a legal classification or

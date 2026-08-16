@@ -1,10 +1,10 @@
 # Kani formal verification (scheduled).
 #
-# Kani's bounded model checker verifies the core-domain parser harnesses (no
-# panic, determinism, invariants on arbitrary input). The harnesses DO verify
-# (0 of 358 checks failed in a prior run), but kani-github-action's bootstrap —
-# installing Kani, its pinned nightly toolchain, and compiling core-domain with
-# dependencies — takes ~30 min, which does not fit a per-push CI budget.
+# Kani's bounded model checker covers the core-domain parser harnesses (no
+# panic, determinism, invariants on bounded input). kani-github-action's
+# bootstrap — installing Kani, its pinned nightly toolchain, and compiling
+# core-domain with dependencies — takes ~30 min, which does not fit a per-push
+# CI budget.
 #
 # Worse: a job cancelled by timeout cancels the ENTIRE GitHub Actions run (it
 # cancels in-flight sibling jobs), so Kani cannot live in the per-push ci.yml

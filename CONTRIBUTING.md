@@ -47,9 +47,35 @@ Key rules:
 - **No Russian** in comments, docs, or strings — the project is documented in
   **English and Ukrainian** only.
 
-### Verification & supply-chain tooling
+## Verification tooling
 
-In addition to the table above, CI runs (see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+Beyond the checks every PR must pass, CI runs the following tool pipeline
+(see [`.github/workflows/ci.yml`](.github/workflows/ci.yml)). Items marked
+**CI gate** fail the build; items marked **Release** run in the release
+workflow.
+
+| Tool | Category | Status | Where |
+|------|----------|--------|-------|
+| cargo-deny | Supply chain | **CI gate** | `deny.toml` |
+| cargo-audit | Vulnerability advisories | **CI gate** | `.github/workflows/ci.yml` |
+| cargo-vet | Dependency audit policy | **CI gate** | `supply-chain/` |
+| cargo-auditable | Dependency list embedded in binary | Release | `release.yml` |
+| CycloneDX SBOM | Bill of materials | Release | `release.yml` |
+| SLSA provenance | Build provenance | Release | `release.yml` |
+| cosign signing | Archive signatures | Release | `release.yml` |
+| Gitleaks | Secret scanning | **CI gate** | `.gitleaks.toml` |
+| Semgrep (SAST) | Static analysis | **CI gate** | `.semgrepignore` |
+| Dependabot | Dependency updates | Scheduled | `.github/dependabot.yml` |
+| cargo-fuzz | Fuzzing | **CI gate** (regression replay + exploratory) | `fuzz/` + seed corpus |
+| proptest | Property-based tests | Test suite | `crates/core-csv/tests/` |
+| Kani | Bounded model checking | **Scheduled** (weekly + on-demand) | `crates/*/src/kani_harnesses.rs`, `kani.yml` |
+| Miri | Undefined-behaviour detection | **CI gate** (every push) | `ci.yml` |
+| cargo-mutants | Mutation testing | **CI gate** (every push) | `ci.yml` |
+| cargo-semver-checks | API compatibility | **CI gate** | `ci.yml` |
+| criterion | Benchmarks | Bench (CI compiles) | `crates/*/benches/` |
+| cargo-bloat | Binary size report | Release | `release.yml` |
+
+Notes on individual tools:
 
 - **`cargo audit`** + **`cargo vet`** — independent advisory check and audited /
   imported dependency attestations. Adding a new dependency means it must be
@@ -79,10 +105,16 @@ In addition to the table above, CI runs (see [`.github/workflows/ci.yml`](.githu
   merge. Fix the root cause (don't suppress) before merging.
 - **Kani (scheduled, not per-push)** — bounded model-checking of the core-domain
   parsers lives in `.github/workflows/kani.yml` (weekly cron + on-demand
-  `workflow_dispatch`), NOT in the per-push `ci.yml`. The harnesses verify
-  (0 of 358 checks failed), but `kani-github-action`'s bootstrap takes ~90 min,
+  `workflow_dispatch`), NOT in the per-push `ci.yml`. The harnesses cover the
+  core-domain parsers, but `kani-github-action`'s bootstrap takes ~90 min,
   which a GitHub Actions job timeout would turn into a whole-run cancellation.
   Run it manually (`gh workflow run kani.yml`) when changing the parsers.
+
+Items deliberately **not** adopted (not applicable to this project's threat
+model): JWT-testing (no JWT), HTTP/DAST/ZAP (no server, it is a desktop client),
+TLS/cert scanning (TLS is handled by the OS webview, no Rust TLS code), ReDoS
+scanning (no Rust `regex` in app code), and the research-stage formal tools
+(RefinedRust / rocq-of-rust / GillianRust / ESBMC-Rust).
 
 ## Commit messages
 

@@ -1,5 +1,5 @@
 # Builds native release binaries for Windows / Linux / macOS and publishes
-# them as a GitHub Release, with full supply-chain hardening:
+# them as a GitHub Release, attaching verification materials:
 #   - cargo-auditable:  dependency list embedded into every binary.
 #   - CycloneDX SBOM:    one .cdx.json per release, attached as an asset.
 #   - Build provenance: build-origin attestation (GitHub-native
@@ -442,12 +442,12 @@ jobs:
             - **Linux** (x86_64): `mailgrit-linux-x86_64.tar.gz`
             - **macOS** (Apple Silicon): `mailgrit-macos-arm64.tar.gz`
 
-            ### Supply-chain verification
-            Each archive is **signed** (`<archive>.sig` + `<archive>.pem`) and
-            carries a **build-provenance attestation** (GitHub artifact
-            attestations) plus a per-platform **CycloneDX SBOM**
-            (`mailgrit-sbom-*.cdx.json`). Every binary embeds its full
-            dependency list (cargo-auditable).
+            ### Verifying your download
+            Each archive carries a detached **signature**
+            (`<archive>.sig` + `<archive>.pem`), a **build-provenance
+            attestation** (GitHub artifact attestations), and a per-platform
+            **CycloneDX SBOM** (`mailgrit-sbom-*.cdx.json`). Every binary
+            embeds its full dependency list (cargo-auditable).
 
             Verify a signature (requires [cosign](https://github.com/sigstore/cosign)):
             ```bash

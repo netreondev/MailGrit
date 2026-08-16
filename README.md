@@ -78,15 +78,15 @@ session is held by the proxy, and replaying a cookie in a separate HTTP client
 does not authenticate against the backend. Therefore operations are executed as
 JS `fetch()` **inside the same webview** that holds the legitimate session.
 
-## Security model
+## Data storage & encryption
 
-- **Hash-chained audit log (tamper-evident)** — every operation is appended to a
-  tamper-evident chain (HMAC-SHA256) so any deletion/reordering/modification of a
-  past entry is detected by `verify`. The chain provides **integrity**, not
-  confidentiality: the action payload is stored in the local SQLite audit file
-  (`mailgrit-audit.sqlite`) as-is, **not** encrypted at rest. Confidentiality of
-  the log relies on the OS-protected per-user app-data directory. (Exports and
-  backups, in contrast, **are** encrypted with streaming AEAD
+- **Audit log** — every operation is appended to a local log chained with
+  HMAC-SHA256; the `verify` command checks the chain and reports mismatches.
+  The chain provides a consistency check, **not** confidentiality: the action
+  payload is stored in the local SQLite audit file (`mailgrit-audit.sqlite`)
+  as-is, **not** encrypted at rest. The data folder lives **next to the
+  executable** (portable mode), so its privacy depends on where you place it.
+  (Exports and backups, in contrast, **are** encrypted with streaming AEAD
   (XChaCha20-Poly1305) — see "Encrypted exports" below.)
 - **Encrypted exports/backups** — bulk exports and backups are encrypted at rest
   with streaming AEAD (XChaCha20-Poly1305); the key is derived from the master
@@ -94,8 +94,6 @@ JS `fetch()` **inside the same webview** that holds the legitimate session.
 - **Master password** — derives the audit-log key and the export-encryption key
   via Argon2id (memory-hard KDF). The password is never stored; if lost, the
   audit log cannot be **verified** and encrypted exports cannot be unlocked.
-- **`unsafe_code = "forbid"`** at the workspace level — no `unsafe` anywhere in
-  the application crates (wry 0.53 returns HttpOnly cookies natively).
 
 ## CSV format
 
@@ -220,39 +218,13 @@ exceptions.
 
 Rust **1.97.1**, pinned via `rust-toolchain.toml` (edition 2024).
 
-### Verification & hardening
+### Verification in CI
 
-Beyond the unit/integration tests, MailGrit runs a layered verification pipeline
-in CI. Items marked **CI gate** fail the build. See [`SECURITY.md`](SECURITY.md)
-for how to verify a release binary (SLSA provenance, cosign signatures, embedded
-SBOM).
-
-| Tool | Category | Status | Where |
-|------|----------|--------|-------|
-| cargo-deny | Supply chain | Installed, **CI gate** | `deny.toml` |
-| cargo-audit | Vulnerability | Installed, **CI gate** | `.github/workflows/ci.yml` |
-| cargo-vet | Supply chain | Installed, **CI gate** | `supply-chain/` |
-| cargo-auditable | Supply chain | Installed (release) | `release.yml` |
-| CycloneDX SBOM | Compliance | Installed (release) | `release.yml` |
-| SLSA provenance | Supply chain | Installed (release) | `release.yml` |
-| cosign signing | Supply chain | Installed (release) | `release.yml` |
-| Gitleaks | Secret scanning | Installed, **CI gate** | `.gitleaks.toml` |
-| Semgrep (SAST) | Security | Installed, **CI gate** | `.semgrepignore` |
-| Dependabot | Dependencies | Installed | `.github/dependabot.yml` |
-| cargo-fuzz | Fuzzing | Installed, **CI gate** (regression replay + exploratory) | `fuzz/` + seed corpus |
-| proptest | Testing | Installed | `crates/core-csv/tests/` |
-| Kani | Formal ver. | Installed, **scheduled** (weekly + on-demand) | `crates/*/src/kani_harnesses.rs`, `kani.yml` |
-| Miri | Formal ver. | Installed, **CI gate** (every push) | `ci.yml` |
-| cargo-mutants | Testing | Installed, **CI gate** (every push) | `ci.yml` |
-| cargo-semver-checks | API compat | Installed, **CI gate** | `ci.yml` |
-| criterion | Performance | Installed (bench, CI compiles) | `crates/*/benches/` |
-| cargo-bloat | Binary size | Installed (release) | `release.yml` |
-
-Items deliberately **not** adopted (not applicable to this project's threat
-model): JWT-testing (no JWT), HTTP/DAST/ZAP (no server, it is a desktop client),
-TLS/cert scanning (TLS is handled by the OS webview, no Rust TLS code), ReDoS
-scanning (no Rust `regex` in app code), and the research-stage formal tools
-(RefinedRust / rocq-of-rust / GillianRust / ESBMC-Rust).
+Beyond the unit and integration tests, CI runs lints, dependency checks
+(cargo-deny / cargo-audit / cargo-vet), fuzzing, and mutation testing on every
+push. The full tool list and what each check covers is in
+[CONTRIBUTING.md](CONTRIBUTING.md#verification-tooling); instructions for
+verifying a downloaded release binary are in [SECURITY.md](SECURITY.md).
 
 ## Platforms
 
@@ -262,17 +234,12 @@ scanning (no Rust `regex` in app code), and the research-stage formal tools
 | Linux | `x86_64-unknown-linux-gnu` |
 | macOS (Apple Silicon) | `aarch64-apple-darwin` |
 
-CI runs the full quality gate (fmt, clippy, nextest, doc tests, cargo-deny,
-cargo-audit, cargo-machete, cargo-semver-checks) on all three, plus a release
-build matrix. Miri (UB detection), mutation testing (cargo-mutants), and
-continuous fuzzing (cargo-fuzz) run on every push/PR (Linux) and are
-**blocking CI gates** — a Miri/mutants failure or a newly-found fuzzer crash
-fails the build and blocks the PR. Kani (bounded model-checking of the
-core-domain parsers) runs in a separate **scheduled** workflow
-(`.github/workflows/kani.yml`, weekly + on-demand): its kani-github-action
-bootstrap takes ~30 min and cannot fit a per-push budget without cancelling
-the run (a job timeout cancels the whole GitHub Actions run). The harnesses do
-verify (0 of 358 checks failed); only the trigger differs.
+CI runs the full quality gate (fmt, clippy, nextest, doc tests, dependency
+checks, semver checks) on all three platforms, plus a release build matrix.
+Additional checks — UB detection, mutation testing, and continuous fuzzing —
+run on every push/PR and block the merge; model checking of the core-domain
+parsers runs on a weekly schedule. Details in
+[CONTRIBUTING.md](CONTRIBUTING.md#verification-tooling).
 
 ## License
 

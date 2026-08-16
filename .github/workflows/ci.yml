@@ -8,9 +8,9 @@
 #
 # Strict release gate: RUSTFLAGS="-D warnings" makes every rustc warning a
 # blocking error on build/test/doc. Clippy adds `-D warnings` on top (plus the
-# pedantic/nursery/cargo groups via [workspace.lints]). The formal-verification
-# jobs here (Miri, cargo-mutants, exploratory fuzz) are BLOCKING — no
-# `continue-on-error`. Kani is in a separate scheduled workflow (kani.yml).
+# pedantic/nursery/cargo groups via [workspace.lints]). The additional
+# verification jobs here (Miri, cargo-mutants, exploratory fuzz) are BLOCKING —
+# no `continue-on-error`. Kani is in a separate scheduled workflow (kani.yml).
 # The single accepted lint exception is `-A clippy::multiple_crate_versions`
 # (transitive duplicates of the GUI/crypto stack, covered by cargo-deny advisories).
 #
@@ -167,7 +167,7 @@ jobs:
       - name: Supply-chain — cargo-audit (independent advisory check)
         run: cargo audit
 
-      - name: Supply-chain — cargo-vet (audited / imported attestations)
+      - name: Supply-chain — cargo-vet (dependency audit policy)
         # Refresh the imported third-party audits (Mozilla/Google/Bytecode
         # Alliance/Embark) from their sources, then verify every dependency is
         # either vetted, imported, or explicitly exempted with a reason.
@@ -642,9 +642,8 @@ jobs:
   # hits the job timeout, and a job timeout CANCELS THE ENTIRE RUN (GitHub
   # Actions cancels in-flight jobs when one is cancelled by timeout — neither
   # continue-on-error nor a large timeout avoids the run-level cancellation).
-  # The core-domain parser harnesses DO verify under Kani (0 of 358 checks
-  # failed in a prior run); the limitation is bootstrap time, not proof
-  # complexity. Kani runs weekly via its own workflow so it can take its time.
+  # The limitation is bootstrap time; Kani runs weekly via its own workflow
+  # so it can take its time.
 
   fuzz:
     name: Continuous fuzzing

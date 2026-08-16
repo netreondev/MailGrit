@@ -3,7 +3,7 @@
 
 # MailGrit
 
-> Cross-platform desktop client (Windows / Linux / macOS ARM) for bulk automation of iRedAdmin mail servers. Built in Rust with Dioxus desktop — no Node/JS toolchain. Performs bulk create, edit and delete of mail user accounts through an embedded authenticated browser (works behind FortiWeb / WAF). Ships a tamper-evident hash-chained audit log and 9 UI languages. Free and open source (MIT OR Apache-2.0).
+> Cross-platform desktop client (Windows / Linux / macOS ARM) for bulk automation of iRedAdmin mail servers. Built in Rust with Dioxus desktop — no Node/JS toolchain. Performs bulk create, edit and delete of mail user accounts through an embedded authenticated browser (works behind FortiWeb / WAF). All data stays on your machine (no telemetry); exports can be encrypted with a master password; 9 UI languages. Free and open source (MIT OR Apache-2.0).
 
 MailGrit is a native desktop GUI application for mail server administrators. It does NOT read mail — it is a bulk account-provisioning tool for iRedAdmin servers. Operations run as a JS `fetch()` POST of the real iRedAdmin HTML form (CSRF-aware) inside the same webview that holds the legitimate session, so the tool works even when the server sits behind a WAF / reverse proxy (e.g. FortiWeb).
 
@@ -17,7 +17,7 @@ Authorized use only: run MailGrit solely on systems and accounts you own or are 
 
 ## Documentation
 
-- [README (English)](https://github.com/netreondev/MailGrit/blob/main/README.md): Quick start, usage, operation mode, security model, CSV format, i18n
+- [README (English)](https://github.com/netreondev/MailGrit/blob/main/README.md): Quick start, usage, operation mode, data storage & encryption, CSV format, i18n
 - [README (Ukrainian)](https://github.com/netreondev/MailGrit/blob/main/README.uk.md): Українська документація
 - [Security policy](https://github.com/netreondev/MailGrit/blob/main/SECURITY.md): Vulnerability reporting
 - [Privacy policy](https://github.com/netreondev/MailGrit/blob/main/PRIVACY.md): Data handling

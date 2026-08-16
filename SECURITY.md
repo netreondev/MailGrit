@@ -40,21 +40,21 @@ This policy covers the **MailGrit source code** in this repository. It does
 
 ## Security posture
 
-MailGrit is engineered with defense in depth:
+Security-relevant engineering choices in MailGrit:
 
 - **`unsafe_code = "forbid"`** at the workspace level — no `unsafe` Rust anywhere
   in the application crates (verified in CI by clippy/rustc).
 - **Strict lint discipline** — `panic`/`unwrap`/`expect`/`indexing_slicing`/
   `arithmetic_side_effects` are all `deny`, reducing runtime panics.
-- **Hash-chained audit log (tamper-evident, not encrypted)** — every operation
-  is appended to a hash-chained (HMAC-SHA256), tamper-evident log so that any
-  deletion, reordering, or modification of a past entry is detected on `verify`.
-  The chain provides **integrity**, not confidentiality: the action payload is
+- **Hash-chained audit log (not encrypted)** — every operation is appended to a
+  hash-chained (HMAC-SHA256) log; the `verify` command checks the chain and
+  reports mismatches (deleted, reordered, or modified entries). The chain
+  provides a consistency check, **not** confidentiality: the action payload is
   stored as-is in the local SQLite audit file (`mailgrit-audit.sqlite`), **not**
-  encrypted at rest; confidentiality relies on the OS-protected per-user
-  app-data directory. Exports and backups, by contrast, **are** encrypted with
-  streaming AEAD (XChaCha20-Poly1305).
-- **Master-password key protection** — the audit-log key is derived from a
+  encrypted at rest; the data folder lives next to the executable (portable
+  mode), so its privacy depends on where you place it. Exports and backups, by
+  contrast, **are** encrypted with streaming AEAD (XChaCha20-Poly1305).
+- **Master-password key derivation** — the audit-log key is derived from a
   user-chosen master password via Argon2id (memory-hard KDF); the password is
   never stored.
 - **Constant-time comparison** for cryptographic equality checks.
@@ -87,13 +87,13 @@ CI runs on every push and pull request:
 - `Semgrep` (SAST) — static analysis focused on JS-injection into the privileged
   webview and secret leakage into `tracing` logs.
 
-Pinned Rust toolchain (`1.97.1`) for reproducible builds.
+The Rust toolchain (`1.97.1`) is pinned via `rust-toolchain.toml`.
 
 ## Release verification
 
-Every published binary is built with supply-chain hardening so a downstream user
-can independently verify authenticity and dependency provenance. The release
-workflow (`.github/workflows/release.yml`) produces, per platform:
+Each release includes materials you can use to check where a binary came from
+and which dependencies it contains. The release workflow
+(`.github/workflows/release.yml`) produces, per platform:
 
 - **Embedded dependency list** — `cargo auditable build` compiles the full
   dependency tree (crate names + versions + known advisories at build time)
@@ -138,5 +138,6 @@ workflow (`.github/workflows/release.yml`) produces, per platform:
     mailgrit-windows-x86_64.zip
   ```
 
-Do not run a binary that fails either the provenance or the signature check.
+We recommend not running a binary that fails these checks: they confirm the
+build origin, not the absence of bugs.
 
