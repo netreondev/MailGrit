@@ -53,6 +53,10 @@ jobs:
 
       - name: Install cargo tools
         uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
+        # GITHUB_TOKEN authenticates api.github.com version resolution —
+        # anonymous calls from shared runner IPs 403 under the 60/hr quota.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           # cargo-vet pinned: the @v2 manifest resolves "cargo-vet" (unpinned)
           # to v0.10.0 from GitHub Releases, but supply-chain/imports.lock was
@@ -179,8 +183,15 @@ jobs:
 
       - name: Install cargo tools
         uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
+        # Pinning + GITHUB_TOKEN: unpinned "latest" resolution calls
+        # api.github.com anonymously from shared runner IPs — the 60/hr quota
+        # fails with 403/exit 22 under burst load (seen 2026-08-16 on all
+        # three OSes). Pinned versions download directly; the token
+        # authenticates any remaining resolution.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
-          tool: cargo-nextest,cargo-semver-checks,cargo-msrv
+          tool: cargo-nextest@0.9.143,cargo-semver-checks@0.50.0,cargo-msrv@0.19.3
 
       - name: Formatting check
         run: cargo fmt --all -- --check
@@ -390,6 +401,8 @@ jobs:
         run: rustup toolchain install nightly --component miri
       - name: Install cargo-mutants
         uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           tool: cargo-mutants
       - name: Mutation testing (unit-test effectiveness)
