@@ -186,6 +186,14 @@ jobs:
             name: macos-arm
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          # Full history: the SemVer step below compares the working tree
+          # against the PR base / pre-push revision (--baseline-rev), and that
+          # commit must exist locally for a real comparison to happen. The repo
+          # is small (~90 commits), so the extra fetch is cheap; fetch-depth: 1
+          # (the default) would make the baseline unavailable and the gate
+          # would fail with "baseline commit unavailable".
+          fetch-depth: 0
 
       - name: Install Rust toolchain (pinned)
         run: rustup show active-toolchain || rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
@@ -221,8 +229,48 @@ jobs:
         # are blocked by a separate cargo-deny step (advisories).
         run: cargo clippy --workspace --all-targets --all-features --target ${{ matrix.target }} -- -D warnings -A clippy::multiple_crate_versions
 
-      - name: SemVer checks (public API of internal crates)
-        run: cargo semver-checks --workspace
+      # SemVer gate against a REAL git baseline revision.
+      #
+      # The previous form (`cargo semver-checks --workspace`) was DECORATIVE:
+      # without --baseline-rev it compares against crates.io, where none of
+      # these crates exist ("not found in registry" → skip); and with a
+      # --baseline-rev it STILL skips them, because every workspace crate is
+      # publish=false and semver-checks skips *implied* publish=false members
+      # of a multi-crate workspace (verified 2026-08-16: all five crates
+      # "Skipping … (current)", exit 0 after 4 s — nothing was checked).
+      #
+      # The documented way to check internal (never-published) crates is
+      # EXPLICIT -p selection — cargo-semver-checks 0.50.0, src/lib.rs:
+      #   "If the manifest points to a specific crate, then check the crate
+      #    even if `publish = false` is set."
+      # The -p list is generated from `cargo metadata` so a newly added crate
+      # can never silently fall outside the gate (a hardcoded list would).
+      #
+      # Baseline choice: the PR's base head (pull_request) or the commit the
+      # push replaced (push). Both must exist locally — hence fetch-depth: 0
+      # on the checkout above. A zero/absent revision (e.g. the first push of
+      # a branch, or a force-push aftermath) is a LOUD failure, not a skip:
+      # a semver gate that cannot run must not pass.
+      # The baseline SHA reaches the shell only through env (repo convention:
+      # no ${{ }} interpolation inside run:, even for API-provided values).
+      # shell: bash (not the Windows-default pwsh): the script uses POSIX-ish
+      # bash constructs; all three runner images ship bash and jq.
+      - name: SemVer checks (public API of internal crates vs the real git baseline)
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "::error::semver baseline commit unavailable: '${BASE_SHA}' — the revision must exist locally (checkout uses fetch-depth: 0). A zero SHA means there is no meaningful baseline for this event; the gate refuses to run blind."
+            exit 1
+          fi
+          args=()
+          while IFS= read -r name; do
+            args+=("-p" "$name")
+          done < <(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')
+          echo "SemVer baseline: ${BASE_SHA}; crates: ${args[*]}"
+          cargo semver-checks "${args[@]}" --baseline-rev "${BASE_SHA}"
 
       # Verify the declared MSRV (rust-version = "1.97.1") is actually the
       # minimum: cargo-msrv probes the lowest toolchain that still compiles.

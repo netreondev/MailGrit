@@ -46,10 +46,12 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
-        # A shallow checkout is enough: check_version.py reads the working
-        # tree only (the tag arrives via GITHUB_REF / the dispatch input).
+        # Full history: check_version.py reads the working tree only (the tag
+        # arrives via GITHUB_REF / the dispatch input), but the SemVer step
+        # below compares against HEAD^ (--baseline-rev) — the parent commit
+        # must exist locally, which a shallow checkout cannot guarantee.
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       - name: Install Rust toolchain (pinned 1.97.1)
         run: rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
@@ -76,8 +78,42 @@ jobs:
       # so a tag whose public API broke semver (or dropped below the declared
       # MSRV) could still produce a release if CI had not run on that exact
       # commit. The verify job now enforces release parity with CI quality.
-      - name: SemVer checks (public API of internal crates)
-        run: cargo semver-checks --workspace
+      #
+      # Baseline: the tagged commit's first parent (HEAD^). A tag push has no
+      # meaningful event.before, and for a tag on a merge commit HEAD^ is the
+      # first parent — the code being released is compared against the commit
+      # it directly descends from. The parent MUST resolve (fetch-depth: 0 on
+      # the checkout above; cat-file validates it is a real commit) — a semver
+      # gate that cannot find its baseline fails LOUDLY instead of passing.
+      # For workflow_dispatch the same logic compares the dispatched head
+      # against its parent, which is the exact parity with what a tag on that
+      # commit would check.
+      # All workspace crates are publish=false (never published to crates.io):
+      # `--workspace` alone would SKIP every one of them (decorative gate —
+      # see the ci.yml quality job note). Explicit -p selection is the
+      # documented way to check internal crates (cargo-semver-checks 0.50.0,
+      # src/lib.rs); the list is generated from cargo metadata so a new crate
+      # can never silently fall outside the gate.
+      # shell: bash: the default Linux shell here is already bash, but the
+      # explicit setting keeps the POSIX-ish constructs guaranteed.
+      - name: SemVer checks (public API of internal crates vs the tagged commit's parent)
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASELINE="$(git rev-parse --verify -q HEAD^)" || {
+            echo "::error::cannot resolve HEAD^ — the tagged/dispatched commit has no parent locally (fetch-depth must be 0). The semver gate refuses to run blind."
+            exit 1
+          }
+          if ! git cat-file -e "${BASELINE}^{commit}" 2>/dev/null; then
+            echo "::error::semver baseline commit unavailable: '${BASELINE}'"
+            exit 1
+          fi
+          args=()
+          while IFS= read -r name; do
+            args+=("-p" "$name")
+          done < <(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')
+          echo "SemVer baseline: ${BASELINE}; crates: ${args[*]}"
+          cargo semver-checks "${args[@]}" --baseline-rev "${BASELINE}"
 
       # --rust-version passed explicitly: cargo-msrv 0.19.x cannot read the
       # inherited workspace.package.rust-version (see the ci.yml quality job
