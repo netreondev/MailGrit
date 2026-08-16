@@ -329,6 +329,12 @@ jobs:
           Write-Output "--- msedgewebview2 processes ---"
           $wv2 = Get-Process msedgewebview2 -ErrorAction SilentlyContinue
           if ($wv2) { $wv2 | ForEach-Object { Write-Output ("pid {0}" -f $_.Id) } } else { Write-Output 'none' }
+          Write-Output "--- msedgewebview2 command lines ---"
+          Get-CimInstance Win32_Process -Filter "name = 'msedgewebview2.exe'" -ErrorAction SilentlyContinue |
+            ForEach-Object { Write-Output ("pid {0}: {1}" -f $_.ProcessId, $_.CommandLine) }
+          Write-Output "--- app process command line ---"
+          Get-CimInstance Win32_Process -Filter "name = 'mailgrit-app-desktop.exe'" -ErrorAction SilentlyContinue |
+            ForEach-Object { Write-Output ("pid {0}: {1}" -f $_.ProcessId, $_.CommandLine) }
           Write-Output "--- port 9333 ---"
           netstat -ano | Select-String ':9333' | ForEach-Object { Write-Output $_.Line }
           Write-Output "--- app stdout ---"
