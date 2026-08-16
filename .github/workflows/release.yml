@@ -2,7 +2,8 @@
 # them as a GitHub Release, with full supply-chain hardening:
 #   - cargo-auditable:  dependency list embedded into every binary.
 #   - CycloneDX SBOM:    one .cdx.json per release, attached as an asset.
-#   - SLSA provenance:   build-origin attestation (slsa-github-generator).
+#   - Build provenance: build-origin attestation (GitHub-native
+#                        actions/attest-build-provenance, keyless OIDC).
 #   - cosign (keyless):  detached signature per archive, verified via Rekor.
 #
 # Triggered manually or on version tags (v*).
@@ -19,13 +20,12 @@ on:
           required: true
           default: "v0.1.4"
 
-# id-token: write is REQUIRED for cosign keyless (OIDC) signing and for SLSA
-# provenance generation. contents: write is needed to attach assets to the
-# release and to upload provenance.
+# id-token: write is REQUIRED for cosign keyless (OIDC) signing and for the
+# provenance attestation. contents: write is needed to attach assets to the
+# release. The provenance job additionally grants attestations: write.
 permissions:
   contents: write
   id-token: write
-  actions: read   # SLSA generator reads the build job's run metadata.
 
 env:
   CARGO_TERM_COLOR: always
@@ -34,10 +34,6 @@ jobs:
   build:
     name: Build (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
-    outputs:
-      # sha256sum lines ("<hash>  <file>") of every archive, consumed by the
-      # provenance job (SLSA subjects) and the sign job (cosign targets).
-      hashes: ${{ steps.hash.outputs.hashes }}
     strategy:
       fail-fast: false
       matrix:
@@ -142,10 +138,10 @@ jobs:
           tar -czf "${{ matrix.archive }}" -C stage .
           ls -la "${{ matrix.archive }}"
 
-      # Compute sha256 of the archive + SBOM, one "<hash>  <file>" per line.
-      # This is the input to SLSA provenance (subjects) and is reused by cosign.
-      - name: Compute sha256 subjects
-        id: hash
+      # Compute sha256 of the archive, one "<hash>  <file>" per line. Uploaded
+      # as a build artifact for audit; cosign signs the archives themselves and
+      # the provenance attestation binds them by digest.
+      - name: Compute sha256 checksums
         shell: bash
         run: |
           # Cross-OS sha256: no single tool exists on all three runners.
@@ -166,10 +162,6 @@ jobs:
             printf '%s  %s\n' "$h" "$file" > hashes-${{ matrix.name }}.txt
           fi
           cat hashes-${{ matrix.name }}.txt
-          # base64-encode the whole block for the SLSA generic generator's
-          # base64-subjects input. Avoid `base64 -w0` (GNU-only); BSD base64 on
-          # macOS has no -w flag, so strip newlines with tr instead.
-          echo "hashes=$(cat hashes-${{ matrix.name }}.txt | base64 | tr -d '\n')" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact (archive + SBOM + bloat + hashes)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -195,42 +187,37 @@ jobs:
   # (base64 of the merged sha256 hashes) is prepared in a separate job
   # (`provenance-subjects`) and passed via outputs.
   # ==========================================================================
-  provenance-subjects:
-    name: Collect SLSA subjects
+  provenance:
+    name: Build provenance (artifact attestation)
     needs: [build]
     runs-on: ubuntu-latest
-    outputs:
-      base64: ${{ steps.subjects.outputs.base64 }}
+    permissions:
+      id-token: write      # OIDC — signs the attestation keylessly
+      attestations: write  # stores the attestation for the repository
+      contents: read
     steps:
-      # The matrix jobs each produced a hashes-* artifact. Download them all and
-      # merge into a single subject list for the SLSA generator.
+      # ==========================================================================
+      # GitHub-native artifact attestation (actions/attest-build-provenance).
+      # Replaces the third-party slsa-github-generator reusable workflow
+      # (v2.1.0, Feb 2025 — its last release), which rotted under the 2026
+      # runner images: its internal composite steps fail with "Input required
+      # and not supplied: path" (exit 27, seen 2026-08-16). The attestation is
+      # stored in the repository's attestation store and verified with
+      # `gh attestation verify <archive> -R netreondev/MailGrit`.
+      # ==========================================================================
       - name: Download all build artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           path: release-assets
           merge-multiple: true
 
-      - name: Build merged subject list
-        id: subjects
-        run: |
-          # Concatenate every per-platform hashes file into one subjects list.
-          cat release-assets/hashes-*.txt > subjects.txt
-          echo "Merged subjects:"
-          cat subjects.txt
-          echo "base64=$(base64 -w0 < subjects.txt)" >> "$GITHUB_OUTPUT"
-
-  provenance:
-    name: SLSA provenance
-    needs: [provenance-subjects]
-    permissions:
-      actions: read
-      id-token: write
-      contents: write
-    # Reusable workflow — MUST be at the job level (not inside steps).
-    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_generic_slsa3.yml@f7dd8c54c2067bafc12ca7a55595d5ee9b75204a # v2.1.0
-    with:
-      base64-subjects: ${{ needs.provenance-subjects.outputs.base64 }}
-      upload-assets: true
+      - name: Attest build provenance for every archive
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            release-assets/mailgrit-windows-x86_64.zip
+            release-assets/mailgrit-linux-x86_64.tar.gz
+            release-assets/mailgrit-macos-arm64.tar.gz
 
   # ==========================================================================
   # cosign keyless signing — detached signature per archive.
@@ -344,10 +331,11 @@ jobs:
             - **macOS** (Apple Silicon): `mailgrit-macos-arm64.tar.gz`
 
             ### Supply-chain verification
-            Each archive is **signed** (`<archive>.sig` + `<archive>.pem`) and the
-            release carries a **SLSA build provenance** attestation plus a per-platform
-            **CycloneDX SBOM** (`mailgrit-sbom-*.cdx.json`). Every binary embeds its
-            full dependency list (cargo-auditable).
+            Each archive is **signed** (`<archive>.sig` + `<archive>.pem`) and
+            carries a **build-provenance attestation** (GitHub artifact
+            attestations) plus a per-platform **CycloneDX SBOM**
+            (`mailgrit-sbom-*.cdx.json`). Every binary embeds its full
+            dependency list (cargo-auditable).
 
             Verify a signature (requires [cosign](https://github.com/sigstore/cosign)):
             ```bash
@@ -359,11 +347,10 @@ jobs:
               mailgrit-windows-x86_64.zip
             ```
 
-            Verify provenance (requires [slsa-verifier](https://github.com/slsa-framework/slsa-verifier)):
+            Verify build provenance (requires [GitHub CLI](https://cli.github.com/)):
             ```bash
-            slsa-verifier verify-artifact mailgrit-windows-x86_64.zip \
-              --source-uri github.com/netreondev/MailGrit \
-              --provenance-path multiple.intoto.jsonl
+            gh attestation verify mailgrit-windows-x86_64.zip \
+              --repo netreondev/MailGrit
             ```
 
             Scan a binary for known vulnerabilities (dependency list is embedded):
