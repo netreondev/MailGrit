@@ -331,7 +331,34 @@ jobs:
             args+=("-p" "${name}")
           done
           echo "SemVer baseline: ${BASE_SHA}; crates: ${args[*]}"
-          cargo semver-checks "${args[@]}" --baseline-rev "${BASE_SHA}"
+          # Bounded transparent retry for TRANSIENT toolchain failures only:
+          # LNK1104 ("cannot open file ... build_script_build-*.exe") when
+          # real-time AV scanning locks a freshly-linked build script inside
+          # the deep target\semver-checks\ tree on Windows runners (observed
+          # 2026-08-16: the identical baseline built green seconds earlier in
+          # the same job, and the same flake class hit a local Windows dev
+          # box during mutation testing). A REAL semver violation fails
+          # deterministically on every attempt, so the gate is not weakened:
+          # each retry re-runs the full check and every retry emits a
+          # ::warning annotation into the run log.
+          n=1
+          max_attempts=3
+          set +e
+          while true; do
+            cargo semver-checks "${args[@]}" --baseline-rev "${BASE_SHA}"
+            status=$?
+            if [ "${status}" -eq 0 ]; then
+              break
+            fi
+            if [ "${n}" -ge "${max_attempts}" ]; then
+              echo "::error::cargo semver-checks failed with exit ${status} after ${n} attempts — not a transient failure."
+              exit "${status}"
+            fi
+            echo "::warning::cargo semver-checks attempt ${n}/${max_attempts} failed (exit ${status}); retrying in 30s (transient LNK1104-class linker/AV lock)."
+            n=$((n + 1))
+            sleep 30
+          done
+          set -e
 
       # Verify the declared MSRV (rust-version = "1.97.1") is actually the
       # minimum: cargo-msrv probes the lowest toolchain that still compiles.
