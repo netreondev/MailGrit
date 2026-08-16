@@ -33,18 +33,20 @@ confidence-threshold = 0.93
 # Here — LGPL dependencies of the Linux webview backend (webkit2gtk/gtk), pulled
 # transitively via Dioxus desktop on Linux only. They are absent on Windows/macOS.
 # LGPL is weak copyleft at the library level, acceptable for a linked desktop application.
+# SPDX note: bare "LGPL-3.0"/"LGPL-2.1" ids are deprecated (SPDX >= 3.0 requires
+# the -only/-or-later split); cargo-deny rejects them at config parse time.
 [[licenses.exceptions]]
-allow = ["LGPL-3.0", "LGPL-3.0-or-later", "LGPL-2.1", "LGPL-2.1-or-later"]
+allow = ["LGPL-3.0-only", "LGPL-3.0-or-later", "LGPL-2.1-only", "LGPL-2.1-or-later"]
 name = "webkit2gtk"
 version = "*"
 
 [[licenses.exceptions]]
-allow = ["LGPL-3.0", "LGPL-3.0-or-later", "LGPL-2.1", "LGPL-2.1-or-later"]
+allow = ["LGPL-3.0-only", "LGPL-3.0-or-later", "LGPL-2.1-only", "LGPL-2.1-or-later"]
 name = "webkit2gtk-sys"
 version = "*"
 
 [[licenses.exceptions]]
-allow = ["LGPL-3.0", "LGPL-3.0-or-later", "LGPL-2.1", "LGPL-2.1-or-later"]
+allow = ["LGPL-3.0-only", "LGPL-3.0-or-later", "LGPL-2.1-only", "LGPL-2.1-or-later"]
 name = "gtk"
 version = "*"
 
