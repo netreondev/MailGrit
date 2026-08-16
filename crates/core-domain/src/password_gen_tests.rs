@@ -14,10 +14,7 @@ fn default_is_length_16_all_classes() {
     let g = PasswordGenerator::default_generator();
     assert_eq!(g.length, 16);
     assert!(
-        g.classes.uppercase()
-            && g.classes.lowercase()
-            && g.classes.digits()
-            && g.classes.special()
+        g.classes.uppercase() && g.classes.lowercase() && g.classes.digits() && g.classes.special()
     );
 }
 

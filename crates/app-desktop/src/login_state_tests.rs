@@ -112,10 +112,7 @@ fn report_page_load_stores_the_auth_event() -> TestResult {
         .clone()
         .ok_or("report_page_load must record the event")?;
     assert_eq!(ev.base_url, "https://mail.example.com");
-    assert_eq!(
-        ev.final_url,
-        "https://mail.example.com/iredadmin/dashboard"
-    );
+    assert_eq!(ev.final_url, "https://mail.example.com/iredadmin/dashboard");
     Ok(())
 }
 
@@ -142,9 +139,7 @@ fn request_op_registers_first_and_rejects_duplicate() -> TestResult {
     // The stored request mirrors the arguments; the sender must be live.
     let tx = {
         let mut guard = unlocked(&s.op_request);
-        let req = guard
-            .take()
-            .ok_or("the accepted request must be stored")?;
+        let req = guard.take().ok_or("the accepted request must be stored")?;
         assert_eq!(req.base_url, "https://mail.example.com");
         assert_eq!(req.rows.len(), 1);
         req.tx
@@ -171,9 +166,7 @@ fn request_diag_registers_first_and_rejects_duplicate() -> TestResult {
     assert!(dup.is_none(), "a duplicate diagnostics request is rejected");
     let tx = {
         let mut guard = unlocked(&s.diag_request);
-        let req = guard
-            .take()
-            .ok_or("the accepted request must be stored")?;
+        let req = guard.take().ok_or("the accepted request must be stored")?;
         assert_eq!(req.domain, "example.com");
         req.tx
     };

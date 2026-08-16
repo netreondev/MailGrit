@@ -237,7 +237,8 @@ fn audit_action_admin_mappings() {
 
 // --- credential_snapshot_for / successful_credentials (pure helpers) ---
 
-fn sanitized_fixture() -> Result<mailgrit_core_domain::SanitizedUserRow, Box<dyn std::error::Error>> {
+fn sanitized_fixture() -> Result<mailgrit_core_domain::SanitizedUserRow, Box<dyn std::error::Error>>
+{
     Ok(mailgrit_core_domain::RawCsvRow::new(vec![
         "example.com".into(),
         "ivan.petrov".into(),
@@ -330,7 +331,10 @@ fn format_diag_summarizes_status_url_and_forms() {
     }"#;
     let summary = format_diag(json);
     assert!(summary.contains("200"), "status: {summary}");
-    assert!(summary.contains("https://mail.example.com/create/user"), "url: {summary}");
+    assert!(
+        summary.contains("https://mail.example.com/create/user"),
+        "url: {summary}"
+    );
     assert!(
         summary.contains("action=/iredadmin/create/user"),
         "form action: {summary}"
@@ -347,7 +351,10 @@ fn format_diag_without_forms_says_so() {
     let summary = format_diag(json);
     assert!(summary.contains("404"), "status: {summary}");
     // No forms_in_response array -> the localized no-forms text (non-empty).
-    assert!(!summary.contains("action="), "no form actions invented: {summary}");
+    assert!(
+        !summary.contains("action="),
+        "no form actions invented: {summary}"
+    );
 }
 
 #[test]
@@ -402,7 +409,8 @@ fn valid_editable_row() -> EditableUserRow {
 }
 
 #[test]
-fn validate_and_collect_happy_path_returns_base_url_and_rows() -> Result<(), Box<dyn std::error::Error>> {
+fn validate_and_collect_happy_path_returns_base_url_and_rows()
+-> Result<(), Box<dyn std::error::Error>> {
     with_app_state(
         |s| {
             s.session_ok = true;

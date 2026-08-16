@@ -344,9 +344,9 @@ fn unmapped_empty_default_field_parses() -> Result<(), Box<dyn std::error::Error
 /// `check_row_budget` with the FIXED constant (unlike the classic parser,
 /// which takes a configurable limit — that path is boundary-tested in
 /// `parser_tests::rejects_too_many_rows`). A mutant replacing the guard with
-/// `Ok(())` removes the DoS protection from these paths and is invisible to
-/// every small-fixture test. Drive the real boundary: exactly MAX_CSV_ROWS
-/// positional rows parse fine; one more is a fatal TooManyRows (rows are
+/// `Ok(())` removes the `DoS` protection from these paths and is invisible to
+/// every small-fixture test. Drive the real boundary: exactly `MAX_CSV_ROWS`
+/// positional rows parse fine; one more is a fatal `TooManyRows` (rows are
 /// counted, not lines: all rows here are valid).
 #[test]
 fn auto_enforces_max_csv_rows_budget() -> Result<(), Box<dyn std::error::Error>> {

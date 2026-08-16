@@ -219,8 +219,7 @@ fn encrypted_export_file_layout_and_roundtrip() -> Result<(), Box<dyn std::error
     // the same AAD.
     let key_bytes = mailgrit_core_security::derive_key(b"master-password", salt)?;
     let key = mailgrit_core_security::EncryptionKey::from_bytes(key_bytes.as_slice())?;
-    let decrypted =
-        mailgrit_core_security::decrypt(&key, ciphertext, b"MailGrit-export-v1")?;
+    let decrypted = mailgrit_core_security::decrypt(&key, ciphertext, b"MailGrit-export-v1")?;
     assert_eq!(decrypted.as_slice(), plaintext);
     // A different AAD must fail authentication (the format tag is pinned).
     assert!(
@@ -248,10 +247,13 @@ fn with_app_state<O>(
     })
 }
 
-fn parsed_csv() -> Result<std::sync::Arc<mailgrit_core_csv::ParsedCsv>, Box<dyn std::error::Error>> {
+fn parsed_csv() -> Result<std::sync::Arc<mailgrit_core_csv::ParsedCsv>, Box<dyn std::error::Error>>
+{
     let data = b"domain,username,password,display_name,quota_mb\n\
                  example.com,ivan.petrov,S3cur3P@ss1,Ivan Petrov,1024\n";
-    Ok(std::sync::Arc::new(mailgrit_core_csv::parse_csv_bytes(data)?))
+    Ok(std::sync::Arc::new(mailgrit_core_csv::parse_csv_bytes(
+        data,
+    )?))
 }
 
 fn valid_editable_row() -> mailgrit_core_domain::EditableUserRow {
@@ -266,18 +268,21 @@ fn valid_editable_row() -> mailgrit_core_domain::EditableUserRow {
 
 #[test]
 fn open_export_choice_without_data_is_refused() {
-    with_app_state(|_| {}, |sig| {
-        open_export_choice(sig);
-        let read = sig.read();
-        assert!(
-            !read.export.pending_export_choice,
-            "nothing to export -> no modal"
-        );
-        assert!(
-            read.error_msg.is_some(),
-            "the user must be told there is nothing to export"
-        );
-    });
+    with_app_state(
+        |_| {},
+        |sig| {
+            open_export_choice(sig);
+            let read = sig.read();
+            assert!(
+                !read.export.pending_export_choice,
+                "nothing to export -> no modal"
+            );
+            assert!(
+                read.error_msg.is_some(),
+                "the user must be told there is nothing to export"
+            );
+        },
+    );
 }
 
 #[test]

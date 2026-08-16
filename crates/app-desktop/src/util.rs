@@ -223,15 +223,15 @@ mod tests {
     }
 
     #[test]
-    fn validate_base_url_rejects_http_with_typed_error() {
+    fn validate_base_url_rejects_http_with_typed_error() -> Result<(), Box<dyn std::error::Error>> {
         let Err(err) = validate_base_url("http://mail.example.com/") else {
-            assert!(false, "plain http must be rejected as NotHttps");
-            return;
+            return Err("plain http must be rejected as NotHttps".into());
         };
         assert!(
             matches!(err, UrlError::NotHttps { ref scheme } if scheme == "http"),
             "plain http must be rejected as NotHttps: {err}"
         );
+        Ok(())
     }
 
     #[test]
@@ -284,11 +284,20 @@ mod tests {
     fn text_path_segment_dash_and_underscore_continue_the_segment() {
         // "/login-x" and "/login_x" are single segments (same as "/login.example.com"):
         // '-' and '_' are path-continuation characters and must not end a match.
-        assert!(!text_mentions_path_segment("path /login-x blocked", "login"));
-        assert!(!text_mentions_path_segment("path /login_x blocked", "login"));
+        assert!(!text_mentions_path_segment(
+            "path /login-x blocked",
+            "login"
+        ));
+        assert!(!text_mentions_path_segment(
+            "path /login_x blocked",
+            "login"
+        ));
         // A non-continuation character right after the needle IS a boundary.
         assert!(text_mentions_path_segment("go to /login?next=/x", "login"));
-        assert!(text_mentions_path_segment("see /login, then retry", "login"));
+        assert!(text_mentions_path_segment(
+            "see /login, then retry",
+            "login"
+        ));
     }
 
     // --- open_in_system_browser: the shell-bridge guard ---
