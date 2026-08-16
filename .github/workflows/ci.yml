@@ -315,10 +315,21 @@ jobs:
             echo "::error::semver baseline commit unavailable: '${BASE_SHA}' — the revision must exist locally (checkout uses fetch-depth: 0). A zero SHA means there is no meaningful baseline for this event; the gate refuses to run blind."
             exit 1
           fi
+          # Git Bash on Windows runners truncates process-substitution feeds
+          # (<(...)) after the first line — observed 2026-08-16: that loop ran
+          # exactly once and semver-checks received a single -p. Command
+          # substitution $(...) is reliable on all three runner images, so the
+          # names are collected into a string first. Crate names cannot contain
+          # whitespace, so the unquoted for-split is safe by construction.
+          names="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')"
+          if [ -z "${names//[[:space:]]/}" ]; then
+            echo "::error::cargo metadata produced no package names — the semver gate refuses to run blind."
+            exit 1
+          fi
           args=()
-          while IFS= read -r name; do
-            args+=("-p" "$name")
-          done < <(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')
+          for name in ${names}; do
+            args+=("-p" "${name}")
+          done
           echo "SemVer baseline: ${BASE_SHA}; crates: ${args[*]}"
           cargo semver-checks "${args[@]}" --baseline-rev "${BASE_SHA}"
 

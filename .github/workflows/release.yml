@@ -108,10 +108,19 @@ jobs:
             echo "::error::semver baseline commit unavailable: '${BASELINE}'"
             exit 1
           fi
+          # Command substitution instead of a process-substitution while-loop:
+          # Git Bash on Windows runners truncates <(...) feeds after the first
+          # line (observed 2026-08-16 in the ci.yml quality job). Crate names
+          # cannot contain whitespace, so the unquoted for-split is safe.
+          names="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')"
+          if [ -z "${names//[[:space:]]/}" ]; then
+            echo "::error::cargo metadata produced no package names — the semver gate refuses to run blind."
+            exit 1
+          fi
           args=()
-          while IFS= read -r name; do
-            args+=("-p" "$name")
-          done < <(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')
+          for name in ${names}; do
+            args+=("-p" "${name}")
+          done
           echo "SemVer baseline: ${BASELINE}; crates: ${args[*]}"
           cargo semver-checks "${args[@]}" --baseline-rev "${BASELINE}"
 
