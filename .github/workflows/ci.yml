@@ -276,7 +276,13 @@ jobs:
       # app cannot create a WebView2 window at all — every test then times out
       # waiting for the CDP endpoint. Install the Evergreen bootstrapper
       # silently (~40s); the preflight step below verifies it took effect.
-      - name: Install WebView2 Runtime
+      # Runtime 150+ also ignores WEBVIEW2_* environment variables when the
+      # host process is elevated (High Integrity) — which a GitHub Actions
+      # runner always is — so the debug-port arguments are additionally set
+      # via the HKLM policy, the one channel honored from elevated processes
+      # (MicrosoftEdge/WebView2Feedback#5645). The env vars stay for local,
+      # non-elevated runs.
+      - name: Install WebView2 Runtime and set the CDP policy
         shell: pwsh
         run: |
           $boot = Join-Path $env:TEMP 'MicrosoftEdgeWebview2Setup.exe'
@@ -284,6 +290,10 @@ jobs:
           Start-Process -Wait -FilePath $boot -ArgumentList '/silent', '/install'
           $rt = Get-ItemProperty 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}' -ErrorAction SilentlyContinue
           if ($rt) { "WebView2 runtime installed: $($rt.pv)" } else { throw 'WebView2 runtime still not registered after install' }
+          New-Item -Path 'HKLM:\Software\Policies\Microsoft\Edge\WebView2' -Force | Out-Null
+          Set-ItemProperty -Path 'HKLM:\Software\Policies\Microsoft\Edge\WebView2' `
+              -Name 'AdditionalBrowserArguments' -Value '--remote-debugging-port=9333 --disable-gpu' -Type String
+          'HKLM WebView2 AdditionalBrowserArguments policy set'
 
       # Evidence-first gate: if WebView2 cannot bring up the DevTools endpoint
       # on this runner, fail HERE in under a minute with the app's own logs —
