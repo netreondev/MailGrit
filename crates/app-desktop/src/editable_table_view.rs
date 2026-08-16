@@ -1,6 +1,6 @@
 //! The editable CSV-rows table + the password-generation control panel.
 //!
-//! This is the core of the new MailGrit logic: the user loads a CSV (or adds
+//! This is the core of the new `MailGrit` logic: the user loads a CSV (or adds
 //! rows manually), sees a table with inline-editable cells (`<input>`), edits
 //! values, and with one click auto-assigns passwords with configurable
 //! complexity (length + character classes). On execution, the rows are
@@ -245,7 +245,7 @@ fn cell_input_class(errs: &[EditableFieldError], field: EditableField, mono: boo
 /// Password-strength indicator: a warning icon with a tooltip showing policy
 /// violations (length/classes). Does not block the operation — it only informs.
 /// The warnings do not contain the password. The span wrapper carries the title
-/// (the native tooltip), since IconView itself is an SVG without a title
+/// (the native tooltip), since `IconView` itself is an SVG without a title
 /// attribute. Rendered only when there are warnings.
 fn render_password_strength(pw_warns: &str, has_pw_warn: bool) -> Element {
     if !has_pw_warn {
@@ -264,7 +264,7 @@ fn render_password_strength(pw_warns: &str, has_pw_warn: bool) -> Element {
 }
 
 /// Applies a mutation to row `idx` of the editable table (a let-chain instead of
-/// nested if let — clippy collapsible_if). The closure `f` receives `&mut` to the
+/// nested if let — clippy `collapsible_if`). The closure `f` receives `&mut` to the
 /// row.
 fn set_field<F>(state: &mut Signal<AppState>, idx: usize, f: F)
 where

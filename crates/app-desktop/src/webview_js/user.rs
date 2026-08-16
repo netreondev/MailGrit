@@ -10,7 +10,7 @@
 //! + `csrf_mask_verify_js` + `build_user_batch_js`.
 //!
 //! # Operation success verdict
-//! iRedAdmin returns HTTP 200 even on error (ALREADY_EXISTS, etc.), so the status
+//! iRedAdmin returns HTTP 200 even on error (`ALREADY_EXISTS`, etc.), so the status
 //! code alone is insufficient. The verdict is built from three signals (see
 //! defects D1–D4):
 //!   - **HTTP OK** (200/302/303);
@@ -131,7 +131,7 @@ fn build_user_do_op_js(kind: BulkOperationKind) -> String {
 ///
 /// Builds the JS code that runs ALL rows of a user operation batch sequentially
 /// via fetch inside the login-webview. The result is sent through
-/// `window.ipc.postMessage` (NOT via return — evaluate_script does not await a
+/// `window.ipc.postMessage` (NOT via return — `evaluate_script` does not await a
 /// Promise).
 ///
 /// Delegates the shared skeleton to [`super::shared::build_target_batch_js`]; the

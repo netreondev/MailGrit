@@ -25,7 +25,7 @@ pub const NONCE_LEN: usize = 24;
 /// The key resides in memory only until the moment of use, after which it is
 /// zeroed via `zeroize` (Spec §10 "Total use of Zeroizing").
 pub struct EncryptionKey {
-    /// Raw key bytes (32 bytes for XChaCha20).
+    /// Raw key bytes (32 bytes for `XChaCha20`).
     bytes: Box<[u8; 32]>,
 }
 

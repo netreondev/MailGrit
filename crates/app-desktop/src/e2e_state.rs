@@ -27,7 +27,7 @@ use std::sync::Arc;
 pub const E2E_DASHBOARD_ENV: &str = "MAILGRIT_E2E_DASHBOARD";
 
 /// Embedded test CSV: 2 valid rows for the `for_user_create` profile.
-/// Fields in canonical order: domain,username,password,display_name,quota_mb.
+/// Fields in canonical order: `domain,username,password,display_name,quota_mb`.
 /// The rows are valid per the typestate pipeline rules (see core-domain/typestate),
 /// so the table renders without error highlighting — E2E can enter invalid
 /// values itself to test validation.

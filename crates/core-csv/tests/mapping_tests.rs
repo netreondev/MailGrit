@@ -104,7 +104,7 @@ fn auto_positional_without_header_matches_classic() -> Result<(), Box<dyn std::e
     Ok(())
 }
 
-/// detect_mapping on a canonical header → 5 bindings.
+/// `detect_mapping` on a canonical header → 5 bindings.
 #[test]
 fn detect_mapping_canonical_header_five_bindings() {
     let header: Vec<String> = mailgrit_core_csv::CSV_HEADER
@@ -118,7 +118,7 @@ fn detect_mapping_canonical_header_five_bindings() {
     assert!(m.binds_all_profile_fields());
 }
 
-/// detect_mapping case-insensitive/trimmed: "Domain", " UserName ".
+/// `detect_mapping` case-insensitive/trimmed: "Domain", " `UserName` ".
 #[test]
 fn detect_mapping_case_insensitive_and_trimmed() -> Result<(), Box<dyn std::error::Error>> {
     let header: Vec<String> = [
@@ -264,7 +264,7 @@ fn auto_strips_utf8_bom() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// ColumnMapping clones and holds the profile (basic type contract).
+/// `ColumnMapping` clones and holds the profile (basic type contract).
 #[test]
 fn column_mapping_is_clone_and_holds_profile() {
     let header: Vec<String> = mailgrit_core_csv::CSV_HEADER
@@ -279,10 +279,10 @@ fn column_mapping_is_clone_and_holds_profile() {
     assert_eq!(cloned.profile.fields.len(), profile.fields.len());
 }
 
-/// process_row_mapped substitutes the *correct* profile default for an unmapped
+/// `process_row_mapped` substitutes the *correct* profile default for an unmapped
 /// canonical field. The default lookup (`f.name == canonical`) is mutation-killed
-/// by checking that an unmapped `quota_mb` becomes DEFAULT_QUOTA_MB (1024), not
-/// some other field's default (e.g. display_name's "").
+/// by checking that an unmapped `quota_mb` becomes `DEFAULT_QUOTA_MB` (1024), not
+/// some other field's default (e.g. `display_name`'s "").
 #[test]
 fn unmapped_optional_field_uses_its_own_profile_default() -> Result<(), Box<dyn std::error::Error>>
 {

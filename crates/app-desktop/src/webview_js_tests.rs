@@ -8,7 +8,7 @@ use mailgrit_core_domain::{
 };
 
 /// A minimal row for JS generation (built via the canonical parser, since
-/// SanitizedUserRow cannot be constructed directly — the typestate pipeline).
+/// `SanitizedUserRow` cannot be constructed directly — the typestate pipeline).
 fn sample_row() -> Result<SanitizedUserRow, CsvRowError> {
     RawCsvRow::new(vec![
         "dnipr.gp.gov.ua".into(),

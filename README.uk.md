@@ -212,8 +212,8 @@ Workspace застосовує сувору декларативну політ�
 `arithmetic_side_effects`, `todo`/`unimplemented`/`unreachable`, `dbg_macro` та
 `print_stdout`/`print_stderr` — усі `deny`; `unsafe_code` — `forbid`. Усі групи
 clippy (`correctness`, `suspicious`, `complexity`, `perf`, `pedantic`, `nursery`,
-`cargo`) — `deny`. Єдине задокументоване виключення — `doc_markdown = "allow"`
-(хибні спрацьовування на технічні абревіатури).
+`cargo`) — `deny`. Технічні терміни та абревіатури в doc-коментарях беруться в
+бектики, тож `doc_markdown` проходить без винятків.
 
 ### Інструментарій
 

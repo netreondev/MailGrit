@@ -1,6 +1,6 @@
 //! Branding: the application name and brand strings.
 //!
-//! A single source of truth for the displayed name "MailGrit", so there are no
+//! A single source of truth for the displayed name "`MailGrit`", so there are no
 //! scattered hardcoded strings in RSX and window titles.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors

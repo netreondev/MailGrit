@@ -109,7 +109,7 @@ pub fn cookies_disclosure(state: &Signal<AppState>) -> Element {
     }
 }
 
-/// View of rejected CSV rows (ParsedCsv::failed) — a table with the reason.
+/// View of rejected CSV rows (`ParsedCsv::failed`) — a table with the reason.
 pub fn failed_csv_rows_view(state: &Signal<AppState>) -> Element {
     // Read the language to re-render the localized strings.
     crate::i18n::subscribe_to_language(*state);

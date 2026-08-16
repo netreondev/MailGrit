@@ -33,7 +33,7 @@ fn weak_short_password_reports_all_classes() {
     assert!(!warnings.contains(&PasswordWarning::MissingLowercase));
 }
 
-/// A password of exactly min_len (8) with all classes is valid.
+/// A password of exactly `min_len` (8) with all classes is valid.
 #[test]
 fn exactly_min_len_with_all_classes_is_valid() {
     let policy = PasswordPolicy::default_policy();
@@ -45,7 +45,7 @@ fn exactly_min_len_with_all_classes_is_valid() {
     );
 }
 
-/// A password of length min_len-1 -> only TooShort (classes are present).
+/// A password of length min_len-1 -> only `TooShort` (classes are present).
 #[test]
 fn one_char_short_reports_only_too_short() {
     let policy = PasswordPolicy::default_policy();
@@ -115,7 +115,7 @@ fn relaxed_policy_accepts_simple_password() {
     );
 }
 
-/// Default policy: fixed values (min_len=8, all classes true).
+/// Default policy: fixed values (`min_len=8`, all classes true).
 #[test]
 fn default_policy_matches_iredadmin_defaults() {
     let policy = PasswordPolicy::default_policy();
@@ -126,7 +126,7 @@ fn default_policy_matches_iredadmin_defaults() {
     assert!(policy.classes.special());
 }
 
-/// The Default trait equals default_policy() (consistency).
+/// The Default trait equals `default_policy()` (consistency).
 #[test]
 fn default_trait_eq_default_policy() {
     assert_eq!(PasswordPolicy::default(), PasswordPolicy::default_policy());
@@ -149,7 +149,7 @@ fn warnings_display_readable() {
     );
 }
 
-/// An empty password: only TooShort (classes cannot be checked for an empty
+/// An empty password: only `TooShort` (classes cannot be checked for an empty
 /// string, but all missing-class violations are also added because there is not
 /// a single character).
 #[test]

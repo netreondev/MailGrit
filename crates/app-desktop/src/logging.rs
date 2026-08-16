@@ -2,7 +2,7 @@
 //!
 //! The log is written to `mailgrit.log` in the application data directory
 //! (`mailgrit-data/` next to the binary — portable mode). By default the level is
-//! `info` for MailGrit and `warn` for dependencies; it is overridden by the
+//! `info` for `MailGrit` and `warn` for dependencies; it is overridden by the
 //! `RUST_LOG` environment variable (e.g. `RUST_LOG=debug`).
 //!
 //! The returned [`LogGuard`] must be kept alive until the end of the program

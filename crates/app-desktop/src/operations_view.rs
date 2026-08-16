@@ -121,7 +121,7 @@ pub fn ops_card(mut state: Signal<AppState>) -> Element {
 
 /// Bulk-operation buttons (Create/Edit/Delete/export/diagnostics) + the Modal.
 /// Extracted from `ops_card` to comply with the clippy line limit
-/// (too_many_lines).
+/// (`too_many_lines`).
 fn ops_buttons(
     mut state: Signal<AppState>,
     op_status: OpStatus,

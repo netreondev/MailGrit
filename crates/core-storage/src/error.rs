@@ -7,7 +7,7 @@ use mailgrit_core_security::SecurityError;
 /// Error of a local-storage operation.
 #[derive(Debug, thiserror::Error)]
 pub enum StorageError {
-    /// SQLite error.
+    /// `SQLite` error.
     #[error("SQLite error: {0}")]
     Sqlite(#[from] rusqlite::Error),
     /// Audit hash-chain integrity violation (the log was tampered with).

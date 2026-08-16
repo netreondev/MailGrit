@@ -145,7 +145,7 @@ mod tests {
         assert_eq!(sorted.len(), codes.len(), "duplicate language code");
     }
 
-    /// Round-trip: from_config(as_str) recovers the language.
+    /// Round-trip: `from_config(as_str)` recovers the language.
     #[test]
     fn from_config_roundtrip() {
         for lang in Language::all() {
@@ -169,7 +169,7 @@ mod tests {
         assert_eq!(Language::default(), Language::En);
     }
 
-    /// label() returns the endonym (not the literal key, not empty) for every
+    /// `label()` returns the endonym (not the literal key, not empty) for every
     /// language. Regression: previously `tr!("lang.{code}")` looked up the literal
     /// key with the braces and fell back to the key itself.
     #[test]
@@ -188,7 +188,7 @@ mod tests {
         assert_eq!(Language::De.label(), "Deutsch");
     }
 
-    /// country_code() returns a non-empty, distinct, lowercase ISO-2 code for
+    /// `country_code()` returns a non-empty, distinct, lowercase ISO-2 code for
     /// every language (the CSS modifier for the inline SVG flag).
     #[test]
     fn country_code_nonempty_distinct_lowercase() {

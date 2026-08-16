@@ -80,7 +80,7 @@ mod tests {
 
     static COUNTER: AtomicU64 = AtomicU64::new(0);
 
-    /// Same TempDir approach as audit_ui tests (no external tempfile dep).
+    /// Same `TempDir` approach as `audit_ui` tests (no external tempfile dep).
     struct TempDir(PathBuf);
     impl TempDir {
         fn new() -> Result<Self, std::io::Error> {

@@ -57,14 +57,14 @@ fn handle_open_request<T: 'static>(
 }
 
 /// 2. Data-driven auto-auth: on a login-webview load event, check the login
-///    predicate and, on success, invoke on_login.
+///    predicate and, on success, invoke `on_login`.
 ///
 ///    The PREDICATE is hybrid (FortiWeb-proof):
 ///    - the final URL's PATH has the segment `dashboard` (the canonical
 ///      post-login redirect of iRedAdmin) — the PRIMARY signal, because behind
-///      FortiWeb/WAF the real webpy_session_id cookie is invisible (only the
+///      FortiWeb/WAF the real `webpy_session_id` cookie is invisible (only the
 ///      WAF cookiesession1 cookie is visible, and it is ALWAYS present);
-///    - OR the webpy_session_id cookie is present — a fallback signal for
+///    - OR the `webpy_session_id` cookie is present — a fallback signal for
 ///      environments without a WAF.
 fn handle_auth_event(state: &Arc<LoginWindowState>) {
     let Some(ev) = take_optional(&state.auth_event) else {

@@ -1,6 +1,6 @@
 //! iRedAdmin bulk operation types: target × operation kind.
 //!
-//! MailGrit works only with open-source iRedAdmin (OSE, HTML forms). Targets are
+//! `MailGrit` works only with open-source iRedAdmin (OSE, HTML forms). Targets are
 //! limited to the entities that OSE can create/edit/delete through forms: domain,
 //! user, administrator. The pair
 //! ([`OperationTarget`], [`BulkOperationKind`]) uniquely identifies an operation.
@@ -8,7 +8,7 @@
 // Copyright (c) 2026 Netreon™ and contributors
 
 /// Bulk operation target — the iRedAdmin entity the operation acts upon.
-/// The pair (OperationTarget, BulkOperationKind) uniquely identifies an operation.
+/// The pair (`OperationTarget`, `BulkOperationKind`) uniquely identifies an operation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OperationTarget {
     /// Mail domain.
@@ -21,7 +21,7 @@ pub enum OperationTarget {
 
 /// Kind of bulk operation on an iRedAdmin entity.
 ///
-/// MailGrit supports only the three operation kinds that OSE iRedAdmin can perform
+/// `MailGrit` supports only the three operation kinds that OSE iRedAdmin can perform
 /// through HTML forms: create, edit, and delete. Other kinds (disabling/enabling
 /// accounts, bulk attribute updates) are not implemented — the UI and webview JS
 /// never construct them.

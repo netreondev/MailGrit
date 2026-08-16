@@ -1,6 +1,6 @@
 //! Global (main-thread) state for the login window.
 //!
-//! The WebView holds an HWND (!Send), so this state cannot live in the Dioxus
+//! The `WebView` holds an HWND (!Send), so this state cannot live in the Dioxus
 //! context (which requires Send). `thread_local!` stores !Send values and is
 //! reachable from UI components and the event handler (both on the main Dioxus
 //! thread).
@@ -34,21 +34,21 @@ pub fn lock<T>(m: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
 pub struct LoginWindowState {
     /// Request from the "Open login form" button (cleared after the window is built).
     pub request: Mutex<Option<LoginRequest>>,
-    /// Request for a batch of operations (executed in handle_event via JS fetch).
+    /// Request for a batch of operations (executed in `handle_event` via JS fetch).
     pub op_request: Mutex<Option<OpRequest>>,
     /// Request for form diagnostics (GET + return HTML for field analysis).
     pub diag_request: Mutex<Option<DiagRequest>>,
     /// Pending login-webview navigation event (data-driven login trigger).
     pub auth_event: Mutex<Option<crate::login_types::AuthEvent>>,
-    /// Successful-auth callback (registered from `app()`). handle_event invokes
+    /// Successful-auth callback (registered from `app()`). `handle_event` invokes
     /// it when login is confirmed. `!Send + Sync` is justified: the state is
-    /// thread_local (main Dioxus thread), and the webview/window is already
+    /// `thread_local` (main Dioxus thread), and the webview/window is already
     /// `!Send` (HWND).
     pub on_login: Mutex<Option<Box<dyn Fn()>>>,
-    /// The session cookie name (from config.toml). handle_event checks for its
+    /// The session cookie name (from config.toml). `handle_event` checks for its
     /// presence for data-driven login confirmation. Populated from `app()`.
     pub session_cookie_name: Mutex<Option<String>>,
-    /// Table of pending IPC responses: id → oneshot::Sender.
+    /// Table of pending IPC responses: id → `oneshot::Sender`.
     pub pending: PendingMap,
     /// Correlation-id counter for IPC.
     pub next_ipc_id: Mutex<u64>,
@@ -56,7 +56,7 @@ pub struct LoginWindowState {
     pub webview: Mutex<Option<wry::WebView>>,
     /// Raw tao window (must outlive the webview).
     pub window: Mutex<Option<Arc<tao::window::Window>>>,
-    /// The webview's WebContext (must outlive the webview — wry holds &mut).
+    /// The webview's `WebContext` (must outlive the webview — wry holds &mut).
     pub web_ctx: Mutex<Option<wry::WebContext>>,
 }
 
@@ -112,7 +112,7 @@ impl LoginWindowState {
         *lock(&self.session_cookie_name) = Some(name);
     }
 
-    /// Records the login-webview load event (called from page_load_handler).
+    /// Records the login-webview load event (called from `page_load_handler`).
     /// `final_url` is the final URL after redirects (for the `/dashboard` predicate).
     pub fn report_page_load(&self, base_url: String, final_url: String) {
         *lock(&self.auth_event) = Some(crate::login_types::AuthEvent {

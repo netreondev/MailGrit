@@ -22,7 +22,7 @@ pub use crate::ops_export::{do_export, open_export_choice};
 /// Launches a bulk operation (create/edit/delete) via the login-webview.
 ///
 /// The requests are executed INSIDE the login-webview (JS fetch), because behind
-/// a FortiWeb WAF replaying the cookie in reqwest does not authenticate against
+/// a `FortiWeb` WAF replaying the cookie in reqwest does not authenticate against
 /// the backend. Pipeline: [`validate_and_collect`] (checks + typestate
 /// re-validation) → `request_op` (webview JS) → [`apply_op_results`] (guards,
 /// audit, state).

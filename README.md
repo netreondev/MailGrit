@@ -212,8 +212,9 @@ The workspace enforces a strict, declarative lint policy in `Cargo.toml`:
 `arithmetic_side_effects`, `todo`/`unimplemented`/`unreachable`, `dbg_macro`,
 and `print_stdout`/`print_stderr` are all `deny`; `unsafe_code` is `forbid`.
 All clippy groups (`correctness`, `suspicious`, `complexity`, `perf`,
-`pedantic`, `nursery`, `cargo`) are `deny`. The only documented exception is
-`doc_markdown = "allow"` (false-positives on technical acronyms).
+`pedantic`, `nursery`, `cargo`) are `deny`; technical terms and acronyms in
+doc comments are wrapped in backticks so `doc_markdown` passes with no
+exceptions.
 
 ### Toolchain
 

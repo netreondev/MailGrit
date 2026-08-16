@@ -49,7 +49,7 @@ fn csv_escape_plain_field_unchanged() {
 }
 
 /// RFC 4180: a comma in a field (e.g. "Petrov, Ivan") → wrap in quotes.
-/// Previously such a display_name broke the column count in the export.
+/// Previously such a `display_name` broke the column count in the export.
 #[test]
 fn csv_escape_quotes_comma_field() {
     assert_eq!(escape_field("Petrov, Ivan"), "\"Petrov, Ivan\"");
@@ -111,8 +111,8 @@ fn export_neutralizes_formula_injection() -> Result<(), mailgrit_core_domain::Cs
     Ok(())
 }
 
-/// Password-loss regression: after switching the tab, editable_rows is empty,
-/// but BatchResult.created_credentials holds a snapshot of the created
+/// Password-loss regression: after switching the tab, `editable_rows` is empty,
+/// but `BatchResult.created_credentials` holds a snapshot of the created
 /// accounts — the export must export exactly those (with passwords).
 #[test]
 fn export_text_uses_created_credentials_when_rows_empty() {
@@ -144,7 +144,7 @@ fn export_text_uses_created_credentials_when_rows_empty() {
     assert!(text.contains("dnipr.gp.gov.ua"));
 }
 
-/// Source priority: if created_credentials are present, the rows from the
+/// Source priority: if `created_credentials` are present, the rows from the
 /// editable table are NOT duplicated in the export.
 #[test]
 fn export_text_does_not_duplicate_when_credentials_present()

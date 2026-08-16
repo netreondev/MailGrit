@@ -3,7 +3,7 @@
 //! Previously this held cookie extraction plus reqwest-client construction. That
 //! turned out to be unreliable: behind FortiWeb/WAF the backend session is held
 //! by the proxy, and replaying the cookie in reqwest does not authenticate
-//! against the backend. Also cookie names vary (web.py, Django, FortiWeb) —
+//! against the backend. Also cookie names vary (web.py, Django, `FortiWeb`) —
 //! guessing the name is brittle.
 //!
 //! Now login is detected data-driven — via the login-webview navigation event
@@ -32,7 +32,7 @@ pub fn request_login_window(state: &LoginWindowState, base_url: &str) {
 ///
 /// Call ONLY at the top level of the event loop (`handle_event`), NOT from an
 /// onclick or a JS callback — otherwise `cookies_for_url` deadlocks the message
-/// loop (wait_with_pump).
+/// loop (`wait_with_pump`).
 ///
 /// # Errors
 ///
@@ -59,7 +59,7 @@ pub fn read_cookies_for_panel(
         .collect())
 }
 
-/// Returns the URL origin (scheme://host[:port]) — without path/query/fragment.
+/// Returns the URL origin (`scheme://host[:port]`) — without path/query/fragment.
 fn url_origin(url: &str) -> Option<String> {
     let parsed = url::Url::parse(url).ok()?;
     let host = parsed.host_str()?;

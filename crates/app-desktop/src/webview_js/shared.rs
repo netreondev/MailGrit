@@ -130,7 +130,7 @@ pub(super) fn build_target_batch_js(
 /// Parameterization of the unified `doOp` JS pipeline for a specific operation
 /// target (User/Domain/Admin). The target passes its differences — endpoints, the
 /// JS expression of the post-verification target, and the log tag/identifier; the
-/// rest of the pipeline (CSRF-fetch → URLSearchParams → POST → dump → verdict →
+/// rest of the pipeline (CSRF-fetch → `URLSearchParams` → POST → dump → verdict →
 /// post-verification) is identical for all iRedAdmin OSE forms and lives in
 /// [`build_do_op_js`].
 #[must_use]
@@ -162,7 +162,7 @@ const RESP_BODY_MAX: usize = 5000;
 /// Builds the unified JS function `doOp(base, row)` — the pipeline of a single
 /// request to an iRedAdmin OSE form for any operation target.
 ///
-/// Skeleton: GET form → CSRF → URLSearchParams → POST → full dump → verdict by
+/// Skeleton: GET form → CSRF → `URLSearchParams` → POST → full dump → verdict by
 /// markers → create/delete post-verification. All differences between
 /// User/Domain/Admin are parameterized via [`DoOpSpec`]; structurally and
 /// semantically it is a single pipeline.
@@ -294,8 +294,8 @@ pub(super) struct BatchFragments<'a> {
     pub do_op: &'a str,
 }
 
-/// Final IIFE wrapper of the operation batch: marker_js + base_js + error_map_js
-/// + MF_VERIFY + helpers + buildFields + doOp + the rows loop + IPC postMessage.
+/// Final IIFE wrapper of the operation batch: `marker_js` + `base_js` + `error_map_js`
+/// + `MF_VERIFY` + helpers + buildFields + doOp + the rows loop + IPC postMessage.
 ///
 /// Identical for all targets; the target module passes its fragments in
 /// `fragments`. `id` is the correlation-id for the IPC response

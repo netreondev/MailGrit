@@ -1,4 +1,4 @@
-//! `app-desktop` — MailGrit entry point (Dioxus 0.7 desktop).
+//! `app-desktop` — `MailGrit` entry point (Dioxus 0.7 desktop).
 //!
 //! Integration point that wires the core-* crates to the UI. Login is detected
 //! in a data-driven way by observing the webview navigating to `/dashboard`;
@@ -150,7 +150,7 @@ fn main() {
         .launch(app);
 }
 
-/// Sets `document.title` (the document title inside the WebView) via evaluate_script.
+/// Sets `document.title` (the document title inside the `WebView`) via `evaluate_script`.
 ///
 /// Mirror of [`theme::apply_theme`]: same mechanism (`use_window().webview`).
 /// Needed because Dioxus 0.7 hardcodes `<title>Dioxus app</title>` in index.html
@@ -272,7 +272,7 @@ fn app() -> Element {
 /// E2E-only helper for the Node smoke harness (e2e/js-smoke): reads the rows
 /// JSON, builds the batch JS via the REAL production builder, prints it to
 /// stdout. The rows JSON is an array of 5-string arrays in CSV column order
-/// (domain, username, password, display_name, quota) — it goes through the
+/// (domain, username, password, `display_name`, quota) — it goes through the
 /// canonical typestate parser, exactly like a loaded CSV.
 ///
 /// No `println!`/`eprintln!` (denied workspace-wide) and no `panic!`: errors
@@ -311,8 +311,8 @@ fn emit_batch_js_main(rows_path: &str) {
     let parsed: Vec<Vec<String>> = serde_json::from_str(&rows_json)
         .unwrap_or_else(|e| bail(&format!("parsing {rows_path} (expected [[domain, username, password, display_name, quota], ...]): {e}")));
     let mut rows = Vec::with_capacity(parsed.len());
-    for (i, cols) in parsed.iter().enumerate() {
-        let row = mailgrit_core_domain::RawCsvRow::new(cols.to_vec())
+    for (i, cols) in parsed.into_iter().enumerate() {
+        let row = mailgrit_core_domain::RawCsvRow::new(cols)
             .parse()
             .unwrap_or_else(|e| bail(&format!("row #{i} failed the canonical parser: {e}")));
         rows.push(row);

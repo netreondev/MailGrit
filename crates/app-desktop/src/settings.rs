@@ -11,7 +11,7 @@ use std::path::PathBuf;
 /// Settings loaded from TOML.
 #[derive(Debug, Clone, PartialEq, Eq, serde::Deserialize, serde::Serialize)]
 pub struct Settings {
-    /// Base URL of iRedAdmin (e.g. https://mail.example.com/iredadmin).
+    /// Base URL of iRedAdmin (e.g. <https://mail.example.com/iredadmin>).
     #[serde(default)]
     pub base_url: String,
     /// Session cookie name. Default `webpy_session_id` — the actual iRedAdmin
@@ -24,10 +24,10 @@ pub struct Settings {
     /// UI language (BCP-47 code). Default "en"; an unknown value falls back to English.
     #[serde(default = "default_language")]
     pub language: String,
-    /// [password_policy] section: server-side policy for the strength indicator in the table.
+    /// [`password_policy`] section: server-side policy for the strength indicator in the table.
     #[serde(default)]
     pub password_policy: PasswordPolicyConfig,
-    /// [password_generator] section: password generator for the editable table.
+    /// [`password_generator`] section: password generator for the editable table.
     #[serde(default)]
     pub password_generator: PasswordGeneratorConfig,
 }
@@ -56,7 +56,7 @@ impl Default for Settings {
     }
 }
 
-/// [password_policy] TOML section: server-side password policy for the strength
+/// [`password_policy`] TOML section: server-side password policy for the strength
 /// indicator in the editable table. Parsed by serde, converted into
 /// [`PasswordPolicy`] via [`Self::to_policy`] (the parse-don't-validate boundary).
 ///
@@ -105,7 +105,7 @@ impl PasswordPolicyConfig {
     }
 }
 
-/// [password_generator] TOML section: password generator for the editable table.
+/// [`password_generator`] TOML section: password generator for the editable table.
 /// Parsed by serde, converted into [`PasswordGenerator`] via [`Self::to_generator`].
 ///
 /// The four character-class toggles live in [`GeneratorClasses`] (a single
@@ -333,14 +333,14 @@ fn save_field(apply: impl FnOnce(&mut Settings) + Send + 'static) {
 }
 
 /// Updates only the theme field in config.toml, preserving the other settings.
-/// See [`save_field`] for the concurrency/spawn_blocking rationale.
+/// See [`save_field`] for the `concurrency/spawn_blocking` rationale.
 pub fn save_theme(theme: &str) {
     let theme = theme.to_string();
     save_field(move |s| s.theme = theme);
 }
 
 /// Updates only the language field in config.toml, preserving the other settings.
-/// See [`save_field`] for the concurrency/spawn_blocking rationale.
+/// See [`save_field`] for the `concurrency/spawn_blocking` rationale.
 pub fn save_language(language: &str) {
     let language = language.to_string();
     save_field(move |s| s.language = language);

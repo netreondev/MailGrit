@@ -1,6 +1,6 @@
 //! Success/error markers of iRedAdmin operations (OSE forms).
 //!
-//! iRedAdmin returns HTTP 200 even on error (e.g. ALREADY_EXISTS), so the status
+//! iRedAdmin returns HTTP 200 even on error (e.g. `ALREADY_EXISTS`), so the status
 //! code alone is insufficient: a positive success marker and/or the absence of an
 //! error marker in the response body/URL is required.
 // SPDX-License-Identifier: MIT OR Apache-2.0

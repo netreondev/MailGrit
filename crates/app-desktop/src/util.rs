@@ -12,7 +12,7 @@ pub fn now_rfc3339() -> String {
         .unwrap_or_else(|_| "unknown".to_string())
 }
 
-/// Validates the iRedAdmin base_url: https + host are required.
+/// Validates the iRedAdmin `base_url`: https + host are required.
 /// iRedAdmin over HTTP would leak the session cookie — hence https is required.
 ///
 /// # Errors
@@ -97,7 +97,7 @@ pub fn url_openable(url: &str) -> bool {
 /// Opens a URL in the user's default SYSTEM browser.
 ///
 /// Neither in-webview mechanic works for external links:
-/// - `window.open(url, '_blank')` inside the app's WebView2 is a SILENT NO-OP
+/// - `window.open(url, '_blank')` inside the app's `WebView2` is a SILENT NO-OP
 ///   (wry does not wire `NewWindowRequested` to the OS) — the donate button
 ///   did nothing because of exactly this;
 /// - a plain `<a href>` would navigate the APP's own webview away from the UI.

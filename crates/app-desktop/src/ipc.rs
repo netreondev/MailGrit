@@ -25,7 +25,7 @@ pub enum IpcReply {
     Diag(String),
 }
 
-/// Table of pending IPC responses: id -> oneshot::Sender.
+/// Table of pending IPC responses: id -> `oneshot::Sender`.
 pub type PendingMap = Arc<Mutex<HashMap<u64, oneshot::Sender<IpcReply>>>>;
 
 /// Correlation-id generator.
@@ -47,7 +47,7 @@ fn next_id(counter: &Mutex<u64>) -> u64 {
     *c
 }
 
-/// IPC dispatcher: registers a pending wait, returns (id, oneshot::Receiver).
+/// IPC dispatcher: registers a pending wait, returns (id, `oneshot::Receiver`).
 /// The `id` is embedded into JS so the reply reaches the right receiver.
 pub fn register(pending: &PendingMap, counter: &Mutex<u64>) -> (u64, oneshot::Receiver<IpcReply>) {
     let id = next_id(counter);
@@ -69,7 +69,7 @@ pub fn register(pending: &PendingMap, counter: &Mutex<u64>) -> (u64, oneshot::Re
 
 /// Cancels a pending IPC request (removes its entry from the pending map).
 /// Called on operation timeout or webview close — otherwise the entry would leak
-/// (a late reply has no one to deliver to, the oneshot::Receiver is dropped).
+/// (a late reply has no one to deliver to, the `oneshot::Receiver` is dropped).
 pub fn cancel(pending: &PendingMap, id: u64) {
     let removed = {
         let mut m = match pending.lock() {
@@ -84,7 +84,7 @@ pub fn cancel(pending: &PendingMap, id: u64) {
 }
 
 /// Parses the IPC message `tag:id:json` and delivers the reply to the pending map.
-/// Called from the webview's ipc_handler on every `window.ipc.postMessage(...)`.
+/// Called from the webview's `ipc_handler` on every `window.ipc.postMessage(...)`.
 pub fn dispatch(pending: &PendingMap, body: &str) {
     tracing::debug!("IPC: message received (length {})", body.len());
     // Format: tag:id:json  (tag and id are up to the first two ':')

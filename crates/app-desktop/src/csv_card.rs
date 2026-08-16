@@ -1,7 +1,7 @@
 //! The CSV card of the Operations section: file choosing, summary, mapping,
 //! the editable table, and password controls.
 //!
-//! Extracted from operations_view.rs to keep each file under the 400-line spec.
+//! Extracted from `operations_view.rs` to keep each file under the 400-line spec.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors
 

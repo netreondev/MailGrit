@@ -16,7 +16,7 @@ use dioxus::desktop::tao::window::{BadIcon, Icon};
 /// Size of the embedded PNG (square). Must match the asset filename.
 const ICON_SIZE: u32 = 64;
 
-/// Returns the MailGrit brand window icon, or `None` if decoding failed.
+/// Returns the `MailGrit` brand window icon, or `None` if decoding failed.
 ///
 /// `None` (rather than a panic) because the icon is non-critical: the window
 /// opens with the default one. The decode error is logged (warn), not masked.

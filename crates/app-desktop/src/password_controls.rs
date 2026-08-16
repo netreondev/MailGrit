@@ -2,7 +2,7 @@
 //! checkboxes (policy-locked ones disabled), fill-empty / regenerate-all
 //! actions, and the regeneration confirmation modal.
 //!
-//! Extracted from editable_table_view.rs to keep each file under the
+//! Extracted from `editable_table_view.rs` to keep each file under the
 //! 400-line spec.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors
@@ -17,7 +17,7 @@ use dioxus::prelude::*;
 /// The password-generation control panel: length, character classes, buttons.
 ///
 /// Character classes required by the server-side `[password_policy]`
-/// (require_uppercase/lowercase/number/special) are locked — they cannot be
+/// (`require_uppercase/lowercase/number/special`) are locked — they cannot be
 /// disabled, otherwise the generator would produce passwords failing the
 /// strength check. The slider's minimum length is also no lower than the
 /// policy's `min_len`.

@@ -1,7 +1,7 @@
 //! Operations panel: context-bar, top-level navigation (Operations/Audit),
 //! and section dispatcher.
 //!
-//! MailGrit is focused: the "Operations" section is CSV load → editable table
+//! `MailGrit` is focused: the "Operations" section is CSV load → editable table
 //! → password generation → target → execution → result; the "Audit" section is
 //! the hash-chained operations log. Default section is `Operations`.
 // SPDX-License-Identifier: MIT OR Apache-2.0

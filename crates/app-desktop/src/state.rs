@@ -12,10 +12,10 @@ use mailgrit_core_domain::{EditableUserRow, OperationTarget, PasswordGenerator};
 use std::sync::Arc;
 use zeroize::{Zeroize, Zeroizing};
 
-/// Audit entries kept in the UI list (the full chain stays in SQLite).
+/// Audit entries kept in the UI list (the full chain stays in `SQLite`).
 const AUDIT_ENTRIES_SHOWN: usize = 10;
 
-/// Mode of the master-password modal. An enum rather than a bool: AppState's
+/// Mode of the master-password modal. An enum rather than a bool: `AppState`'s
 /// `struct_excessive_bools` budget is spent, and a named mode reads better
 /// than an inverted `!key_exists` flag.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -47,11 +47,11 @@ pub struct AppState {
     pub language: Language,
     /// Session is active (confirmed by the webview navigating to `/dashboard`).
     pub session_ok: bool,
-    /// Session cookie name (from config.toml; default webpy_session_id). Informational.
+    /// Session cookie name (from config.toml; default `webpy_session_id`). Informational.
     pub session_cookie_name: String,
     /// Everything CSV/bulk-operation related (the loaded data, the target and
     /// profile it is parsed against, the editable layer, and the last result).
-    /// Grouped into a sub-state: AppState used to be a flat bag of 27 pub
+    /// Grouped into a sub-state: `AppState` used to be a flat bag of 27 pub
     /// fields mixing routing, auth, CSV, audit, and modals.
     pub csv: CsvState,
     /// Audit log (hash-chained).

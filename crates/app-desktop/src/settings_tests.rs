@@ -232,7 +232,7 @@ fn concurrent_field_saves_do_not_interleave() -> TestResult {
     Ok(())
 }
 
-/// save_field_at applies its closure to the LOADED config (not blank state):
+/// `save_field_at` applies its closure to the LOADED config (not blank state):
 /// the documented contract "updates only the field, preserving the others".
 #[test]
 fn save_field_at_preserves_untouched_fields() -> TestResult {
