@@ -75,9 +75,12 @@ CI runs on every push and pull request:
   exemptions rather than first-party audits. The practical value of this gate is
   that a PR introducing a **brand-new** dependency that is neither audited nor
   exempted fails the build, forcing a conscious decision. Every exemption
-  carries an explicit note and an `expire-date`: once it lapses, `cargo vet
-  check` fails until the crate is either audited or the exemption is
-  consciously renewed — the bootstrap debt cannot sit silently forever.
+  carries an explicit note; there is **no expiry mechanism** on exemptions —
+  cargo-vet (verified 2026-08-16 against 0.10.2, the newest release, and
+  upstream `main`) has no `expire-date` field for exemptions (expiration
+  exists only for wildcard *audits*), and unknown config keys are silently
+  dropped when the tool rewrites the file. The exemptions are a bootstrap
+  debt to be worked down through manual review, not a time-limited permit.
 - `cargo machete` — unused-dependency hygiene.
 - `cargo semver-checks` — public-API compatibility.
 - `gitleaks` — scans git history for accidentally-committed secrets.

@@ -19,3227 +19,2689 @@ url = "https://raw.githubusercontent.com/mozilla/supply-chain/main/audits.toml"
 [[exemptions.aead]]
 version = "0.6.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.ahash]]
 version = "0.8.12"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.aho-corasick]]
 version = "1.1.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.aligned]]
 version = "0.4.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.aligned-vec]]
 version = "0.6.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.alloca]]
 version = "0.4.0"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.annotate-snippets]]
 version = "0.12.16"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.anstyle]]
 version = "1.0.14"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.anyhow]]
 version = "1.0.104"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.arc-swap]]
 version = "1.9.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.arg_enum_proc_macro]]
 version = "0.3.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.arrayvec]]
 version = "0.7.8"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.async-trait]]
 version = "0.1.91"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.atk]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.atk-sys]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.autocfg]]
 version = "1.5.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.av-scenechange]]
 version = "0.14.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.av1-grain]]
 version = "0.2.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.avif-serialize]]
 version = "0.8.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.base62]]
 version = "2.2.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.base64ct]]
 version = "1.8.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.bit_field]]
 version = "0.10.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.bitflags]]
 version = "2.13.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.bitstream-io]]
 version = "4.10.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.blake2]]
 version = "0.10.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.block]]
 version = "0.1.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.block-buffer]]
 version = "0.10.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.block-buffer]]
 version = "0.12.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.bstr]]
 version = "1.13.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.built]]
 version = "0.8.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.bytemuck]]
 version = "1.25.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.byteorder-lite]]
 version = "0.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.bytes]]
 version = "1.12.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cairo-rs]]
 version = "0.18.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cairo-sys-rs]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cc]]
 version = "1.4.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cesu8]]
 version = "1.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cfb]]
 version = "0.7.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cfg-if]]
 version = "1.0.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.chacha20]]
 version = "0.10.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cipher]]
 version = "0.5.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.clap]]
 version = "4.6.6"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.clap_builder]]
 version = "4.6.6"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.clap_lex]]
 version = "1.1.0"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cmov]]
 version = "0.5.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cocoa]]
 version = "0.26.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cocoa-foundation]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.combine]]
 version = "4.6.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.const-oid]]
 version = "0.10.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.const-serialize]]
 version = "0.7.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.const-serialize]]
 version = "0.8.0-alpha.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.const-serialize-macro]]
 version = "0.7.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.const-serialize-macro]]
 version = "0.8.0-alpha.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.const_format]]
 version = "0.2.36"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.const_format_proc_macros]]
 version = "0.2.34"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.convert_case]]
 version = "0.8.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cookie]]
 version = "0.18.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.core-foundation]]
 version = "0.10.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.core-graphics]]
 version = "0.25.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cpufeatures]]
 version = "0.2.17"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.cpufeatures]]
 version = "0.3.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.crc32fast]]
 version = "1.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.criterion]]
 version = "0.8.2"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.criterion-plot]]
 version = "0.8.2"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.crossbeam-channel]]
 version = "0.5.16"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.crossbeam-deque]]
 version = "0.8.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.crossbeam-epoch]]
 version = "0.9.20"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.crossbeam-utils]]
 version = "0.8.22"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.crunchy]]
 version = "0.2.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.crypto-common]]
 version = "0.1.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.crypto-common]]
 version = "0.2.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.ctutils]]
 version = "0.4.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.darling]]
 version = "0.21.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.darling_core]]
 version = "0.21.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.darling_macro]]
 version = "0.21.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.data-encoding]]
 version = "2.11.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.derive_more]]
 version = "0.99.20"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.digest]]
 version = "0.10.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.digest]]
 version = "0.11.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-asset-resolver]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-cli-config]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-config-macro]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-config-macros]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-core]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-core-macro]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-core-types]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-desktop]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-devtools]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-devtools-types]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-document]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-history]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-hooks]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-html]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-html-internal-macro]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-interpreter-js]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-logger]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-rsx]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-signals]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-stores]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-stores-macro]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dioxus-web]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dirs]]
 version = "6.0.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dirs-sys]]
 version = "0.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dispatch2]]
 version = "0.3.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.displaydoc]]
 version = "0.2.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dlib]]
 version = "0.5.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dlopen2]]
 version = "0.8.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dlopen2_derive]]
 version = "0.4.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.downcast-rs]]
 version = "1.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dpi]]
 version = "0.1.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dtoa]]
 version = "1.0.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dtoa-short]]
 version = "0.3.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.dunce]]
 version = "1.0.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.either]]
 version = "1.17.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.encoding_rs_io]]
 version = "0.1.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.enumset]]
 version = "1.1.14"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.enumset_derive]]
 version = "0.15.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.equator]]
 version = "0.4.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.equator-macro]]
 version = "0.4.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.errno]]
 version = "0.3.14"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.exr]]
 version = "1.74.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.fastrand]]
 version = "2.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.fax]]
 version = "0.2.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.field-offset]]
 version = "0.3.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.find-msvc-tools]]
 version = "0.1.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.flate2]]
 version = "1.1.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.foreign-types-macros]]
 version = "0.2.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futf]]
 version = "0.1.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futures-channel]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futures-core]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futures-executor]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futures-io]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futures-macro]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futures-sink]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futures-task]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.futures-util]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gdk]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gdk-pixbuf]]
 version = "0.18.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gdk-pixbuf-sys]]
 version = "0.18.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gdk-sys]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gdkwayland-sys]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gdkx11]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gdkx11-sys]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.generational-box]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.generic-array]]
 version = "0.14.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gethostname]]
 version = "1.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.getrandom]]
 version = "0.1.16"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.getrandom]]
 version = "0.2.17"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.getrandom]]
 version = "0.3.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.getrandom]]
 version = "0.4.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gif]]
 version = "0.14.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gio]]
 version = "0.18.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gio-sys]]
 version = "0.18.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.glib]]
 version = "0.18.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.glib-macros]]
 version = "0.18.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.glib-sys]]
 version = "0.18.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.glob]]
 version = "0.3.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.global-hotkey]]
 version = "0.7.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.globset]]
 version = "0.4.19"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.globwalk]]
 version = "0.8.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gloo-timers]]
 version = "0.3.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gobject-sys]]
 version = "0.18.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.granit-parser]]
 version = "0.0.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gtk]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gtk-sys]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.gtk3-macros]]
 version = "0.18.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.half]]
 version = "2.7.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.hashbrown]]
 version = "0.16.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.hashlink]]
 version = "0.12.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.html5ever]]
 version = "0.29.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.http]]
 version = "1.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.httparse]]
 version = "1.10.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.hybrid-array]]
 version = "0.4.13"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.icu_collections]]
 version = "2.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.icu_locale_core]]
 version = "2.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.icu_normalizer]]
 version = "2.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.icu_normalizer_data]]
 version = "2.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.icu_properties]]
 version = "2.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.icu_properties_data]]
 version = "2.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.icu_provider]]
 version = "2.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.idna_adapter]]
 version = "1.2.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.ignore]]
 version = "0.4.31"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.image]]
 version = "0.25.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.image-webp]]
 version = "0.2.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.imgref]]
 version = "1.12.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.infer]]
 version = "0.19.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.inout]]
 version = "0.2.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.interpolate_name]]
 version = "0.2.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.itertools]]
 version = "0.11.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.itertools]]
 version = "0.13.0"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.itertools]]
 version = "0.14.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.itoa]]
 version = "1.0.18"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.javascriptcore-rs]]
 version = "1.1.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.javascriptcore-rs-sys]]
 version = "1.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.jni]]
 version = "0.22.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.jni-macros]]
 version = "0.22.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.jni-sys]]
 version = "0.3.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.jni-sys]]
 version = "0.4.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.jni-sys-macros]]
 version = "0.4.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.jobserver]]
 version = "0.1.35"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.js-sys]]
 version = "0.3.103"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.keyboard-types]]
 version = "0.7.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.konst]]
 version = "0.2.20"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.konst_macro_rules]]
 version = "0.2.19"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.kuchikiki]]
 version = "0.8.8-speedreader"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.lazy-js-bundle]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.lebe]]
 version = "0.5.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libappindicator]]
 version = "0.9.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libappindicator-sys]]
 version = "0.9.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libc]]
 version = "0.2.189"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libfuzzer-sys]]
 version = "0.4.13"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libloading]]
 version = "0.7.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libloading]]
 version = "0.8.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libm]]
 version = "0.2.16"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libredox]]
 version = "0.1.18"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libsqlite3-sys]]
 version = "0.38.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libxdo]]
 version = "0.6.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libxdo-sys]]
 version = "0.11.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.linux-raw-sys]]
 version = "0.12.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.litemap]]
 version = "0.8.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.lock_api]]
 version = "0.4.14"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.log]]
 version = "0.4.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.longest-increasing-subsequence]]
 version = "0.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.loop9]]
 version = "0.1.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.mac]]
 version = "0.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.macro-string]]
 version = "0.1.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.manganis]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.manganis-core]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.manganis-macro]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.markup5ever]]
 version = "0.14.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.match_token]]
 version = "0.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.maybe-rayon]]
 version = "0.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.memchr]]
 version = "2.8.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.memmap2]]
 version = "0.9.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.memoffset]]
 version = "0.9.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.moxcms]]
 version = "0.8.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.muda]]
 version = "0.17.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.native-tls]]
 version = "0.2.18"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.ndk]]
 version = "0.9.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.ndk-sys]]
 version = "0.6.0+11769913"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.new_debug_unreachable]]
 version = "1.0.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.no_std_io2]]
 version = "0.9.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.nodrop]]
 version = "0.1.14"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.nom]]
 version = "8.0.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.noop_proc_macro]]
 version = "0.3.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.normpath]]
 version = "1.5.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.num-bigint]]
 version = "0.4.8"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.num-complex]]
 version = "0.4.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.num-conv]]
 version = "0.2.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.num_enum]]
 version = "0.7.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.num_enum_derive]]
 version = "0.7.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.objc]]
 version = "0.2.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.objc2]]
 version = "0.6.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.objc2-app-kit]]
 version = "0.3.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.objc2-exception-helper]]
 version = "0.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.objc2-ui-kit]]
 version = "0.3.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.objc2-web-kit]]
 version = "0.3.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.objc_id]]
 version = "0.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.once_cell]]
 version = "1.21.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.openssl]]
 version = "0.10.81"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.openssl-probe]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.openssl-sys]]
 version = "0.9.117"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.page_size]]
 version = "0.6.0"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pango]]
 version = "0.18.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pango-sys]]
 version = "0.18.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.parking_lot]]
 version = "0.12.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.parking_lot_core]]
 version = "0.9.12"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.password-hash]]
 version = "0.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.paste]]
 version = "1.0.15"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pastey]]
 version = "0.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf]]
 version = "0.8.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf]]
 version = "0.10.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf]]
 version = "0.11.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_codegen]]
 version = "0.8.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_codegen]]
 version = "0.11.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_generator]]
 version = "0.8.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_generator]]
 version = "0.10.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_generator]]
 version = "0.11.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_macros]]
 version = "0.10.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_shared]]
 version = "0.8.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_shared]]
 version = "0.10.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.phf_shared]]
 version = "0.11.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pin-project]]
 version = "1.1.13"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pin-project-internal]]
 version = "1.1.13"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pin-project-lite]]
 version = "0.2.17"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pkg-config]]
 version = "0.3.33"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.plotters]]
 version = "0.3.7"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.plotters-backend]]
 version = "0.3.7"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.plotters-svg]]
 version = "0.3.7"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.png]]
 version = "0.18.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pollster]]
 version = "0.4.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.poly1305]]
 version = "0.9.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.potential_utf]]
 version = "0.1.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.ppv-lite86]]
 version = "0.2.21"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.proc-macro-crate]]
 version = "1.3.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.proc-macro-crate]]
 version = "2.0.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.proc-macro-crate]]
 version = "3.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.proc-macro-hack]]
 version = "0.5.20+deprecated"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.proc-macro2]]
 version = "1.0.107"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.proc-macro2-diagnostics]]
 version = "0.10.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.profiling]]
 version = "1.0.18"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.profiling-procmacros]]
 version = "1.0.18"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.proptest]]
 version = "1.11.0"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pulp]]
 version = "0.22.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pulp-wasm-simd-flag]]
 version = "0.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.pxfm]]
 version = "0.1.30"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.qoi]]
 version = "0.4.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.quick-error]]
 version = "2.0.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.quick-xml]]
 version = "0.41.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.r-efi]]
 version = "5.3.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.r-efi]]
 version = "6.0.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand]]
 version = "0.7.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand]]
 version = "0.8.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand]]
 version = "0.9.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand]]
 version = "0.10.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand_chacha]]
 version = "0.2.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand_chacha]]
 version = "0.9.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand_core]]
 version = "0.5.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand_core]]
 version = "0.9.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand_core]]
 version = "0.10.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand_hc]]
 version = "0.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand_pcg]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rand_xorshift]]
 version = "0.4.0"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rav1e]]
 version = "0.8.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.ravif]]
 version = "0.13.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.raw-cpuid]]
 version = "11.6.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rayon]]
 version = "1.12.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rayon-core]]
 version = "1.13.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.reborrow]]
 version = "0.5.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.redox_syscall]]
 version = "0.5.18"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.redox_users]]
 version = "0.5.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.regex]]
 version = "1.13.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.regex-automata]]
 version = "0.4.16"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.regex-syntax]]
 version = "0.8.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rfd]]
 version = "0.17.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rgb]]
 version = "0.8.53"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.ring]]
 version = "0.17.14"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rsqlite-vfs]]
 version = "0.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rust-i18n]]
 version = "4.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rust-i18n-macro]]
 version = "4.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rust-i18n-support]]
 version = "4.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rustc-hash]]
 version = "2.1.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rustc_version]]
 version = "0.4.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rustix]]
 version = "1.1.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rustls]]
 version = "0.23.43"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rustls-pki-types]]
 version = "1.15.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rustls-webpki]]
 version = "0.103.13"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rustversion]]
 version = "1.0.23"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.rusty-fork]]
 version = "0.3.1"
 criteria = "safe-to-run"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.same-file]]
 version = "1.0.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.schannel]]
 version = "0.1.29"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.scoped-tls]]
 version = "1.0.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.scopeguard]]
 version = "1.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.security-framework]]
 version = "3.7.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.security-framework-sys]]
 version = "2.17.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.selectors]]
 version = "0.24.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.send_wrapper]]
 version = "0.6.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.serde]]
 version = "1.0.229"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.serde-saphyr]]
 version = "0.0.29"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.serde-wasm-bindgen]]
 version = "0.6.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.serde_core]]
 version = "1.0.229"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.serde_derive]]
 version = "1.0.229"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.serde_json]]
 version = "1.0.151"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.serde_repr]]
 version = "0.1.21"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.serde_spanned]]
 version = "0.6.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.servo_arc]]
 version = "0.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.sha1]]
 version = "0.10.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.shlex]]
 version = "2.0.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.signal-hook]]
 version = "0.3.18"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.signal-hook-registry]]
 version = "1.4.8"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.simd-adler32]]
 version = "0.3.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.simd_cesu8]]
 version = "1.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.simd_helpers]]
 version = "0.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.simdutf8]]
 version = "0.1.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.siphasher]]
 version = "0.3.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.siphasher]]
 version = "1.0.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.slab]]
 version = "0.4.12"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.sledgehammer_bindgen]]
 version = "0.6.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.sledgehammer_bindgen_macro]]
 version = "0.6.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.sledgehammer_utils]]
 version = "0.3.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.slotmap]]
 version = "1.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.soup3]]
 version = "0.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.soup3-sys]]
 version = "0.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.sqlite-wasm-rs]]
 version = "0.5.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.stable_deref_trait]]
 version = "1.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.string_cache]]
 version = "0.8.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.string_cache_codegen]]
 version = "0.5.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.subsecond]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.subsecond-types]]
 version = "0.7.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.symlink]]
 version = "0.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.syn]]
 version = "1.0.109"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.syn]]
 version = "2.0.119"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.syn]]
 version = "3.0.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.system-deps]]
 version = "6.2.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tao]]
 version = "0.34.8"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tao-macros]]
 version = "0.1.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.target-lexicon]]
 version = "0.12.16"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tempfile]]
 version = "3.27.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tendril]]
 version = "0.4.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thiserror]]
 version = "1.0.69"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thiserror]]
 version = "2.0.19"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thiserror-impl]]
 version = "1.0.69"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thiserror-impl]]
 version = "2.0.19"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thread_local]]
 version = "1.1.10"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tiff]]
 version = "0.11.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.time]]
 version = "0.3.54"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.time-core]]
 version = "0.1.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.time-macros]]
 version = "0.2.32"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tinystr]]
 version = "0.8.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tokio]]
 version = "1.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tokio-macros]]
 version = "2.7.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml]]
 version = "0.5.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml]]
 version = "0.8.23"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml_datetime]]
 version = "0.6.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml_edit]]
 version = "0.19.15"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml_edit]]
 version = "0.20.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml_edit]]
 version = "0.22.27"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml_edit]]
 version = "0.25.13+spec-1.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml_parser]]
 version = "1.1.3+spec-1.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.toml_write]]
 version = "0.1.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tracing]]
 version = "0.1.44"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tracing-appender]]
 version = "0.2.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tracing-attributes]]
 version = "0.1.31"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tracing-core]]
 version = "0.1.36"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tracing-subscriber]]
 version = "0.3.23"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tracing-wasm]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tray-icon]]
 version = "0.21.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.triomphe]]
 version = "0.1.16"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.tungstenite]]
 version = "0.28.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.typenum]]
 version = "1.20.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.unicode-ident]]
 version = "1.0.24"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.universal-hash]]
 version = "0.6.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.untrusted]]
 version = "0.9.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.url]]
 version = "2.5.8"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.uuid]]
 version = "1.24.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.v_frame]]
 version = "0.3.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.valuable]]
 version = "0.1.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.version-compare]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.version_check]]
 version = "0.9.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.walkdir]]
 version = "2.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.warnings]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.warnings-macro]]
 version = "0.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wasi]]
 version = "0.9.0+wasi-snapshot-preview1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wasi]]
 version = "0.11.1+wasi-snapshot-preview1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wasm-bindgen]]
 version = "0.2.126"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wasm-bindgen-futures]]
 version = "0.4.76"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wasm-bindgen-macro]]
 version = "0.2.126"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wasm-bindgen-macro-support]]
 version = "0.2.126"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wasm-bindgen-shared]]
 version = "0.2.126"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wasm-streams]]
 version = "0.4.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wayland-backend]]
 version = "0.3.16"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wayland-client]]
 version = "0.31.15"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wayland-protocols]]
 version = "0.32.13"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wayland-scanner]]
 version = "0.31.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wayland-sys]]
 version = "0.31.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.web-sys]]
 version = "0.3.103"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.webbrowser]]
 version = "1.2.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.webkit2gtk]]
 version = "2.0.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.webkit2gtk-sys]]
 version = "2.0.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.webview2-com]]
 version = "0.38.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.webview2-com-macros]]
 version = "0.8.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.webview2-com-sys]]
 version = "0.38.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.weezl]]
 version = "0.1.12"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.winapi]]
 version = "0.3.9"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.winapi-i686-pc-windows-gnu]]
 version = "0.4.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.winapi-util]]
 version = "0.1.11"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.winapi-x86_64-pc-windows-gnu]]
 version = "0.4.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows]]
 version = "0.61.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-collections]]
 version = "0.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-core]]
 version = "0.61.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-future]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-implement]]
 version = "0.60.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-interface]]
 version = "0.59.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-link]]
 version = "0.1.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-link]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-numerics]]
 version = "0.2.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-result]]
 version = "0.3.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-strings]]
 version = "0.4.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-sys]]
 version = "0.45.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-sys]]
 version = "0.52.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-sys]]
 version = "0.59.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-sys]]
 version = "0.60.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-sys]]
 version = "0.61.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-targets]]
 version = "0.42.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-targets]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-targets]]
 version = "0.53.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-threading]]
 version = "0.1.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows-version]]
 version = "0.1.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_aarch64_gnullvm]]
 version = "0.42.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_aarch64_gnullvm]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_aarch64_gnullvm]]
 version = "0.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_aarch64_msvc]]
 version = "0.42.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_aarch64_msvc]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_aarch64_msvc]]
 version = "0.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_i686_gnu]]
 version = "0.42.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_i686_gnu]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_i686_gnu]]
 version = "0.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_i686_gnullvm]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_i686_gnullvm]]
 version = "0.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_i686_msvc]]
 version = "0.42.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_i686_msvc]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_i686_msvc]]
 version = "0.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_gnu]]
 version = "0.42.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_gnu]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_gnu]]
 version = "0.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_gnullvm]]
 version = "0.42.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_gnullvm]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_gnullvm]]
 version = "0.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_msvc]]
 version = "0.42.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_msvc]]
 version = "0.52.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.windows_x86_64_msvc]]
 version = "0.53.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.winnow]]
 version = "0.5.40"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.winnow]]
 version = "0.7.15"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.winnow]]
 version = "1.0.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.winres]]
 version = "0.1.12"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.writeable]]
 version = "0.6.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.wry]]
 version = "0.53.5"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.x11]]
 version = "2.21.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.x11-dl]]
 version = "2.21.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.x11rb]]
 version = "0.13.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.x11rb-protocol]]
 version = "0.13.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.xkeysym]]
 version = "0.2.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.y4m]]
 version = "0.8.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.yoke]]
 version = "0.8.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.yoke-derive]]
 version = "0.8.2"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zerocopy]]
 version = "0.8.55"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zerocopy-derive]]
 version = "0.8.55"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zerofrom]]
 version = "0.1.8"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zerofrom-derive]]
 version = "0.1.7"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zeroize_derive]]
 version = "1.5.0"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zerotrie]]
 version = "0.2.4"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zerovec]]
 version = "0.11.6"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zerovec-derive]]
 version = "0.11.3"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zmij]]
 version = "1.0.23"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zune-core]]
 version = "0.5.1"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zune-inflate]]
 version = "0.2.54"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.zune-jpeg]]
 version = "0.5.15"
 criteria = "safe-to-deploy"
-expire-date = "2027-02-16"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."

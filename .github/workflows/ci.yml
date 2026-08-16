@@ -112,16 +112,53 @@ jobs:
       # returntocorp/semgrep-action@v1 is deprecated/unmaintained; the CLI is
       # version-pinned via pipx instead (no third-party action code runs with
       # the job's token).
+      #
+      # RULES ARE VENDORED (pinned by content snapshot, not by registry ref).
+      # The registry packs p/rust, p/secrets, p/security-audit, p/owasp-top-ten
+      # are LIVE server-side state: their composition can change under us at
+      # any moment, making CI nondeterministic. The assumed fix — registry ref
+      # pinning `p/<pack>@<ref>` — DOES NOT EXIST (verified 2026-08-16 against
+      # semgrep 1.173.0: semgrep.dev/c/p/rust@<ref> returns HTTP 404 for every
+      # ref shape — semver, dates, full/short git SHA, branch names, "latest";
+      # the semgrep-rules repo has no git tags/releases at all; the registry
+      # API /api/registry/rulesets/rust has no version field; the docs never
+      # mention pack pinning). So the rules are vendored verbatim into
+      # supply-chain/semgrep/packs/: the exact anonymous-tier YAML/JSON that
+      # `--config p/<pack>` downloads from https://semgrep.dev/c/p/<pack>.
+      # Counts at vendoring time (2026-08-16): rust 11, secrets 52,
+      # security-audit 225, owasp-top-ten 560 rules (848 total).
+      # Update procedure: re-download the four URLs over the vendored files,
+      # review the diff like any other dependency bump, and run BOTH passes
+      # below locally — an update must keep the gate meaningful.
+      #
+      # Severity policy — the gate blocks on ERROR/WARNING findings only
+      # (`--severity` filters on the second pass). INFO is semgrep's tier for
+      # blanket "audit" hints (subcategory: audit, likelihood/impact LOW)
+      # whose patterns fire on ANY use of an API. Concretely, p/rust ships
+      # rust.lang.security.args.args / .temp-dir.temp-dir, which flag every
+      # `std::env::args()` / `std::env::temp_dir()` call site as INFO; this
+      # repo's hits are the e2e `--emit-batch-js` argv hook (cfg(feature="e2e"),
+      # never in release builds) and a cfg(test) fixture — legitimate uses the
+      # rules cannot distinguish, so the code is NOT contorted to appease them
+      # and no nosem/rule-deletion/file-ignore is used. INFO findings are not
+      # suppressed from view: pass 1 prints every finding (all severities,
+      # exit 0) into the CI log; only pass 2 carries the blocking exit code.
       - name: SAST — Semgrep
-        # p/secret-detection was retired from the semgrep.dev registry (HTTP
-        # 404 since 2026-08); p/secrets is the maintained successor ruleset.
         run: |
           pipx install semgrep==1.173.0
-          semgrep scan --error \
-            --config p/rust \
-            --config p/secrets \
-            --config p/security-audit \
-            --config p/owasp-top-ten
+          # Pass 1 — visibility: full scan, every severity, findings logged,
+          # never fails the job.
+          semgrep scan \
+            --config supply-chain/semgrep/packs/rust.yaml \
+            --config supply-chain/semgrep/packs/secrets.yaml \
+            --config supply-chain/semgrep/packs/security-audit.yaml \
+            --config supply-chain/semgrep/packs/owasp-top-ten.yaml
+          # Pass 2 — the gate: findings at ERROR/WARNING severities fail CI.
+          semgrep scan --error --severity ERROR --severity WARNING \
+            --config supply-chain/semgrep/packs/rust.yaml \
+            --config supply-chain/semgrep/packs/secrets.yaml \
+            --config supply-chain/semgrep/packs/security-audit.yaml \
+            --config supply-chain/semgrep/packs/owasp-top-ten.yaml
 
       # --- Supply-chain: cargo-deny + cargo-audit + cargo-vet -----------------
       - name: Supply-chain — cargo-deny (advisories, bans, licenses, sources)
@@ -135,9 +172,15 @@ jobs:
         # Alliance/Embark) from their sources, then verify every dependency is
         # either vetted, imported, or explicitly exempted with a reason.
         # Honest scope: most transitive crates are still bootstrap EXEMPTIONS
-        # (annotated + expire-dated in supply-chain/config.toml), so this gate
-        # primarily catches NEW unaudited dependencies and lapsed exemptions —
-        # it is not yet a first-party audit of the whole tree.
+        # (annotated in supply-chain/config.toml), so this gate primarily
+        # catches NEW unaudited dependencies — it is not yet a first-party
+        # audit of the whole tree. There is NO expiry enforcement on
+        # exemptions: cargo-vet (verified 2026-08-16 against 0.10.2 — the
+        # newest release — and upstream main) has no expire-date field for
+        # exemptions (expiration exists only for wildcard audits), and any
+        # such key is silently dropped when the tool rewrites config.toml
+        # (both `check` and `regenerate imports` rewrite the file). The
+        # exemption debt is tracked by manual review, not by a timer.
         run: |
           cargo vet regenerate imports
           cargo vet check --verbose=info
