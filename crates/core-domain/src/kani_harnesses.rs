@@ -43,34 +43,25 @@ fn any_string() -> String {
     String::from_utf8_lossy(&buf).into_owned()
 }
 
-/// Generates an arbitrary VALID UTF-8 string of at most `INPUT_BUF_LEN` bytes.
+/// Like [`any_string`], but generating a valid-UTF-8 (ASCII) string of at
+/// most `max_len` bytes, with an explicit per-harness cap.
 ///
 /// The parsers' contract takes `&str` (always valid UTF-8 by construction);
 /// `from_utf8_lossy` in [`any_string`] exists only for harness plumbing and
 /// can expand 8 arbitrary bytes into a 24-byte string of U+FFFD replacements.
 /// `SanitizedDisplayName::parse` (trim → chars().count() → filter().collect())
 /// over such a 24-byte string made `verify_display_name_parse_no_panic`
-/// diverge on CI solvers: every run since 2026-08-09 ground ~60 s per
-/// `core::str::count::do_count_chars` unwinding step until the 90-minute job
-/// timeout cancelled the whole Kani workflow. ASCII input keeps byte length
-/// equal to char count, still covering the same boundary classes (empty,
-/// short, whitespace, control characters, edge bytes), and the no-panic
-/// property stays meaningful for the contract the parser actually has.
-fn any_ascii_str() -> String {
-    any_ascii_str_bounded(INPUT_BUF_LEN)
-}
-
-/// Like [`any_ascii_str`], with an explicit per-harness length cap.
-///
-/// `SanitizedDisplayName::parse` additionally runs `chars().filter().collect()`
-/// over the symbolic input: every extra symbolic character doubles the path
-/// count through the collection/allocation chain. Even with valid-ASCII input
-/// (see [`any_ascii_str`]) the 8-byte bound left the CI solver grinding a
-/// single SAT query for 35+ minutes (run 31967364663, 2026-08-16). 4 bytes —
-/// the same convergence-driven reduction as INPUT_BUF_LEN 16→8 above — still
-/// covers every parser branch reachable by short input (empty, whitespace,
-/// control characters; the TooLong branch needs >`MAX_DISPLAY_NAME_LEN`
-/// chars and is covered by unit tests).
+/// diverge on CI solvers: every run since 2026-08-09 ground until the
+/// 90-minute job timeout cancelled the whole Kani workflow, and even
+/// valid-ASCII input at the 8-byte default left the solver on a single SAT
+/// query for 35+ minutes (run 31967364663, 2026-08-16) — the parse runs
+/// `chars().filter().collect()` over the symbolic input, and every extra
+/// symbolic character doubles the path count through that allocation chain.
+/// The 4-byte cap for this harness is the same convergence-driven reduction
+/// as INPUT_BUF_LEN 16→8 above; it still covers every parser branch
+/// reachable by short input (empty, whitespace, control characters — the
+/// TooLong branch needs >`MAX_DISPLAY_NAME_LEN` chars and is covered by
+/// unit tests).
 fn any_ascii_str_bounded(max_len: usize) -> String {
     let len: usize = kani::any_where(|n| *n <= max_len);
     let mut buf = String::new();
