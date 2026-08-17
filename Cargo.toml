@@ -20,7 +20,7 @@ members = [
 exclude = ["fuzz"]
 
 [workspace.package]
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"          # Rust 2024 Edition — native async fn in traits, etc.
 rust-version = "1.97.1"   # matches rust-toolchain.toml exactly
 license = "MIT OR Apache-2.0"
@@ -109,10 +109,10 @@ wildcard_dependencies = "deny"     # forbid "*" versions — deny.toml rule dupl
 # ----------------------------------------------------------------------------
 [workspace.dependencies]
 # Internal crates — single source of truth for the version.
-mailgrit-core-csv = { version = "0.1.4", path = "crates/core-csv" }
-mailgrit-core-domain = { version = "0.1.4", path = "crates/core-domain" }
-mailgrit-core-storage = { version = "0.1.4", path = "crates/core-storage" }
-mailgrit-core-security = { version = "0.1.4", path = "crates/core-security" }
+mailgrit-core-csv = { version = "0.1.5", path = "crates/core-csv" }
+mailgrit-core-domain = { version = "0.1.5", path = "crates/core-domain" }
+mailgrit-core-storage = { version = "0.1.5", path = "crates/core-storage" }
+mailgrit-core-security = { version = "0.1.5", path = "crates/core-security" }
 
 # Third-party dependencies shared by several members — declared once so the
 # versions cannot drift between manifests (previously thiserror was spelled

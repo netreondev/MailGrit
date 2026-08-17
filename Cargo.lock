@@ -2822,7 +2822,7 @@ dependencies = [
 
 [[package]]
 name = "mailgrit-app-desktop"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "dioxus",
  "dioxus-desktop",
@@ -2852,7 +2852,7 @@ dependencies = [
 
 [[package]]
 name = "mailgrit-core-csv"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "criterion",
  "mailgrit-core-domain",
@@ -2863,7 +2863,7 @@ dependencies = [
 
 [[package]]
 name = "mailgrit-core-domain"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "rand 0.9.5",
  "thiserror 2.0.20",
@@ -2872,7 +2872,7 @@ dependencies = [
 
 [[package]]
 name = "mailgrit-core-security"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "argon2",
  "chacha20poly1305",
@@ -2887,7 +2887,7 @@ dependencies = [
 
 [[package]]
 name = "mailgrit-core-storage"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "mailgrit-core-security",
  "rusqlite",
