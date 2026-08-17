@@ -1097,9 +1097,9 @@ criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libsqlite3-sys]]
-version = "0.38.1"
+version = "0.38.2"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Dependabot patch bump 2026-08-17 (supersedes PR #25): not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.libxdo]]
 version = "0.6.0"
@@ -1711,6 +1711,11 @@ version = "0.1.1"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
+[[exemptions.rusqlite]]
+version = "0.40.2"
+criteria = "safe-to-deploy"
+notes = "Dependabot patch bump 2026-08-17 (supersedes PR #25). 0.40.1 carried a first-party safe-to-deploy audit; the 0.40.2 delta (6 files, +76/-38) is pending review — this exemption keeps the gate red-lining the unaudited delta explicitly."
+
 [[exemptions.rust-i18n]]
 version = "4.2.1"
 criteria = "safe-to-deploy"
@@ -2022,9 +2027,9 @@ criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thiserror]]
-version = "2.0.19"
+version = "2.0.20"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Dependabot patch bump 2026-08-17 (supersedes PR #25): not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thiserror-impl]]
 version = "1.0.69"
@@ -2032,9 +2037,9 @@ criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thiserror-impl]]
-version = "2.0.19"
+version = "2.0.20"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Dependabot patch bump 2026-08-17 (supersedes PR #25): not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.thread_local]]
 version = "1.1.10"
@@ -2047,9 +2052,9 @@ criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.time]]
-version = "0.3.54"
+version = "0.3.55"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Dependabot patch bump 2026-08-17 (supersedes PR #25): not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.time-core]]
 version = "0.1.9"
