@@ -356,7 +356,10 @@ fn unmapped_empty_default_field_parses() -> Result<(), Box<dyn std::error::Error
 // exercised natively here (nextest) and the parser loop it protects is
 // interpreted by Miri through the small-fixture mapping tests above.
 #[test]
-#[cfg_attr(miri, ignore = "50k-row boundary budget test: hours under the interpreter, 0.5s natively")]
+#[cfg_attr(
+    miri,
+    ignore = "50k-row boundary budget test: hours under the interpreter, 0.5s natively"
+)]
 fn auto_enforces_max_csv_rows_budget() -> Result<(), Box<dyn std::error::Error>> {
     use mailgrit_core_csv::CsvParseError;
     use mailgrit_core_domain::MAX_CSV_ROWS;
