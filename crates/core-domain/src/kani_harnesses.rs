@@ -44,7 +44,7 @@ fn any_string() -> String {
 }
 
 /// Like [`any_string`], but generating a valid-UTF-8 (ASCII) string of at
-/// most `max_len` bytes, with an explicit per-harness cap.
+/// most `INPUT_BUF_LEN` bytes.
 ///
 /// The parsers' contract takes `&str` (always valid UTF-8 by construction);
 /// `from_utf8_lossy` in [`any_string`] exists only for harness plumbing and
@@ -52,18 +52,14 @@ fn any_string() -> String {
 /// `SanitizedDisplayName::parse` (trim → chars().count() → filter().collect())
 /// over such a 24-byte string made `verify_display_name_parse_no_panic`
 /// diverge on CI solvers: every run since 2026-08-09 ground until the
-/// 90-minute job timeout cancelled the whole Kani workflow, and even
-/// valid-ASCII input at the 8-byte default left the solver on a single SAT
-/// query for 35+ minutes (run 31967364663, 2026-08-16) — the parse runs
-/// `chars().filter().collect()` over the symbolic input, and every extra
-/// symbolic character doubles the path count through that allocation chain.
-/// The 4-byte cap for this harness is the same convergence-driven reduction
-/// as INPUT_BUF_LEN 16→8 above; it still covers every parser branch
-/// reachable by short input (empty, whitespace, control characters — the
-/// TooLong branch needs >`MAX_DISPLAY_NAME_LEN` chars and is covered by
-/// unit tests).
-fn any_ascii_str_bounded(max_len: usize) -> String {
-    let len: usize = kani::any_where(|n| *n <= max_len);
+/// 90-minute job timeout cancelled the whole Kani workflow — the action's
+/// default Kani build spent ~60 s per `str::count` unwinding step. With the
+/// ASCII input model AND Kani pinned to 0.67.0 (kani.yml), the full 8-byte
+/// symbolic input verifies in minutes (validated 2026-08-16, both bounds 4
+/// and 8); the input still covers the same boundary classes (empty, short,
+/// whitespace, control characters, edge bytes).
+fn any_ascii_str() -> String {
+    let len: usize = kani::any_where(|n| *n <= INPUT_BUF_LEN);
     let mut buf = String::new();
     for _ in 0..len {
         let byte: u8 = kani::any_where(|b| *b <= 0x7F);
@@ -193,7 +189,7 @@ fn verify_password_parse_rejects_comma() {
 // state space tractable while covering the bounded input fully.
 #[kani::unwind(12)]
 fn verify_display_name_parse_no_panic() {
-    let input = any_ascii_str_bounded(4);
+    let input = any_ascii_str();
     let _ = SanitizedDisplayName::parse(&input);
 }
 

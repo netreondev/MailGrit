@@ -54,7 +54,18 @@ jobs:
       # --solver kissat: faster SAT solver. --default-unwind 20 bounds the
       # from_utf8_lossy / Utf8Chunks::next loop (8-byte input buffer → ≤8
       # iterations + slack) that Kani would otherwise unroll indefinitely.
+      #
+      # kani-version pinned to 0.67.0: the action's default (crates.io-latest
+      # at action-pinning time) shipped a CBMC whose SAT solving on the
+      # display_name no-panic harness diverged — every run since 2026-08-09
+      # ground ~60 s per str::count unwinding step and was cancelled by the
+      # 90-minute job timeout (runs 31294142192, 31299647997, 31924909000,
+      # 31962413897), i.e. the weekly gate was silently red for 2+ weeks.
+      # Kani 0.67.0 verifies the same harness (with the convergent input
+      # model from kani_harnesses.rs) in minutes. Keep the pin explicit so
+      # the gate never silently regresses with an action-side default bump.
       - name: "Kani (core-domain — parsers: no-panic, determinism, invariants)"
         uses: model-checking/kani-github-action@f838096619a707b0f6b2118cf435eaccfa33e51f # v1.1
         with:
+          kani-version: 0.67.0
           args: "-p mailgrit-core-domain -Z unstable-options --solver kissat --default-unwind 20"
