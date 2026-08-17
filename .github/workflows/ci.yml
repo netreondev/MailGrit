@@ -70,7 +70,7 @@ jobs:
           fetch-depth: 0
 
       - name: Install cargo tools
-        uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
+        uses: taiki-e/install-action@7f4eb899022d8fe70b20c4f3de697aa85c309026 # v2.85.11
         # GITHUB_TOKEN authenticates api.github.com version resolution —
         # anonymous calls from shared runner IPs 403 under the 60/hr quota.
         env:
@@ -256,7 +256,7 @@ jobs:
         uses: ./.github/actions/linux-deps
 
       - name: Install cargo tools
-        uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
+        uses: taiki-e/install-action@7f4eb899022d8fe70b20c4f3de697aa85c309026 # v2.85.11
         # Pinning + GITHUB_TOKEN: unpinned "latest" resolution calls
         # api.github.com anonymously from shared runner IPs — the 60/hr quota
         # fails with 403/exit 22 under burst load (seen 2026-08-16 on all
@@ -679,7 +679,7 @@ jobs:
       - name: Install nightly Rust
         run: rustup toolchain install nightly
       - name: Install cargo-mutants
-        uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
+        uses: taiki-e/install-action@7f4eb899022d8fe70b20c4f3de697aa85c309026 # v2.85.11
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
