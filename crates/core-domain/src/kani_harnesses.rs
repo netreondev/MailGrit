@@ -181,16 +181,21 @@ fn verify_password_parse_rejects_comma() {
 #[kani::proof]
 // Fixed-string harness: boundary-value inputs, no symbolic length (see the
 // coverage NOTE above — a symbolic model does not converge on CI hardware).
-// unwind(8) covers the 6-iteration loop below plus slack.
+// Straight-line calls, no loop over an array of &str literals: iterating a
+// literal array introduces slice-pointer objects that CBMC reasons about far
+// more expensively than the parses themselves.
 #[kani::unwind(8)]
 fn verify_display_name_parse_no_panic() {
     // Every parser branch reachable by short input: empty; all-whitespace
     // (trim → empty); leading/trailing whitespace around content (trim
     // boundaries); embedded control characters (the filter branch); DEL at
     // the string edge; multi-run inner whitespace.
-    for input in ["", " \t\r\n", " Ivan ", "a\u{0}b\u{1f}", "\u{7f}x", "I  P"] {
-        let _ = SanitizedDisplayName::parse(input);
-    }
+    let _ = SanitizedDisplayName::parse("");
+    let _ = SanitizedDisplayName::parse(" \t\r\n");
+    let _ = SanitizedDisplayName::parse(" Ivan ");
+    let _ = SanitizedDisplayName::parse("a\u{0}b\u{1f}");
+    let _ = SanitizedDisplayName::parse("\u{7f}x");
+    let _ = SanitizedDisplayName::parse("I  P");
 }
 
 // ============================================================================
