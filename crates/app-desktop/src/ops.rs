@@ -199,8 +199,8 @@ fn apply_op_results(
         // Credential snapshot for export. Passwords live only in
         // `editable_rows`, which is reset on target change (tab), after which
         // the export would lose data. Take the password from the snapshot
-        // only for SUCCESSFUL operations (results come in row order): a
-        // guarantee that the password matches what was sent to the server.
+        // only for SUCCESSFUL operations (results come in row order), so the
+        // password matches what was sent to the server.
         // For edit/delete no accounts are created — the snapshot is already
         // empty.
         let created_credentials = successful_credentials(credential_snapshot, results);

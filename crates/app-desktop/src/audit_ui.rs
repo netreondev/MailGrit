@@ -26,7 +26,8 @@ pub enum AuditError {
     /// HMAC/AEAD failure while verifying or deriving the audit key.
     #[error("audit crypto error: {0}")]
     Crypto(String),
-    /// A hash-chain integrity violation (the log was tampered with). Distinct
+    /// A hash-chain integrity violation (chain mismatch — possible tampering
+    /// or corruption). Distinct
     /// from [`Storage`](Self::Storage) so the UI does not falsely report
     /// "tampering" on any `SQLite` error.
     #[error("audit log integrity violation: {0}")]
@@ -170,8 +171,8 @@ impl AuditWriter {
     ///
     /// # Errors
     ///
-    /// - [`AuditError::Tampered`] — the chain is broken (the log was tampered
-    ///   with).
+    /// - [`AuditError::Tampered`] — the chain is broken (possible tampering
+    ///   or corruption).
     /// - [`AuditError::Storage`] — a DB read error (not tampering).
     /// - [`AuditError::PoisonedLock`] — the mutex is poisoned.
     pub fn verify(&self) -> Result<(), AuditError> {

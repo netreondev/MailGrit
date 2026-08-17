@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 
 /// Atomically replaces `path`'s content with `bytes`.
 ///
-/// Guarantees: the destination is either the OLD complete file or the NEW
+/// Property: the destination is either the OLD complete file or the NEW
 /// complete file — never a truncated mix. A crash can only leave the temp
 /// file behind (picked up by the next attempt's stale-temp handling).
 ///

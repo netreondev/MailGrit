@@ -62,7 +62,7 @@ subtitle.login: "Aanmelding"
 subtitle.dashboard: "Bewerkingen"
 
 # ── Aanmeldscherm ───────────────────────────────────────────────────────────
-login.tagline: "Massa-automatisering voor iRedAdmin"
+login.tagline: "Bulkbeheer voor iRedAdmin"
 login.authorized_notice: "Uitsluitend voor geautoriseerd beheer — gebruik MailGrit alleen op iRedAdmin-servers die u bezit of beheert."
 login.server_label: "iRedAdmin-serveradres"
 login.server_hint: "Voer de volledige https-URL van het beheerpaneel in"
@@ -121,7 +121,7 @@ audit.col_time: "Tijd"
 audit.col_action: "Actie"
 audit.col_detail: "Details"
 audit.chain_ok: "De auditketen is intact"
-audit.chain_broken: "De auditketen IS VERBROKEN (logboek gemanipuleerd)"
+audit.chain_broken: "De auditketen IS VERBROKEN (mogelijke manipulatie of corruptie)"
 audit.verify_storage_error: "Kon integriteit niet verifiëren: leesfout van audit-DB"
 audit.verify_lock_error: "Kon integriteit niet verifiëren: audit-status beschadigd"
 

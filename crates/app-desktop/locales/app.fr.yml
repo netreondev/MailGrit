@@ -62,7 +62,7 @@ subtitle.login: "Connexion"
 subtitle.dashboard: "Panneau des opérations"
 
 # ── Écran de connexion ──────────────────────────────────────────────────────
-login.tagline: "Automatisation en masse pour iRedAdmin"
+login.tagline: "Administration en lot pour iRedAdmin"
 login.authorized_notice: "Administration autorisée uniquement — n'opérez que sur des serveurs iRedAdmin que vous possédez ou administrez."
 login.server_label: "Adresse du serveur iRedAdmin"
 login.server_hint: "Saisir l'URL https complète du panneau d'administration"
@@ -121,7 +121,7 @@ audit.col_time: "Heure"
 audit.col_action: "Action"
 audit.col_detail: "Détails"
 audit.chain_ok: "La chaîne d'audit est intacte"
-audit.chain_broken: "La chaîne d'audit EST ROMPUE (journal falsifié)"
+audit.chain_broken: "La chaîne d'audit EST ROMPUE (falsification ou corruption possible)"
 audit.verify_storage_error: "Impossible de vérifier l'intégrité : erreur de lecture de la BDD d'audit"
 audit.verify_lock_error: "Impossible de vérifier l'intégrité : état d'audit corrompu"
 

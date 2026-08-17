@@ -5,7 +5,7 @@
 //! H_n = HMAC-SHA256(Message_n ‖ H_{n-1}, K)
 //! ```
 //! where `K` is the isolated master key of the system. Any point modification
-//! or deletion of rows by an attacker breaks the chain on the next check.
+//! or deletion of rows breaks the chain on the next verification.
 //!
 //! Initial value H_0 = zeros (or a fixed genesis hash).
 // SPDX-License-Identifier: MIT OR Apache-2.0
@@ -61,7 +61,7 @@ pub fn chain_hash(
 /// # Errors
 ///
 /// - [`SecurityError::ChainBroken`] — an entry with an incorrect hash was found
-///   (the log was tampered with retroactively).
+///   (possible retroactive modification of the log).
 pub fn verify_chain<I>(key: &EncryptionKey, entries: I) -> Result<(), SecurityError>
 where
     I: IntoIterator<Item = (Vec<u8>, [u8; HMAC_LEN])>,

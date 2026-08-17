@@ -3,9 +3,9 @@
 
 # MailGrit
 
-> Cross-platform desktop client (Windows / Linux / macOS ARM) for bulk automation of iRedAdmin mail servers. Built in Rust with Dioxus desktop — no Node/JS toolchain. Performs bulk create, edit and delete of mail user accounts through an embedded authenticated browser (works behind FortiWeb / WAF). All data stays on your machine (no telemetry); exports can be encrypted with a master password; 9 UI languages. Free and open source (MIT OR Apache-2.0).
+> Cross-platform desktop client (Windows / Linux / macOS ARM) for bulk automation of iRedAdmin mail servers. Built in Rust with Dioxus desktop — no Node/JS toolchain. Performs bulk create, edit and delete of mail user accounts through an embedded authenticated browser (requests run inside your authenticated browser session). Local-first: data stays in one folder next to the app, no telemetry; exports can be encrypted with a master password; 9 UI languages. Free and open source (MIT OR Apache-2.0).
 
-MailGrit is a native desktop GUI application for mail server administrators. It does NOT read mail — it is a bulk account-provisioning tool for iRedAdmin servers. Operations run as a JS `fetch()` POST of the real iRedAdmin HTML form (CSRF-aware) inside the same webview that holds the legitimate session, so the tool works even when the server sits behind a WAF / reverse proxy (e.g. FortiWeb).
+MailGrit is a native desktop GUI application for mail server administrators. It does NOT read mail — it is a bulk account-provisioning tool for iRedAdmin servers. Operations run as a JS `fetch()` POST of the real iRedAdmin HTML form (CSRF-aware) inside the same webview that holds your session, so requests typically pass WAFs / reverse proxies (e.g. FortiWeb) — this depends on the server setup and is not guaranteed.
 
 Authorized use only: run MailGrit solely on systems and accounts you own or are authorized to administer. Unauthorized use is illegal and is the user's sole responsibility. "iRedAdmin" is a trademark of its respective owners; MailGrit is independent and not affiliated with or endorsed by iRedAdmin.
 

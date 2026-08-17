@@ -33,7 +33,8 @@ pub enum SecurityError {
     /// Key derivation error from the master password (KDF).
     #[error("key derivation from master password error: {0}")]
     Kdf(String),
-    /// Audit hash-chain integrity violation (log tampered with).
+    /// Audit hash-chain integrity violation (chain mismatch — possible
+    /// tampering or corruption).
     #[error("audit hash-chain integrity violation at entry #{entry_index}")]
     ChainBroken {
         /// Index of the entry with a broken chain.

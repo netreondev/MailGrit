@@ -13,7 +13,8 @@
 //! the editable table checks passwords against this policy and highlights (with a
 //! warning icon and tooltip) rows whose password is weaker — this informs rather
 //! than blocks the operation. Enforcing the required character classes in the
-//! generator settings guarantees that generated passwords always pass the policy.
+//! generator settings makes generated passwords satisfy the policy by
+//! construction.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors
 

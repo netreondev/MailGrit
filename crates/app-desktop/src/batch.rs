@@ -29,8 +29,8 @@ pub struct BatchResult {
 /// Credentials of a created account for export.
 ///
 /// The values are taken from a valid `SanitizedUserRow` (typestate pipeline)
-/// only for successfully executed operations, so the password is guaranteed to
-/// match what was sent to the server.
+/// only for successfully executed operations, so the password matches what
+/// was sent to the server.
 ///
 /// SECURITY TRADE-OFF (deliberate): the password lives here as a plain
 /// `String`, unlike the master password / generated passwords, which are

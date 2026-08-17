@@ -8,7 +8,7 @@
 //! class family (see `assets/app.css`), keyed by [`Language::country_code`]. This
 //! is platform-independent: the regional-indicator emoji used previously do not
 //! render as flag glyphs on Windows/WebView2 (Segoe UI Emoji lacks them), so the
-//! SVG approach guarantees identical flags on Windows, Linux, and macOS.
+//! SVG approach keeps the flags identical on Windows, Linux, and macOS.
 //!
 //! Context: used in the dashboard context-bar and on the login screen.
 //!

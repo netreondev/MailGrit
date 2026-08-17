@@ -54,8 +54,8 @@ mod tests {
 
     /// The byte-budget `DoS` guard (`MAX_CSV_FIELD_BYTES`) must be large enough
     /// that any semantically-valid field (worst case: `len` chars × 4 bytes/char
-    /// for a maximally multibyte UTF-8 string) fits within it. This guarantees
-    /// the byte limit never pre-empts a semantically-valid value — i.e. the only
+    /// for a maximally multibyte UTF-8 string) fits within it, so the byte
+    /// limit never pre-empts a semantically-valid value — i.e. the only
     /// reason a field can be rejected at the CSV layer is genuine size abuse.
     #[test]
     fn csv_byte_budget_covers_char_limits() {

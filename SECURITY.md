@@ -43,7 +43,9 @@ This policy covers the **MailGrit source code** in this repository. It does
 Security-relevant engineering choices in MailGrit:
 
 - **`unsafe_code = "forbid"`** at the workspace level — no `unsafe` Rust anywhere
-  in the application crates (verified in CI by clippy/rustc).
+  in the application crates (verified in CI by clippy/rustc). This limits one
+  class of memory-safety issues in first-party code; it is not a security
+  certification and does not extend to dependencies.
 - **Strict lint discipline** — `panic`/`unwrap`/`expect`/`indexing_slicing`/
   `arithmetic_side_effects` are all `deny`, reducing runtime panics.
 - **Hash-chained audit log (not encrypted)** — every operation is appended to a

@@ -62,7 +62,7 @@ subtitle.login: "Logowanie"
 subtitle.dashboard: "Panel operacji"
 
 # ── Ekran logowania ─────────────────────────────────────────────────────────
-login.tagline: "Masowa automatyzacja dla iRedAdmin"
+login.tagline: "Masowe administrowanie dla iRedAdmin"
 login.authorized_notice: "Wyłącznie do autoryzowanego administrowania — używaj tylko na serwerach iRedAdmin, których jesteś właścicielem lub które masz uprawnienie administrować."
 login.server_label: "Adres serwera iRedAdmin"
 login.server_hint: "Wprowadź pełny adres URL https panelu administracyjnego"
@@ -121,7 +121,7 @@ audit.col_time: "Czas"
 audit.col_action: "Akcja"
 audit.col_detail: "Szczegóły"
 audit.chain_ok: "Łańcuch audytu jest nienaruszony"
-audit.chain_broken: "Łańcuch audytu ZŁAMANY (dziennik sfałszowany)"
+audit.chain_broken: "Łańcuch audytu ZŁAMANY (możliwa fałszacja lub uszkodzenie)"
 audit.verify_storage_error: "Nie udało się zweryfikować integralności: błąd odczytu bazy audytu"
 audit.verify_lock_error: "Nie udało się zweryfikować integralności: stan audytu uszkodzony"
 

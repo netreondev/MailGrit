@@ -22,7 +22,7 @@
   </script>
 
   <title>MailGrit — Bulk iRedAdmin Automation Desktop App</title>
-  <meta name="description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. All data stays on your machine; 9 languages.">
+  <meta name="description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, through an embedded authenticated browser session. Local-first, no telemetry; 9 languages.">
   <meta name="keywords" content="iRedAdmin, bulk mail automation, desktop app, Rust, Dioxus, FortiWeb, WAF, mail server admin, mail account creation, local-first">
   <meta name="author" content="Netreon™ and contributors">
   <meta name="robots" content="index, follow">
@@ -44,7 +44,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="MailGrit">
   <meta property="og:title" content="MailGrit — Bulk iRedAdmin Automation Desktop App">
-  <meta property="og:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. All data stays on your machine; 9 languages.">
+  <meta property="og:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, through an embedded authenticated browser session. Local-first, no telemetry; 9 languages.">
   <meta property="og:url" content="https://netreondev.github.io/MailGrit/">
   <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta property="og:image:secure_url" content="https://netreondev.github.io/MailGrit/assets/og.png">
@@ -58,7 +58,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MailGrit — Bulk iRedAdmin Automation Desktop App">
-  <meta name="twitter:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. All data stays on your machine; 9 languages.">
+  <meta name="twitter:description" content="Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, through an embedded authenticated browser session. Local-first, no telemetry; 9 languages.">
   <meta name="twitter:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta name="twitter:image:alt" content="MailGrit — bulk iRedAdmin automation desktop app">
 
@@ -109,7 +109,7 @@
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "MailGrit — Bulk iRedAdmin Automation Desktop App",
-    "description": "Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, even behind FortiWeb/WAF. All data stays on your machine; 9 languages.",
+    "description": "Cross-platform Rust desktop app for bulk create, edit and delete of mail accounts on iRedAdmin servers, through an embedded authenticated browser session. Local-first, no telemetry; 9 languages.",
     "url": "https://netreondev.github.io/MailGrit/",
     "inLanguage": "en",
     "isPartOf": {
@@ -152,7 +152,7 @@
         "name": "Does MailGrit work behind FortiWeb or a WAF?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Yes. Bulk operations run as a JavaScript fetch POST of the real iRedAdmin create/edit HTML form (with a CSRF token) inside the same embedded webview that holds the legitimate session. Because the request originates from the authenticated browser session, it works even when the server is behind FortiWeb or another web application firewall."
+          "text": "Usually, yes. Bulk operations run as a JavaScript fetch POST of the real iRedAdmin create/edit HTML form (with a CSRF token) inside the same embedded webview that holds your session. Because the request originates from your authenticated browser session, it typically passes FortiWeb and other web application firewalls. This depends on the server's configuration and is not covered by our test suite; reports of problems are welcome."
         }
       },
       {
@@ -160,7 +160,7 @@
         "name": "How does MailGrit authenticate against iRedAdmin?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "You sign in through the embedded browser using your real iRedAdmin credentials. The app detects a successful login data-driven, by the login webview navigating to /dashboard, rather than by guessing cookie names. It then executes operations as a fetch inside that same authenticated webview."
+          "text": "You sign in through the embedded browser using your real iRedAdmin credentials. The app detects a successful login data-driven, by the login webview navigating to /dashboard. It then executes operations as a fetch inside that same authenticated webview."
         }
       },
       {
@@ -238,8 +238,8 @@
             <h1>Bulk <span class="grad">iRedAdmin</span> automation, from the desktop.</h1>
             <p class="lead">
               MailGrit is a cross-platform desktop app for creating, editing and deleting mail user
-              accounts on iRedAdmin servers in bulk &mdash; even behind FortiWeb / WAF &mdash; through
-              an embedded browser that performs a legitimate <code>fetch</code> inside the real session.
+              accounts on iRedAdmin servers in bulk, through an embedded browser that performs a
+              <code>fetch</code> inside the session you signed in to.
               No Node/JS toolchain: native WebView2/wry via Dioxus 0.7.
             </p>
             <div class="hero-cta">
@@ -350,7 +350,7 @@
         <div class="stats">
           <div class="stat reveal"><div class="num" data-count="5">5</div><div class="label">Isolated workspace crates</div></div>
           <div class="stat reveal"><div class="num" data-count="9">9</div><div class="label">UI languages, embedded at compile time</div></div>
-          <div class="stat reveal"><div class="num">100%</div><div class="label">Local: all data stays on your machine</div></div>
+          <div class="stat reveal"><div class="num">1</div><div class="label">Local data folder &mdash; settings, logs and audit trail</div></div>
           <div class="stat reveal"><div class="num" data-count="3">3</div><div class="label">Platforms in CI: Windows, Linux, macOS ARM</div></div>
         </div>
       </div>
@@ -361,8 +361,8 @@
       <div class="container">
         <div class="section-head reveal">
           <span class="section-num">01 / Features</span>
-          <h2>Everything you need to manage mail accounts at scale.</h2>
-          <p>A native panel on top of a real iRedAdmin session &mdash; no brittle cookie replay, no separate HTTP client that breaks behind a WAF.</p>
+          <h2>What MailGrit does.</h2>
+          <p>A native panel on top of a real iRedAdmin session: you sign in once in the embedded browser, and bulk operations run inside that same session.</p>
         </div>
         <div class="grid">
           <article class="card reveal">
@@ -382,8 +382,8 @@
           </article>
           <article class="card reveal">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <h3>Works behind FortiWeb / WAF</h3>
-            <p>Requests run as a <code>fetch</code> inside the same webview that holds the legitimate session, so backend authentication held by the proxy just works &mdash; no cookie guessing.</p>
+            <h3>Runs inside your session</h3>
+            <p>Requests are sent as a <code>fetch</code> from the same webview you signed in to, so they travel with the session your proxy already knows. WAF setups differ &mdash; if something gets blocked, please <a href="https://github.com/netreondev/MailGrit/issues" rel="noopener">open an issue</a>.</p>
           </article>
           <article class="card reveal">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
@@ -404,14 +404,14 @@
       <div class="container">
         <div class="section-head reveal">
           <span class="section-num">02 / Data &amp; privacy</span>
-          <h2>Your data stays on your machine.</h2>
+          <h2>Where your data lives.</h2>
           <p>MailGrit is a local application: settings, logs and the audit trail live in one folder next to the app. Exports can be encrypted with a master password. Details in <a href="https://github.com/netreondev/MailGrit/blob/main/PRIVACY.md" rel="noopener">PRIVACY.md</a> and <a href="https://github.com/netreondev/MailGrit/blob/main/SECURITY.md" rel="noopener">SECURITY.md</a>.</p>
         </div>
         <div class="split">
           <div class="panel reveal">
             <h3>How MailGrit handles your data</h3>
             <ul class="checklist">
-              <li>All files live in a single <code>mailgrit-data/</code> folder next to the executable &mdash; nothing is uploaded anywhere.</li>
+              <li>All files live in a single <code>mailgrit-data/</code> folder next to the executable; the app makes no network requests except to the iRedAdmin server you configure.</li>
               <li>No telemetry, analytics, or crash reporting: the only network traffic goes to the iRedAdmin server you configure.</li>
               <li>The audit log is a local SQLite file chained with HMAC-SHA256; it is <strong>not</strong> encrypted &mdash; its privacy depends on where you keep the app folder.</li>
               <li>Exports and backups can be encrypted (streaming XChaCha20-Poly1305 AEAD) with a key derived from your master password.</li>
@@ -535,11 +535,11 @@ core-domain ─┬─ core-csv ────┐
           </details>
           <details class="faq-item">
             <summary>Does MailGrit work behind FortiWeb or a WAF? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
-            <div class="answer">Yes. Bulk operations run as a JavaScript <code>fetch</code> POST of the real iRedAdmin create/edit HTML form (with a CSRF token) inside the same embedded webview that holds the legitimate session. Because the request originates from the authenticated browser session, it works even when the server is behind FortiWeb or another web application firewall.</div>
+            <div class="answer">Usually, yes. Bulk operations run as a JavaScript <code>fetch</code> POST of the real iRedAdmin create/edit HTML form (with a CSRF token) inside the same embedded webview that holds your session. Because the request originates from your authenticated browser session, it typically passes FortiWeb and other web application firewalls. This depends on your server's configuration and is not covered by our test suite &mdash; if you hit a problem, please open an issue.</div>
           </details>
           <details class="faq-item">
             <summary>How does MailGrit authenticate against iRedAdmin? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
-            <div class="answer">You sign in through the embedded browser using your real iRedAdmin credentials. The app detects a successful login data-driven, by the login webview navigating to <code>/dashboard</code>, rather than by guessing cookie names. It then executes operations as a <code>fetch</code> inside that same authenticated webview.</div>
+            <div class="answer">You sign in through the embedded browser using your real iRedAdmin credentials. The app detects a successful login data-driven, by the login webview navigating to <code>/dashboard</code>. It then executes operations as a <code>fetch</code> inside that same authenticated webview.</div>
           </details>
           <details class="faq-item">
             <summary>Where is my data stored? Is the audit log encrypted? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>

@@ -1,6 +1,6 @@
 //! `core-storage` — local storage (SQLite): operation journal and audit log.
-//! Integrity protection: a hash-chained audit log — each entry contains
-//! `HMAC-SHA256(message ‖ prev_hash, key)`; any tampering with or deletion of a
+//! Integrity checking: a hash-chained audit log — each entry contains
+//! `HMAC-SHA256(message ‖ prev_hash, key)`; any modification or deletion of a
 //! row breaks the chain on verification. Access: a single exclusive writer.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors

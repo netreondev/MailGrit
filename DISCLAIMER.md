@@ -48,7 +48,8 @@ uses the name solely to indicate compatibility (nominative fair use). See
 
 ## Cryptography
 
-MailGrit uses strong cryptography (XChaCha20-Poly1305, Argon2id, HMAC-SHA256).
-Some jurisdictions restrict the import, export, or use of encryption software.
+MailGrit uses standard cryptographic primitives (XChaCha20-Poly1305, Argon2id,
+HMAC-SHA256). Some jurisdictions restrict the import, export, or use of
+encryption software.
 You are responsible for complying with any applicable export-control or
 encryption regulations in your country. See [PRIVACY.md](PRIVACY.md) for details.

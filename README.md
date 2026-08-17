@@ -34,9 +34,8 @@ holding all application files.
 1. Launch `mailgrit-app-desktop`. Enter the iRedAdmin URL
    (e.g. `https://mail.example.com/iredadmin`) and press **Open login form**.
    An application window with the real iRedAdmin form opens.
-2. Sign in to iRedAdmin — **you do not need to press anything else**: the app
-   detects the login automatically (a hybrid predicate — see *How authentication
-   works*) and switches to the operations panel on its own.
+2. Sign in to iRedAdmin — the app detects the login automatically (a hybrid
+   predicate — see *How authentication works*) and opens the operations panel.
 3. Load a CSV (`domain,username,password,display_name,quota_mb`) — see
    [CSV format](#csv-format) or start from [`docs/assets/example.csv`](docs/assets/example.csv).
 4. Run bulk **create / edit / delete**.
@@ -49,8 +48,9 @@ fields:
 `csrf_token, domainName, username, newpw, confirmpw, cn, preferredLanguage,
 mailQuota, submit_add_user`.
 
-> Requests go through the embedded browser webview with a legitimate session, so
-> the mode works behind FortiWeb/WAF too.
+> Requests go through the embedded browser webview that holds your session, so
+> they generally pass FortiWeb/WAF as well; WAF configurations vary and this is
+> not tested against every setup — reports of problems are welcome.
 
 ### Interface
 
@@ -72,11 +72,11 @@ and GET-form status, HTTP response status/headers, the full server response body
 ## How authentication works
 
 The login is detected **data-driven**, by the login webview navigating to
-`/dashboard` — not by cookie-name guessing. iRedAdmin, Django, and FortiWeb all
-use different cookie names, so guessing is brittle; behind a WAF the backend
-session is held by the proxy, and replaying a cookie in a separate HTTP client
-does not authenticate against the backend. Therefore operations are executed as
-JS `fetch()` **inside the same webview** that holds the legitimate session.
+`/dashboard`. iRedAdmin, Django, and FortiWeb all use different cookie names,
+and behind a WAF the backend session is held by the proxy, so a cookie replayed
+in a separate HTTP client usually does not authenticate against the backend.
+That is why operations are executed as JS `fetch()` **inside the same webview**
+that holds the session.
 
 ## Data storage & encryption
 

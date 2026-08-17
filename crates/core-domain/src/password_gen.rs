@@ -1,8 +1,8 @@
 //! Password generator with configurable complexity.
 //!
 //! Unlike [`PasswordPolicy`](crate::PasswordPolicy) (which only validates),
-//! [`PasswordGenerator`] produces a password guaranteed to satisfy the enabled
-//! requirements. Entropy comes from `rand::rng()` (a per-thread CSPRNG seeded
+//! [`PasswordGenerator`] produces a password that satisfies the enabled
+//! requirements by construction. Entropy comes from `rand::rng()` (a per-thread CSPRNG seeded
 //! from the OS). The returned value is wrapped in [`Zeroizing`] so the
 //! transient is wiped when the caller drops it.
 // SPDX-License-Identifier: MIT OR Apache-2.0

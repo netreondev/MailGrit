@@ -62,7 +62,7 @@ subtitle.login: "Início de sessão"
 subtitle.dashboard: "Painel de operações"
 
 # ── Ecrã de início de sessão ────────────────────────────────────────────────
-login.tagline: "Automação em massa para o iRedAdmin"
+login.tagline: "Administração em lote para o iRedAdmin"
 login.authorized_notice: "Apenas para administração autorizada — opere exclusivamente em servidores iRedAdmin que você possui ou está autorizado a administrar."
 login.server_label: "Endereço do servidor iRedAdmin"
 login.server_hint: "Indique o URL https completo do painel de administração"
@@ -121,7 +121,7 @@ audit.col_time: "Hora"
 audit.col_action: "Ação"
 audit.col_detail: "Detalhes"
 audit.chain_ok: "A cadeia de auditoria está intacta"
-audit.chain_broken: "A cadeia de auditoria ESTÁ PARTIDA (registo adulterado)"
+audit.chain_broken: "A cadeia de auditoria ESTÁ PARTIDA (possível adulteração ou corrupção)"
 audit.verify_storage_error: "Não foi possível verificar a integridade: erro de leitura da BD de auditoria"
 audit.verify_lock_error: "Não foi possível verificar a integridade: estado de auditoria corrompido"
 

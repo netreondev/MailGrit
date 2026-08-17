@@ -62,7 +62,7 @@ subtitle.login: "Accesso"
 subtitle.dashboard: "Pannello operazioni"
 
 # ── Schermata di accesso ────────────────────────────────────────────────────
-login.tagline: "Automazione di massa per iRedAdmin"
+login.tagline: "Amministrazione in blocco per iRedAdmin"
 login.authorized_notice: "Solo per amministrazione autorizzata — operare esclusivamente su server iRedAdmin di vostra proprietà o che siete autorizzati ad amministrare."
 login.server_label: "Indirizzo del server iRedAdmin"
 login.server_hint: "Inserisci l'URL https completo del pannello di amministrazione"
@@ -121,7 +121,7 @@ audit.col_time: "Ora"
 audit.col_action: "Azione"
 audit.col_detail: "Dettagli"
 audit.chain_ok: "La catena di audit è intatta"
-audit.chain_broken: "La catena di audit È ROTTA (registro manomesso)"
+audit.chain_broken: "La catena di audit È ROTTA (possibile manomissione o corruzione)"
 audit.verify_storage_error: "Impossibile verificare l'integrità: errore di lettura del DB di audit"
 audit.verify_lock_error: "Impossibile verificare l'integrità: stato di audit corrotto"
 

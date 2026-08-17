@@ -101,7 +101,7 @@ mod tests {
         assert_eq!(unique, labels.len(), "duplicate UI labels for User");
     }
 
-    // The table keys cover all 9 pairs (compile-time guarantee via a const fn match).
+    // The table keys cover all 9 pairs (compile-time exhaustiveness via a const fn match).
     #[test]
     fn all_nine_pairs_have_keys() {
         for target in [

@@ -10,12 +10,14 @@ pub enum StorageError {
     /// `SQLite` error.
     #[error("SQLite error: {0}")]
     Sqlite(#[from] rusqlite::Error),
-    /// Audit hash-chain integrity violation (the log was tampered with).
+    /// Audit hash-chain integrity violation (chain mismatch — possible
+    /// tampering or corruption).
     #[error("audit log integrity violation: {0}")]
     ChainBroken(#[from] SecurityError),
     /// The audit entry itself is corrupted: the hash blob has the wrong length
-    /// (truncated or extended). Unlike [`Self::ChainBroken`] (payload tampering
-    /// with a correct structure), here the storage structure is broken — such
+    /// (truncated or extended). Unlike [`Self::ChainBroken`] (payload
+    /// modification with a correct structure), here the storage structure is
+    /// broken — such
     /// data must not be silently turned into zeros and continued, or
     /// verification would incorrectly point at the next entry.
     #[error("audit entry #{id} corrupted: hash blob is {actual} bytes (expected {expected})")]

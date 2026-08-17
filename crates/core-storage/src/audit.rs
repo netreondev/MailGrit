@@ -1,7 +1,7 @@
 //! Hash-chained audit log on top of `SQLite`.
 //!
 //! Each entry stores an action, a payload, and `HMAC-SHA256(payload ‖ prev_hash, key)`.
-//! Integrity is checked by [`AuditLog::verify`]: any tampering breaks the chain.
+//! Integrity is checked by [`AuditLog::verify`]: any modification breaks the chain.
 //! `H_n` = `HMAC(Message_n` ‖ H_{n-1}, K).
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors

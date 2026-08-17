@@ -3,7 +3,7 @@
 //! Schema: `domain,username,password,display_name,quota_mb`.
 //! Records are read by the bounded RFC-4180 [`RecordReader`](crate::record)
 //! (quoted fields supported; no physical line is ever buffered past the
-//! record cap — the real protection against OOM on hostile input). Strict
+//! record cap — the main defense against OOM on hostile input). Strict
 //! limits ([`MAX_CSV_ROWS`],
 //! [`MAX_CSV_FIELD_BYTES`](mailgrit_core_domain::MAX_CSV_FIELD_BYTES), record
 //! bytes) protect against `DoS`. Returns a

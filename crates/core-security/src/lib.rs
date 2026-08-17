@@ -1,4 +1,4 @@
-//! `core-security` — cryptographic protection of data at-rest.
+//! `core-security` — at-rest cryptography for exports and the audit chain.
 //!
 //! From the Spec:
 //! - **Streaming AEAD-at-Rest** (§4, §7): export/backup is encrypted via
@@ -29,7 +29,7 @@ pub mod kdf;
 /// Hash-chained audit log (HMAC-SHA256).
 pub mod hashchain;
 
-/// Constant-time comparison (timing-channel protection when comparing tokens).
+/// Constant-time comparison (mitigates a timing channel when comparing tokens).
 pub mod ct_eq;
 
 /// Kani formal verification proof-harnesses (only when cfg(kani) is active).

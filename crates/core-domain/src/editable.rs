@@ -11,8 +11,8 @@
 //! - is **edited** by the user in the table (cells = `<input>`);
 //! - is **re-validated** on execution via
 //!   [`EditableUserRow::to_sanitized`](EditableUserRow::to_sanitized),
-//!   which runs the row through the typestate pipeline again. This guarantees
-//!   that only canonically validated values ever reach the server.
+//!   which runs the row through the typestate pipeline again, so only
+//!   canonically validated values reach the server.
 //!
 //! The parse-don't-validate principle is preserved: `EditableUserRow` is NOT used
 //! anywhere except the UI/editing layer; all lower layers (JS builders in

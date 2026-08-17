@@ -45,7 +45,7 @@ pub fn generate_salt() -> [u8; SALT_LEN] {
 /// Identical `(password, salt)` → identical key (KDF determinism). The salt
 /// must be unique for each protected secret; the master password is not stored.
 /// With an incorrect master password, the derived key will not match the one
-/// used during protection → decryption/verification will fail with an error.
+/// used during encryption → decryption/verification will fail with an error.
 /// The returned key is [`Zeroizing`]: it is wiped when the handle is dropped
 /// (Spec §10); callers are expected to move it straight into an
 /// [`EncryptionKey`](crate::EncryptionKey) (zeroed on Drop as well).

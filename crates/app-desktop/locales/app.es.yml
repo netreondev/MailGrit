@@ -62,7 +62,7 @@ subtitle.login: "Inicio de sesión"
 subtitle.dashboard: "Panel de operaciones"
 
 # ── Pantalla de inicio de sesión ────────────────────────────────────────────
-login.tagline: "Automatización masiva para iRedAdmin"
+login.tagline: "Administración en lote para iRedAdmin"
 login.authorized_notice: "Solo para administración autorizada — utilice únicamente servidores iRedAdmin de su propiedad o que esté autorizado a administrar."
 login.server_label: "Dirección del servidor iRedAdmin"
 login.server_hint: "Introduzca la URL https completa del panel de administración"
@@ -121,7 +121,7 @@ audit.col_time: "Hora"
 audit.col_action: "Acción"
 audit.col_detail: "Detalles"
 audit.chain_ok: "La cadena de auditoría está intacta"
-audit.chain_broken: "La cadena de auditoría ESTÁ ROTA (registro manipulado)"
+audit.chain_broken: "La cadena de auditoría ESTÁ ROTA (posible manipulación o corrupción)"
 audit.verify_storage_error: "No se pudo verificar la integridad: error de lectura de la BD de auditoría"
 audit.verify_lock_error: "No se pudo verificar la integridad: estado de auditoría corrupto"
 

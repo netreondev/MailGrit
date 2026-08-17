@@ -1,4 +1,4 @@
-//! Master password entry modal (audit-log unlock and export-key protection).
+//! Master password entry modal (audit-log unlock and export-key encryption).
 //!
 //! The master password protects the audit key via the Argon2id KDF (see
 //! `core-security/kdf`). On first run (no key file) it is in create mode: the

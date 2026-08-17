@@ -178,7 +178,7 @@ impl ValidatedQuota {
 }
 
 /// Validated display name. Control characters (CR/LF/NUL) are rejected
-/// (protection against log/UI injection).
+/// (mitigates log/UI injection).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SanitizedDisplayName(Arc<str>);
 

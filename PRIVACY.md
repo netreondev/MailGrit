@@ -8,9 +8,10 @@ exposure and to keep all user data on the user's own machine.
 ## No telemetry
 
 MailGrit does **not** collect, transmit, or share telemetry, analytics, crash
-reports, or any usage information. **There is no "call home."** The application
-makes **no network requests except to the iRedAdmin server URL you configure** —
-all such traffic is for performing the operations you explicitly request.
+reports, or any usage information. The application makes no network requests
+except to the iRedAdmin server URL you configure — all such traffic is for
+performing the operations you explicitly request. You can verify this from the
+source code.
 
 ## Where data is stored
 
@@ -25,8 +26,8 @@ contains:
 | `mailgrit-audit.sqlite` | Hash-chained audit log of every operation | Not encrypted; see below |
 | cookies | The iRedAdmin session cookie store for the embedded browser | Session-only |
 
-**Nothing leaves your machine.** There is no cloud sync, no remote backup, and no
-account system.
+There is no cloud sync, no remote backup, and no account system; nothing is
+sent anywhere except requests to your iRedAdmin server.
 
 ## Sensitive data: passwords and credentials
 
@@ -51,8 +52,8 @@ The CSV file you load contains **passwords**. Here is how they are handled:
 Operation diagnostics are written to `mailgrit.log` and shown in the UI. The
 `mfMask` function masks sensitive fields in these dumps:
 
-- **Passwords** (`newpw`, `confirmpw`) → masked (only a prefix shown, rest as `***`).
-- **CSRF tokens** (`csrf_token`) → masked.
+- **Passwords** (`newpw`, `confirmpw`) → fully masked (only the length is shown, as `***(length)`).
+- **CSRF tokens** (`csrf_token`) → fully masked (length only).
 - **Emails / usernames** (`mail`, `username`) → partially masked
   (first character + `***` + domain).
 

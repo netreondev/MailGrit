@@ -83,7 +83,7 @@ impl RawCsvRow {
 
 /// A fully validated CSV row, ready for user creation.
 ///
-/// Typestate guarantee, stated precisely: OUTSIDE this crate, `Sanitized` has
+/// Typestate property, stated precisely: OUTSIDE this crate, `Sanitized` has
 /// no constructor (its field is private and it derives nothing constructible),
 /// and each `Validated*`/`Sanitized*` field can only be produced by its
 /// `parse()` — so an external crate cannot assemble this struct bypassing

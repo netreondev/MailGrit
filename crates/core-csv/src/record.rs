@@ -1,6 +1,6 @@
 //! Bounded RFC-4180 record reader (the single CSV wire-format layer).
 //!
-//! Hard memory guarantees, enforced BEFORE buffering:
+//! Hard memory limits, enforced BEFORE buffering:
 //! - no physical line is ever buffered beyond `MAX_RECORD_BYTES + 1`
 //!   (`BufRead::take` + `read_until`, not `BufRead::lines()` which allocates
 //!   the whole line before any limit can run);

@@ -62,7 +62,7 @@ subtitle.login: "Авторизація"
 subtitle.dashboard: "Панель операцій"
 
 # ── Екран входу ─────────────────────────────────────────────────────────────
-login.tagline: "Масова автоматизація для iRedAdmin"
+login.tagline: "Пакетне адміністрування для iRedAdmin"
 login.authorized_notice: "Лише авторизоване адміністрування — працюйте виключно на серверах iRedAdmin, якими володієте або які уповноважені адмініструвати."
 login.server_label: "Адреса сервера iRedAdmin"
 login.server_hint: "Вкажіть повну https-URL панелі адміністрування"
@@ -121,7 +121,7 @@ audit.col_time: "Час"
 audit.col_action: "Дія"
 audit.col_detail: "Подробиці"
 audit.chain_ok: "Ланцюг аудиту цілий"
-audit.chain_broken: "Ланцюг аудиту ПОРУШЕНО (журнал підмінено)"
+audit.chain_broken: "Ланцюг аудиту ПОРУШЕНО (можлива підробка або пошкодження)"
 audit.verify_storage_error: "Не вдалося перевірити цілісність: помилка читання БД аудиту"
 audit.verify_lock_error: "Не вдалося перевірити цілісність: стан аудиту пошкоджено"
 

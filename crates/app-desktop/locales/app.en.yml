@@ -68,7 +68,7 @@ subtitle.login: "Sign in"
 subtitle.dashboard: "Operations panel"
 
 # ── Login screen ────────────────────────────────────────────────────────────
-login.tagline: "Mass automation for iRedAdmin"
+login.tagline: "Bulk administration for iRedAdmin"
 login.authorized_notice: "Authorized administration only — operate solely on iRedAdmin servers you own or administer."
 login.server_label: "iRedAdmin server address"
 login.server_hint: "Enter the full https URL of the admin panel"
@@ -127,7 +127,7 @@ audit.col_time: "Time"
 audit.col_action: "Action"
 audit.col_detail: "Details"
 audit.chain_ok: "Audit chain is intact"
-audit.chain_broken: "Audit chain BROKEN (log tampered)"
+audit.chain_broken: "Audit chain BROKEN (possible tampering or corruption)"
 audit.verify_storage_error: "Could not verify integrity: audit DB read error"
 audit.verify_lock_error: "Could not verify integrity: audit state is corrupted"
 

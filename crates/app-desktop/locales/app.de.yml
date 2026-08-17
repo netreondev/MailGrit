@@ -62,7 +62,7 @@ subtitle.login: "Anmeldung"
 subtitle.dashboard: "Vorgänge"
 
 # ── Anmeldebildschirm ───────────────────────────────────────────────────────
-login.tagline: "Massenautomatisierung für iRedAdmin"
+login.tagline: "Massenverwaltung für iRedAdmin"
 login.authorized_notice: "Nur autorisierte Verwaltung — nutzen Sie MailGrit ausschließlich auf iRedAdmin-Servern, die Sie besitzen oder verwalten."
 login.server_label: "iRedAdmin-Serveradresse"
 login.server_hint: "Vollständige https-URL des Admin-Panels eingeben"
@@ -121,7 +121,7 @@ audit.col_time: "Zeit"
 audit.col_action: "Aktion"
 audit.col_detail: "Details"
 audit.chain_ok: "Audit-Kette ist intakt"
-audit.chain_broken: "Audit-Kette VERLETZT (Protokoll manipuliert)"
+audit.chain_broken: "Audit-Kette VERLETZT (mögliche Manipulation oder Beschädigung)"
 audit.verify_storage_error: "Integrität konnte nicht geprüft werden: Lesefehler der Audit-DB"
 audit.verify_lock_error: "Integrität konnte nicht geprüft werden: Audit-Zustand beschädigt"
 

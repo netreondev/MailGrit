@@ -47,6 +47,24 @@ Key rules:
 - **No Russian** in comments, docs, or strings — the project is documented in
   **English and Ukrainian** only.
 
+## Documentation tone
+
+User-facing docs (README, landing pages, `llms.txt`, release notes) keep a
+modest, factual tone. When writing or editing them:
+
+- Describe what the code does, not what it promises. Avoid absolute claims
+  ("guaranteed", "100%", "always works", "just works") — prefer "typically",
+  "in our tests", "depends on your setup".
+- Do not present WAF/proxy compatibility as a promise; hedge it and invite
+  issue reports instead.
+- No superlatives, no marketing hype, no digs at other tools or approaches.
+- Say "standard cryptographic primitives", not "strong/secure crypto" — and
+  keep the existing honesty caveats (what is not encrypted, what is not
+  audited) intact.
+- Reserve the word "audit" for formal third-party security audits. Release
+  notes state facts ("CI passed on Windows/Linux/macOS at release time"), not
+  verdicts ("all green", "audit release").
+
 ## Verification tooling
 
 Beyond the checks every PR must pass, CI runs the following tool pipeline

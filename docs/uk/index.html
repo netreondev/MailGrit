@@ -22,7 +22,7 @@
   </script>
 
   <title>MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin</title>
-  <meta name="description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Усі дані лишаються на вашій машині; 9 мов.">
+  <meta name="description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, через вбудовану автентифіковану браузерну сесію. Локальні дані, без телеметрії; 9 мов.">
   <meta name="keywords" content="iRedAdmin, пакетна автоматизація пошти, десктоп-додаток, Rust, Dioxus, FortiWeb, WAF, адміністрування поштового сервера, створення поштових акаунтів, локальні дані">
   <meta name="author" content="Netreon™ та автори">
   <meta name="robots" content="index, follow">
@@ -44,7 +44,7 @@
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="MailGrit">
   <meta property="og:title" content="MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin">
-  <meta property="og:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Усі дані лишаються на вашій машині; 9 мов.">
+  <meta property="og:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, через вбудовану автентифіковану браузерну сесію. Локальні дані, без телеметрії; 9 мов.">
   <meta property="og:url" content="https://netreondev.github.io/MailGrit/uk/">
   <meta property="og:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta property="og:image:secure_url" content="https://netreondev.github.io/MailGrit/assets/og.png">
@@ -58,7 +58,7 @@
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin">
-  <meta name="twitter:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Усі дані лишаються на вашій машині; 9 мов.">
+  <meta name="twitter:description" content="Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, через вбудовану автентифіковану браузерну сесію. Локальні дані, без телеметрії; 9 мов.">
   <meta name="twitter:image" content="https://netreondev.github.io/MailGrit/assets/og.png">
   <meta name="twitter:image:alt" content="MailGrit — десктоп-додаток для пакетної автоматизації iRedAdmin">
 
@@ -109,7 +109,7 @@
     "@context": "https://schema.org",
     "@type": "WebPage",
     "name": "MailGrit — Десктоп-додаток для пакетної автоматизації iRedAdmin",
-    "description": "Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, навіть за FortiWeb/WAF. Усі дані лишаються на вашій машині; 9 мов.",
+    "description": "Крос-платформний десктоп-додаток на Rust для пакетного створення, редагування та видалення поштових акаунтів на серверах iRedAdmin, через вбудовану автентифіковану браузерну сесію. Локальні дані, без телеметрії; 9 мов.",
     "url": "https://netreondev.github.io/MailGrit/uk/",
     "inLanguage": "uk",
     "isPartOf": {
@@ -152,7 +152,7 @@
         "name": "Чи працює MailGrit за FortiWeb або WAF?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Так. Пакетні операції виконуються як JavaScript fetch POST справжньої HTML-форми створення/редагування iRedAdmin (із CSRF-токеном) усередині того ж вбудованого webview, що тримає легітимну сесію. Оскільки запит походить із автентифікованого браузерного сеансу, він працює навіть тоді, коли сервер знаходиться за FortiWeb або іншим веб-фаєрволом (WAF)."
+          "text": "Зазвичай, так. Пакетні операції виконуються як JavaScript fetch POST справжньої HTML-форми створення/редагування iRedAdmin (із CSRF-токеном) усередині того ж вбудованого webview, що тримає вашу сесію. Оскільки запит походить із вашого автентифікованого браузерного сеансу, він зазвичай проходить через FortiWeb та інші веб-фаєрволи (WAF). Це залежить від конфігурації сервера і не покривається нашим тестовим набором; повідомлення про проблеми вітаються."
         }
       },
       {
@@ -160,7 +160,7 @@
         "name": "Як MailGrit автентифікується на iRedAdmin?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Ви входите через вбудований браузер, використовуючи свої справжні облікові дані iRedAdmin. Додаток визначає успішний вхід орієнтованим на дані способом — за переходом webview входу на /dashboard, а не вгадуванням імен cookie. Потім він виконує операції як fetch у межах того ж автентифікованого webview."
+          "text": "Ви входите через вбудований браузер, використовуючи свої справжні облікові дані iRedAdmin. Додаток визначає успішний вхід орієнтованим на дані способом — за переходом webview входу на /dashboard. Потім він виконує операції як fetch у межах того ж автентифікованого webview."
         }
       },
       {
@@ -238,9 +238,9 @@
             <h1>Пакетна автоматизація <span class="grad">iRedAdmin</span> — прямо з робочого стола.</h1>
             <p class="lead">
               MailGrit — крос-платформний десктоп-додаток для пакетного створення, редагування та
-              видалення облікових записів користувачів пошти на серверах iRedAdmin &mdash; навіть за
-              FortiWeb / WAF &mdash; через вбудований браузер, який виконує легітимний <code>fetch</code>
-              у справжній сесії. Без інструментарію Node/JS: нативний WebView2/wry через Dioxus 0.7.
+              видалення облікових записів користувачів пошти на серверах iRedAdmin через
+              вбудований браузер, який виконує <code>fetch</code> у сесії, у яку ви увійшли.
+              Без інструментарію Node/JS: нативний WebView2/wry через Dioxus 0.7.
             </p>
             <div class="hero-cta">
               <a class="btn btn-primary" href="https://github.com/netreondev/MailGrit/releases" rel="noopener">
@@ -350,7 +350,7 @@
         <div class="stats">
           <div class="stat reveal"><div class="num" data-count="5">5</div><div class="label">Ізольованих крейтів воркспейсу</div></div>
           <div class="stat reveal"><div class="num" data-count="9">9</div><div class="label">мов інтерфейсу, вбудованих під час компіляції</div></div>
-          <div class="stat reveal"><div class="num">100%</div><div class="label">Локально: усі дані — на вашій машині</div></div>
+          <div class="stat reveal"><div class="num">1</div><div class="label">Локальна тека даних &mdash; налаштування, логи та журнал аудиту</div></div>
           <div class="stat reveal"><div class="num" data-count="3">3</div><div class="label">платформи у CI: Windows, Linux, macOS ARM</div></div>
         </div>
       </div>
@@ -361,8 +361,8 @@
       <div class="container">
         <div class="section-head reveal">
           <span class="section-num">01 / Можливості</span>
-          <h2>Усе для керування поштовими акаунтами у масштабі.</h2>
-          <p>Нативна панель поверх справжньої сесії iRedAdmin &mdash; без крихкого відтворення куків і без окремого HTTP-клієнта, що ламається за WAF.</p>
+          <h2>Що робить MailGrit.</h2>
+          <p>Нативна панель поверх справжньої сесії iRedAdmin: ви входите один раз у вбудований браузер, і пакетні операції виконуються в тій самій сесії.</p>
         </div>
         <div class="grid">
           <article class="card reveal">
@@ -382,8 +382,8 @@
           </article>
           <article class="card reveal">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
-            <h3>Працює за FortiWeb / WAF</h3>
-            <p>Запити виконуються як <code>fetch</code> у тому самому вебв'ю, що утримує легітимну сесію, тож серверну автентифікацію, яку тримає проксі, не потрібно відтворювати &mdash; без вгадування куків.</p>
+            <h3>Працює у вашій сесії</h3>
+            <p>Запити надсилаються як <code>fetch</code> з того ж webview, у який ви увійшли, тож вони йдуть із сесією, яку ваш проксі вже знає. Налаштування WAF різняться &mdash; якщо щось блокується, будь ласка, <a href="https://github.com/netreondev/MailGrit/issues" rel="noopener">створіть issue</a>.</p>
           </article>
           <article class="card reveal">
             <div class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
@@ -404,14 +404,14 @@
       <div class="container">
         <div class="section-head reveal">
           <span class="section-num">02 / Дані та приватність</span>
-          <h2>Ваші дані лишаються на вашій машині.</h2>
+          <h2>Де живуть ваші дані.</h2>
           <p>MailGrit — локальний додаток: налаштування, логи та журнал аудиту живуть в одній теці поруч із програмою. Експорти можна зашифрувати майстер-паролем. Подробиці — в <a href="https://github.com/netreondev/MailGrit/blob/main/PRIVACY.uk.md" rel="noopener">PRIVACY.uk.md</a> та <a href="https://github.com/netreondev/MailGrit/blob/main/SECURITY.uk.md" rel="noopener">SECURITY.uk.md</a>.</p>
         </div>
         <div class="split">
           <div class="panel reveal">
             <h3>Як MailGrit поводиться з вашими даними</h3>
             <ul class="checklist">
-              <li>Усі файли живуть в єдиній теці <code>mailgrit-data/</code> поруч із виконуваним файлом &mdash; нікуди нічого не завантажується.</li>
+              <li>Усі файли живуть в єдиній теці <code>mailgrit-data/</code> поруч із виконуваним файлом; додаток не виконує мережевих запитів, крім до налаштованого вами сервера iRedAdmin.</li>
               <li>Без телеметрії, аналітики та звітів про збої: єдиний мережевий трафік іде до налаштованого вами сервера iRedAdmin.</li>
               <li>Журнал аудиту &mdash; локальний SQLite-файл, зчеплений HMAC-SHA256; він <strong>не</strong> зашифрований &mdash; його конфіденційність залежить від того, де ви тримаєте теку програми.</li>
               <li>Експорти та резервні копії можна зашифрувати (потоковий AEAD XChaCha20-Poly1305) ключем, виведеним із вашого майстер-пароля.</li>
@@ -535,11 +535,11 @@ core-domain ─┬─ core-csv ────┐
           </details>
           <details class="faq-item">
             <summary>Чи працює MailGrit за FortiWeb або WAF? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
-            <div class="answer">Так. Пакетні операції виконуються як JavaScript <code>fetch</code> POST справжньої HTML-форми створення/редагування iRedAdmin (із CSRF-токеном) усередині того ж вбудованого webview, що тримає легітимну сесію. Оскільки запит походить із автентифікованого браузерного сеансу, він працює навіть тоді, коли сервер знаходиться за FortiWeb або іншим веб-фаєрволом (WAF).</div>
+            <div class="answer">Зазвичай, так. Пакетні операції виконуються як JavaScript <code>fetch</code> POST справжньої HTML-форми створення/редагування iRedAdmin (із CSRF-токеном) усередині того ж вбудованого webview, що тримає вашу сесію. Оскільки запит походить із вашого автентифікованого браузерного сеансу, він зазвичай проходить через FortiWeb та інші веб-фаєрволи (WAF). Це залежить від конфігурації сервера і не покривається нашим тестовим набором &mdash; якщо ви зіткнулися з проблемою, будь ласка, повідомте про неї в issue.</div>
           </details>
           <details class="faq-item">
             <summary>Як MailGrit автентифікується на iRedAdmin? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
-            <div class="answer">Ви входите через вбудований браузер, використовуючи свої справжні облікові дані iRedAdmin. Додаток визначає успішний вхід орієнтованим на дані способом &mdash; за переходом webview входу на <code>/dashboard</code>, а не вгадуванням імен cookie. Потім він виконує операції як <code>fetch</code> у межах того ж автентифікованого webview.</div>
+            <div class="answer">Ви входите через вбудований браузер, використовуючи свої справжні облікові дані iRedAdmin. Додаток визначає успішний вхід орієнтованим на дані способом &mdash; за переходом webview входу на <code>/dashboard</code>. Потім він виконує операції як <code>fetch</code> у межах того ж автентифікованого webview.</div>
           </details>
           <details class="faq-item">
             <summary>Де зберігаються мої дані? Чи зашифрований журнал аудиту? <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg></summary>
