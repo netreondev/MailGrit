@@ -189,10 +189,13 @@ async function launchApp(
 
     // Dioxus mounts the UI asynchronously after domcontentloaded — on a slow
     // CI runner the first test action can race the very first render (seen as
-    // a one-off 15s click timeout on the add-row button, 2026-08-16). Wait for
-    // the mode's root section before handing the page to the test.
+    // a one-off 15s click timeout on the add-row button, 2026-08-16; and as
+    // two 20s sentinel timeouts in a11y tests on a cold runner, 2026-08-17,
+    // run 32019339910 — the same tests passed in every neighboring run).
+    // 60s is start-up diagnosis headroom, not an assertion weakening: a
+    // genuinely broken mount still fails the test, just later.
     const sentinel = dashboardMode ? DASH.opsCard : SEL.loginScreen;
-    await page.locator(sentinel).waitFor({ state: 'visible', timeout: 20_000 });
+    await page.locator(sentinel).waitFor({ state: 'visible', timeout: 60_000 });
 
     await use({ page, dataDir: dir });
 
