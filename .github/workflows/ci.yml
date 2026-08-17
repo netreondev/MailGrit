@@ -274,9 +274,20 @@ jobs:
         # Strictness level is set declaratively in [workspace.lints.clippy] (deny
         # correctness/suspicious/complexity/perf/pedantic/nursery/cargo). `-D warnings`
         # here (and the global RUSTFLAGS) is a safety net: no warning passes CI.
-        # Exception: multiple_crate_versions stays warn — these are transitive duplicates
-        # of the GUI stack (dioxus/wry/windows), outside our control; real vulnerabilities
-        # are blocked by a separate cargo-deny step (advisories).
+        # Exception: multiple_crate_versions stays warn. Our OWN dependency set is
+        # deduplicated (the crypto stack sits on a single digest-0.10 line); the
+        # remaining duplicates are pinned by upstream releases we cannot choose:
+        #   - dioxus 0.7 / wry 0.53: windows-sys, syn, thiserror 1 (cairo-rs),
+        #     png 0.17 (muda), toml_edit lines via proc-macro-crate, bitflags 1
+        #     (globwalk in rust-i18n), const-serialize alpha, ...
+        #   - tungstenite 0.28 (pinned by dioxus-desktop): sha1 0.10 forces the
+        #     digest-0.10 line — which our crypto deps now match, see above.
+        #   - rusqlite 0.40 wasm branch: rsqlite-vfs pins hashbrown ^0.16 while
+        #     hashlink 0.12 needs ^0.17 — no released pair unifies them.
+        # Unlock points: dioxus 0.8 (tungstenite ≥ 0.29 → sha1 0.11/digest 0.11),
+        # a stable argon2 0.6, and an rsqlite-vfs release on hashbrown 0.17.
+        # Real vulnerabilities in any duplicate version are blocked by the
+        # separate cargo-deny step (advisories).
         run: cargo clippy --workspace --all-targets --all-features --target ${{ matrix.target }} -- -D warnings -A clippy::multiple_crate_versions
 
       # SemVer gate against a REAL git baseline revision.

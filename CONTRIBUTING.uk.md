@@ -12,7 +12,7 @@ git clone https://github.com/netreondev/MailGrit.git
 cd MailGrit
 cargo build -p mailgrit-app-desktop          # build
 cargo nextest run --workspace                # tests
-cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::multiple_crate_versions
 ```
 
 Потрібен Rust **1.97.1** (зафіксований через `rust-toolchain.toml`, edition 2024).
@@ -32,7 +32,7 @@ MailGrit дотримується суворого, автоматизовано
 | Перевірка | Команда |
 |-----------|---------|
 | Форматування | `cargo fmt --all -- --check` |
-| Лінти | `cargo clippy --workspace --all-targets --all-features -- -D warnings` |
+| Лінти | `cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::multiple_crate_versions` |
 | Тести | `cargo nextest run --workspace` |
 | Док-тести | `cargo test --workspace --doc` |
 | Ланцюг постачання | `cargo deny check advisories bans licenses sources` |

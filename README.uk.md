@@ -194,7 +194,7 @@ core-domain ─┬─ core-csv ────┐
 | Завдання | Команда |
 |----------|---------|
 | Форматування | `cargo fmt --all` (перевірка: `cargo fmt --all -- --check`) |
-| Лінтер | `cargo clippy --workspace --all-targets --all-features -- -D warnings` |
+| Лінтер | `cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::multiple_crate_versions` |
 | Тести | `cargo nextest run --workspace` |
 | Док-тести | `cargo test --workspace --doc` |
 | Release-збірка | `cargo build --release -p mailgrit-app-desktop` |

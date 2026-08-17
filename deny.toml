@@ -83,27 +83,27 @@ deny = [
 #
 # `multiple-versions = "warn"` (above) flags every duplicate so a NEW, unexpected
 # duplicate is visible in CI without breaking the build. The unavoidable
-# duplicates here come from two sources we do not control:
+# duplicates come from sources we do not control:
 #   1. The GUI stack — dioxus 0.7 / wry 0.53 / tao 0.34 pull many low-level
 #      crates (bitflags, raw-window-handle, phf, ...) at two major versions.
-#   2. The RustCrypto split — hmac 0.13 is on digest 0.10 while our direct
-#      sha2 0.11 is on digest 0.11, so block-buffer/cpufeatures/crypto-common/
-#      digest itself appear twice.
+#   2. The wasm side of rusqlite — rsqlite-vfs pins hashbrown ^0.16 while the
+#      host side (hashlink 0.12 / indexmap) is on hashbrown 0.17; no released
+#      version pair unifies them today.
 #
-# We keep these as `warn` (not `deny`) because:
-#   - Forcing `deny` would require listing all ~35 duplicate crates in `skip`,
-#     a brittle list that breaks on every dioxus/RustCrypto upgrade.
+# The RustCrypto stack is NO longer duplicated: our direct crypto deps
+# (argon2 0.5, hmac 0.12, sha2 0.10, chacha20poly1305 0.10, rand 0.9) all sit
+# on the single digest-0.10 line that wry (sha2 0.10) and tungstenite
+# (sha1 0.10) force anyway, so digest/block-buffer/crypto-common/sha2/
+# chacha20/cpufeatures each resolve to exactly one version.
+#
+# We keep `warn` (not `deny`) because:
+#   - Forcing `deny` would require listing all remaining duplicate crates in
+#     `skip`, a brittle list that breaks on every dioxus upgrade.
 #   - None of these duplicates is exploitable: a vulnerability in any version is
 #     still caught by the `advisories` check above.
 #   - The warning keeps NEW duplicates (e.g. accidentally depending on two
 #     versions of a crate WE control) visible during code review.
-#
-# `sha2` is the one DIRECT security dependency that is duplicated (0.10 via
-# hmac, 0.11 direct); it is explicitly skipped here with a reason so the warning
-# is silenced for it specifically, while other duplicates remain visible.
-skip = [
-    { name = "sha2", reason = "hmac 0.13 pulls digest 0.10 → sha2 0.10; we depend on sha2 0.11 directly. Both audited in supply-chain/audits.toml." },
-]
+skip = []
 # Transitive openssl via proc-macro-error → thiserror-impl (build-time proc-macro).
 # This is NOT a runtime dependency of the application: it is used only when compiling derive macros.
 # Removal condition: when thiserror-impl drops proc-macro-error (or migrates to a modern API).

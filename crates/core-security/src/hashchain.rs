@@ -14,8 +14,8 @@
 use crate::aead::EncryptionKey;
 use crate::ct_eq::constant_time_eq;
 use crate::error::SecurityError;
-use hmac::{Hmac, KeyInit, Mac};
-use sha2::Sha256;
+use hmac::{Hmac, Mac};
+use sha2::{Sha256, digest::KeyInit};
 
 /// Length of HMAC-SHA256 in bytes (32).
 pub const HMAC_LEN: usize = 32;

@@ -118,7 +118,7 @@ mailgrit-core-security = { version = "0.1.4", path = "crates/core-security" }
 # versions cannot drift between manifests (previously thiserror was spelled
 # out in 5 manifests, rand in 2, criterion in 2).
 thiserror = "2.0.19"
-rand = "0.10.2"
+rand = "0.9"
 zeroize = "1.9.0"
 tracing = "0.1"
 

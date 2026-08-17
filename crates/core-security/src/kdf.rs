@@ -13,7 +13,7 @@
 
 use crate::error::SecurityError;
 use argon2::{Algorithm, Argon2, Params, Version};
-use rand::Rng;
+use rand::RngCore;
 use zeroize::Zeroizing;
 
 /// KDF salt length in bytes (16 is the RFC 9106 recommendation).

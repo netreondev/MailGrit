@@ -9,7 +9,6 @@
 // Copyright (c) 2026 Netreon™ and contributors
 
 use rand::Rng;
-use rand::RngExt;
 use rand::seq::IteratorRandom;
 use zeroize::Zeroizing;
 

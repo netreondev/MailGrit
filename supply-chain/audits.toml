@@ -13,22 +13,23 @@ line at audit time. Key derivation path matches RFC 9106.
 
 [[audits.chacha20poly1305]]
 criteria = "safe-to-deploy"
-version = "0.11.0"
+version = "0.10.1"
 notes = """
 Reviewed 2026-08. XChaCha20-Poly1305 AEAD (core-security/aead.rs). Surface used:
 XChaCha20Poly1305::new, encrypt, decrypt with AAD. Nonce is 24 bytes (random per
 op), avoiding nonce-reuse. Uses the maintained RustCrypto `aead` + `chacha20`
-crates. No unsafe in the public AEAD API.
+crates. No unsafe in the public AEAD API. Kept on the 0.10 line (digest 0.10
+family) so the whole crypto stack shares one digest line with wry/tungstenite.
 """
 
 [[audits.hmac]]
 criteria = "safe-to-deploy"
-version = "0.13.0"
+version = "0.12.1"
 notes = """
 Reviewed 2026-08. HMAC-SHA256 for the hash-chained audit log
 (core-security/hashchain.rs). Surface: Hmac<Sha256>, KeyInit::new_from_slice,
 update, finalize, verify. Constant-time tag comparison via `subtle`. No unsafe
-in the used API.
+in the used API. 0.12 is the digest-0.10 line, matching the rest of the stack.
 """
 
 [[audits.rusqlite]]
@@ -47,17 +48,10 @@ Local file only (no network, no untrusted input beyond the file path).
 criteria = "safe-to-deploy"
 version = "0.10.9"
 notes = """
-Reviewed 2026-08. SHA-256 digest, used transitively by hmac 0.13. No unsafe in
-the pure-software path we use (no SIMD asm on the audit target).
-"""
-
-[[audits.sha2]]
-criteria = "safe-to-deploy"
-version = "0.11.0"
-notes = """
-Reviewed 2026-08. SHA-256 digest, direct dependency of core-security (0.11 line).
-Same maintained RustCrypto digest family as 0.10; no unsafe in the software path
-used by MailGrit. Audited alongside the 0.10.9 entry above.
+Reviewed 2026-08. SHA-256 digest, direct dependency of core-security, on the
+single digest-0.10 line shared by the whole workspace (incl. wry/tungstenite
+transitives). No unsafe in the pure-software path we use (no SIMD asm on the
+audit target).
 """
 
 [[audits.subtle]]

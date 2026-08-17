@@ -17,9 +17,9 @@ url = "https://raw.githubusercontent.com/google/supply-chain/main/audits.toml"
 url = "https://raw.githubusercontent.com/mozilla/supply-chain/main/audits.toml"
 
 [[exemptions.aead]]
-version = "0.6.1"
+version = "0.5.2"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Bootstrap exemption: transitive of the chacha20poly1305 0.10 / digest-0.10 line (2026-08 stack unification); not yet first-party reviewed."
 
 [[exemptions.ahash]]
 version = "0.8.12"
@@ -151,11 +151,6 @@ version = "0.10.4"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
-[[exemptions.block-buffer]]
-version = "0.12.1"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
 [[exemptions.bstr]]
 version = "1.13.0"
 criteria = "safe-to-deploy"
@@ -212,14 +207,14 @@ criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.chacha20]]
-version = "0.10.1"
+version = "0.9.1"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Bootstrap exemption: transitive of the chacha20poly1305 0.10 / digest-0.10 line (2026-08 stack unification); not yet first-party reviewed."
 
 [[exemptions.cipher]]
-version = "0.5.2"
+version = "0.4.4"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Bootstrap exemption: transitive of the chacha20poly1305 0.10 / digest-0.10 line (2026-08 stack unification); not yet first-party reviewed."
 
 [[exemptions.clap]]
 version = "4.6.6"
@@ -236,11 +231,6 @@ version = "1.1.0"
 criteria = "safe-to-run"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
-[[exemptions.cmov]]
-version = "0.5.4"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
 [[exemptions.cocoa]]
 version = "0.26.1"
 criteria = "safe-to-deploy"
@@ -253,11 +243,6 @@ notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet ga
 
 [[exemptions.combine]]
 version = "4.6.7"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
-[[exemptions.const-oid]]
-version = "0.10.2"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
@@ -316,11 +301,6 @@ version = "0.2.17"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
-[[exemptions.cpufeatures]]
-version = "0.3.0"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
 [[exemptions.crc32fast]]
 version = "1.5.0"
 criteria = "safe-to-deploy"
@@ -366,16 +346,6 @@ version = "0.1.7"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
-[[exemptions.crypto-common]]
-version = "0.2.2"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
-[[exemptions.ctutils]]
-version = "0.4.2"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
 [[exemptions.darling]]
 version = "0.21.3"
 criteria = "safe-to-deploy"
@@ -403,11 +373,6 @@ notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet ga
 
 [[exemptions.digest]]
 version = "0.10.7"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
-[[exemptions.digest]]
-version = "0.11.3"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
@@ -881,11 +846,6 @@ version = "1.10.1"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
-[[exemptions.hybrid-array]]
-version = "0.4.13"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
 [[exemptions.icu_collections]]
 version = "2.2.0"
 criteria = "safe-to-deploy"
@@ -952,9 +912,9 @@ criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.inout]]
-version = "0.2.2"
+version = "0.1.4"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Bootstrap exemption: transitive of the chacha20poly1305 0.10 / digest-0.10 line (2026-08 stack unification); not yet first-party reviewed."
 
 [[exemptions.interpolate_name]]
 version = "0.2.4"
@@ -1316,6 +1276,11 @@ version = "1.21.4"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
+[[exemptions.opaque-debug]]
+version = "0.3.1"
+criteria = "safe-to-deploy"
+notes = "Bootstrap exemption: transitive of the chacha20poly1305 0.10 / digest-0.10 line (2026-08 stack unification); not yet first-party reviewed."
+
 [[exemptions.openssl]]
 version = "0.10.81"
 criteria = "safe-to-deploy"
@@ -1477,9 +1442,9 @@ criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.poly1305]]
-version = "0.9.1"
+version = "0.8.0"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Bootstrap exemption: transitive of the chacha20poly1305 0.10 / digest-0.10 line (2026-08 stack unification); not yet first-party reviewed."
 
 [[exemptions.potential_utf]]
 version = "0.1.5"
@@ -1591,11 +1556,6 @@ version = "0.9.5"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
-[[exemptions.rand]]
-version = "0.10.2"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
 [[exemptions.rand_chacha]]
 version = "0.2.2"
 criteria = "safe-to-deploy"
@@ -1613,11 +1573,6 @@ notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet ga
 
 [[exemptions.rand_core]]
 version = "0.9.5"
-criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
-
-[[exemptions.rand_core]]
-version = "0.10.1"
 criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
@@ -2182,9 +2137,9 @@ criteria = "safe-to-deploy"
 notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
 
 [[exemptions.universal-hash]]
-version = "0.6.1"
+version = "0.5.1"
 criteria = "safe-to-deploy"
-notes = "Bootstrap exemption from `cargo vet init`: not yet reviewed. The vet gate only proves this version is PINNED and unchanged, not audited."
+notes = "Bootstrap exemption: transitive of the chacha20poly1305 0.10 / digest-0.10 line (2026-08 stack unification); not yet first-party reviewed."
 
 [[exemptions.untrusted]]
 version = "0.9.0"

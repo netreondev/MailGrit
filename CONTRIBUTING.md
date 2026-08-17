@@ -12,7 +12,7 @@ git clone https://github.com/netreondev/MailGrit.git
 cd MailGrit
 cargo build -p mailgrit-app-desktop          # build
 cargo nextest run --workspace                # tests
-cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::multiple_crate_versions
 ```
 
 Rust **1.97.1** is required (pinned via `rust-toolchain.toml`, edition 2024).
@@ -31,7 +31,7 @@ MailGrit enforces a strict, automated quality bar. Your PR must pass all of:
 | Check | Command |
 |-------|---------|
 | Formatting | `cargo fmt --all -- --check` |
-| Lints | `cargo clippy --workspace --all-targets --all-features -- -D warnings` |
+| Lints | `cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::multiple_crate_versions` |
 | Tests | `cargo nextest run --workspace` |
 | Doc tests | `cargo test --workspace --doc` |
 | Supply chain | `cargo deny check advisories bans licenses sources` |

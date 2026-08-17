@@ -194,7 +194,7 @@ core-domain ─┬─ core-csv ────┐
 | Task | Command |
 |------|---------|
 | Format | `cargo fmt --all` (check: `cargo fmt --all -- --check`) |
-| Lint | `cargo clippy --workspace --all-targets --all-features -- -D warnings` |
+| Lint | `cargo clippy --workspace --all-targets --all-features -- -D warnings -A clippy::multiple_crate_versions` |
 | Tests | `cargo nextest run --workspace` |
 | Doc tests | `cargo test --workspace --doc` |
 | Release build | `cargo build --release -p mailgrit-app-desktop` |
