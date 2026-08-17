@@ -2,8 +2,9 @@
 // Copyright (c) 2026 Netreon™ and contributors
 
 import { testDashboard as test, expect } from '../fixtures/app';
-import { DASH, LANGUAGES, DASH_I18N, I18N_MARKERS } from '../helpers/selectors';
+import { SEL, DASH, LANGUAGES, DASH_I18N } from '../helpers/selectors';
 import { assertNoRawKey } from '../helpers/layout';
+import { selectLanguage } from '../helpers/language';
 
 /**
  * Localization of all dashboard screens (9 languages).
@@ -15,12 +16,11 @@ import { assertNoRawKey } from '../helpers/layout';
  * from helpers (the trigger aria-label).
  */
 test.describe('Dashboard — localization (i18n)', () => {
-  // Default language is EN. Each test starts from it.
+  // Default language is EN; each test launches a fresh isolated copy of the
+  // app, so no locale state can leak between tests.
   test.beforeEach(async ({ app }) => {
     const { page } = app;
     await expect(page.locator(DASH.root)).toBeVisible();
-    // Ensure EN (if a previous test left another locale, switch back).
-    await ensureLanguage(page, 'English');
   });
 
   for (const lang of LANGUAGES) {
@@ -58,11 +58,13 @@ test.describe('Dashboard — localization (i18n)', () => {
   test('the selector language persists across changes (langLabel aria-label)', async ({ app }) => {
     const { page } = app;
     // Switch to Deutsch and verify the trigger aria-label (= lang.label DE).
+    // selectLanguage already waited for the localized aria-label; this restates
+    // it through the selector constant as a persistence contract.
     await selectLanguage(page, 'Deutsch');
-    await expect(page.locator('.context-bar .lang-trigger, .lang-trigger').first()).toHaveAttribute('aria-label', 'Sprache');
+    await expect(page.locator(SEL.langTrigger).first()).toHaveAttribute('aria-label', 'Sprache');
     // Back to EN.
     await selectLanguage(page, 'English');
-    await expect(page.locator('.lang-trigger').first()).toHaveAttribute('aria-label', 'Language');
+    await expect(page.locator(SEL.langTrigger).first()).toHaveAttribute('aria-label', 'Language');
   });
 
   test('modal titles are localized', async ({ app }) => {
@@ -79,34 +81,3 @@ test.describe('Dashboard — localization (i18n)', () => {
     await page.locator(DASH.dialog).getByRole('button').filter({ hasText: /abbr/i }).click();
   });
 });
-
-/** Opens the language selector and picks an item by its endonym (exact match). */
-async function selectLanguage(page: import('@playwright/test').Page, label: string): Promise<void> {
-  await page.locator('.lang-trigger').first().click();
-  await expect(page.locator('.lang-dropdown')).toBeVisible();
-  await page.locator('.lang-dropdown').getByText(label, { exact: true }).click();
-  // The menu closed — the indicator that switching finished.
-  await expect(page.locator('.lang-dropdown')).toHaveCount(0);
-  // Deterministic wait for the re-render: the trigger's aria-label is itself
-  // localized (lang.label) — when it matches the target locale, the switch has
-  // actually been applied (no fixed sleeps).
-  const code = LANGUAGES.find((l) => l.label === label)?.code;
-  const expectedAria = code ? I18N_MARKERS[code]?.langLabel : undefined;
-  if (expectedAria) {
-    await expect(page.locator('.lang-trigger').first()).toHaveAttribute('aria-label', expectedAria);
-  }
-}
-
-/**
- * Ensures the current language is `label` (switches if it is not). Works for
- * every locale: the trigger's aria-label is the localized `lang.label` value
- * (I18N_MARKERS), so the check needs no per-locale special-casing.
- */
-async function ensureLanguage(page: import('@playwright/test').Page, label: string): Promise<void> {
-  const code = LANGUAGES.find((l) => l.label === label)?.code;
-  const expectedAria = code ? I18N_MARKERS[code]?.langLabel : undefined;
-  const trigger = page.locator('.lang-trigger').first();
-  const currentAria = await trigger.getAttribute('aria-label');
-  if (expectedAria && currentAria === expectedAria) return;
-  await selectLanguage(page, label);
-}

@@ -8,9 +8,9 @@
 #
 # Strict release gate: RUSTFLAGS="-D warnings" makes every rustc warning a
 # blocking error on build/test/doc. Clippy adds `-D warnings` on top (plus the
-# pedantic/nursery/cargo groups via [workspace.lints]). The formal-verification
-# jobs here (Miri, cargo-mutants, exploratory fuzz) are BLOCKING — no
-# `continue-on-error`. Kani is in a separate scheduled workflow (kani.yml).
+# pedantic/nursery/cargo groups via [workspace.lints]). The additional
+# verification jobs here (Miri, cargo-mutants, exploratory fuzz) are BLOCKING —
+# no `continue-on-error`. Kani is in a separate scheduled workflow (kani.yml).
 # The single accepted lint exception is `-A clippy::multiple_crate_versions`
 # (transitive duplicates of the GUI/crypto stack, covered by cargo-deny advisories).
 #
@@ -36,6 +36,20 @@ env:
   # globally would make cargo-deny/audit/vet/fuzz/kani/mutants crash with
   # "No such file or directory" trying to invoke the missing sccache binary.
 
+  # The CDP port for the e2e suite. Single source of truth: e2e/playwright.config.ts
+  # reads this env var (falling back to the same default locally); the HKLM
+  # policy, the preflight probe, and the policy value below all interpolate it
+  # so the four can never drift apart again.
+  CDP_PORT: "9333"
+
+# Least privilege at the workflow level: read-only for every job. No job in
+# this workflow needs to write repo contents or mint OIDC identities (the
+# supply-chain job checks out full history and runs third-party action code —
+# the narrower its inherited token, the smaller the blast radius of a
+# compromised action).
+permissions:
+  contents: read
+
 jobs:
   # ============================================================================
   # Supply-chain, SAST, secret scanning — fast, gating, Linux-only.
@@ -45,6 +59,10 @@ jobs:
   supply-chain:
     name: Supply chain, SAST & secrets
     runs-on: ubuntu-latest
+    # Every other job in this workflow carries an explicit timeout; a hung
+    # action (e.g. gitleaks on a stalled clone) must not burn the default
+    # 360-minute job budget.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
         with:
@@ -83,8 +101,9 @@ jobs:
         uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2.3.9
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Fail on any finding (no baseline / allowlist beyond .gitleaks.toml).
-          GITLEAKS_ENABLE_COMMENTS: "true"
+          # No GITLEAKS_ENABLE_COMMENTS: PR comments need pull-requests: write,
+          # and this workflow is deliberately read-only — the finding fails the
+          # job, which is the signal that matters.
 
       # --- SAST (Semgrep) -----------------------------------------------------
       # Rule set: Rust security, secrets, common audit findings.
@@ -93,16 +112,60 @@ jobs:
       # returntocorp/semgrep-action@v1 is deprecated/unmaintained; the CLI is
       # version-pinned via pipx instead (no third-party action code runs with
       # the job's token).
+      #
+      # RULES ARE VENDORED (pinned by content snapshot, not by registry ref).
+      # The registry packs p/rust, p/secrets, p/security-audit, p/owasp-top-ten
+      # are LIVE server-side state: their composition can change under us at
+      # any moment, making CI nondeterministic. The assumed fix — registry ref
+      # pinning `p/<pack>@<ref>` — DOES NOT EXIST (verified 2026-08-16 against
+      # semgrep 1.173.0: semgrep.dev/c/p/rust@<ref> returns HTTP 404 for every
+      # ref shape — semver, dates, full/short git SHA, branch names, "latest";
+      # the semgrep-rules repo has no git tags/releases at all; the registry
+      # API /api/registry/rulesets/rust has no version field; the docs never
+      # mention pack pinning). So the rules are vendored verbatim into
+      # supply-chain/semgrep/packs/: the exact anonymous-tier YAML/JSON that
+      # `--config p/<pack>` downloads from https://semgrep.dev/c/p/<pack>.
+      # Counts at vendoring time (2026-08-16): rust 11, secrets 52,
+      # security-audit 225, owasp-top-ten 560 rules (848 total).
+      # One deliberate deviation from the verbatim download: the Slack-webhook
+      # rule's `pattern-not` excludes the canonical placeholder example. The
+      # upstream literal form of that example is a real-shaped webhook URL,
+      # which GitHub push protection rejects as a secret. It is vendored as
+      # the regex-equivalent `https://hooks\.slack\.com/services/T0+/B0+/X+`
+      # (matches the same placeholder family, rule semantics unchanged).
+      # Update procedure: re-download the four URLs over the vendored files,
+      # review the diff like any other dependency bump, re-apply this one
+      # substitution, and run BOTH passes below locally — an update must keep
+      # the gate meaningful.
+      #
+      # Severity policy — the gate blocks on ERROR/WARNING findings only
+      # (`--severity` filters on the second pass). INFO is semgrep's tier for
+      # blanket "audit" hints (subcategory: audit, likelihood/impact LOW)
+      # whose patterns fire on ANY use of an API. Concretely, p/rust ships
+      # rust.lang.security.args.args / .temp-dir.temp-dir, which flag every
+      # `std::env::args()` / `std::env::temp_dir()` call site as INFO; this
+      # repo's hits are the e2e `--emit-batch-js` argv hook (cfg(feature="e2e"),
+      # never in release builds) and a cfg(test) fixture — legitimate uses the
+      # rules cannot distinguish, so the code is NOT contorted to appease them
+      # and no nosem/rule-deletion/file-ignore is used. INFO findings are not
+      # suppressed from view: pass 1 prints every finding (all severities,
+      # exit 0) into the CI log; only pass 2 carries the blocking exit code.
       - name: SAST — Semgrep
-        # p/secret-detection was retired from the semgrep.dev registry (HTTP
-        # 404 since 2026-08); p/secrets is the maintained successor ruleset.
         run: |
           pipx install semgrep==1.173.0
-          semgrep scan --error \
-            --config p/rust \
-            --config p/secrets \
-            --config p/security-audit \
-            --config p/owasp-top-ten
+          # Pass 1 — visibility: full scan, every severity, findings logged,
+          # never fails the job.
+          semgrep scan \
+            --config supply-chain/semgrep/packs/rust.yaml \
+            --config supply-chain/semgrep/packs/secrets.yaml \
+            --config supply-chain/semgrep/packs/security-audit.yaml \
+            --config supply-chain/semgrep/packs/owasp-top-ten.yaml
+          # Pass 2 — the gate: findings at ERROR/WARNING severities fail CI.
+          semgrep scan --error --severity ERROR --severity WARNING \
+            --config supply-chain/semgrep/packs/rust.yaml \
+            --config supply-chain/semgrep/packs/secrets.yaml \
+            --config supply-chain/semgrep/packs/security-audit.yaml \
+            --config supply-chain/semgrep/packs/owasp-top-ten.yaml
 
       # --- Supply-chain: cargo-deny + cargo-audit + cargo-vet -----------------
       - name: Supply-chain — cargo-deny (advisories, bans, licenses, sources)
@@ -111,17 +174,35 @@ jobs:
       - name: Supply-chain — cargo-audit (independent advisory check)
         run: cargo audit
 
-      - name: Supply-chain — cargo-vet (audited / imported attestations)
+      - name: Supply-chain — cargo-vet (dependency audit policy)
         # Refresh the imported third-party audits (Mozilla/Google/Bytecode
         # Alliance/Embark) from their sources, then verify every dependency is
-        # either vetted, imported, or explicitly exempted with a reason. Fails
-        # the build on any unaudited crate.
+        # either vetted, imported, or explicitly exempted with a reason.
+        # Honest scope: most transitive crates are still bootstrap EXEMPTIONS
+        # (annotated in supply-chain/config.toml), so this gate primarily
+        # catches NEW unaudited dependencies — it is not yet a first-party
+        # audit of the whole tree. There is NO expiry enforcement on
+        # exemptions: cargo-vet (verified 2026-08-16 against 0.10.2 — the
+        # newest release — and upstream main) has no expire-date field for
+        # exemptions (expiration exists only for wildcard audits), and any
+        # such key is silently dropped when the tool rewrites config.toml
+        # (both `check` and `regenerate imports` rewrite the file). The
+        # exemption debt is tracked by manual review, not by a timer.
         run: |
           cargo vet regenerate imports
           cargo vet check --verbose=info
 
       - name: Unused deps — cargo-machete
         run: cargo machete --skip-target-dir
+
+      # The version is spelled out in 10 manually-synced sites across 6 files
+      # (workspace manifest + dep pins, fuzz manifest, docs JSON-LD, e2e
+      # package.json + package-lock.json). A forgotten bump fails HERE
+      # instead of shipping an inconsistent release.
+      # Pure-Python and OS-independent — runs once in this Linux job instead
+      # of three times in the quality matrix below.
+      - name: Version consistency (all manifests + docs)
+        run: python scripts/check_version.py
 
   # ============================================================================
   # Quality & tests — three-platform matrix.
@@ -133,11 +214,11 @@ jobs:
     timeout-minutes: 45
     # No sccache. It is a build-speed optimization, but sccache routes its cache
     # through GitHub's Actions Cache backend (ghac), which has been persistently
-    # unstable for this repo: both a direct RUSTC_WRAPPER=sccache AND a probe-and
-    # -fallback wrapper (.github/sccache-wrapper.sh, retained as a reference)
-    # failed the build when ghac was unavailable — the wrapper added its own
-    # failure mode on cargo's startup version-probe. Build correctness must not
-    # depend on ghac availability; CI compiles deterministically uncached.
+    # unstable for this repo: a direct RUSTC_WRAPPER=sccache (and, historically,
+    # a probe-and-fallback wrapper, since removed) failed the build when ghac
+    # was unavailable — the wrapper added its own failure mode on cargo's
+    # startup version-probe. Build correctness must not depend on ghac
+    # availability; CI compiles deterministically uncached.
     strategy:
       fail-fast: false
       matrix:
@@ -155,6 +236,14 @@ jobs:
             name: macos-arm
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+        with:
+          # Full history: the SemVer step below compares the working tree
+          # against the PR base / pre-push revision (--baseline-rev), and that
+          # commit must exist locally for a real comparison to happen. The repo
+          # is small (~90 commits), so the extra fetch is cheap; fetch-depth: 1
+          # (the default) would make the baseline unavailable and the gate
+          # would fail with "baseline commit unavailable".
+          fetch-depth: 0
 
       - name: Install Rust toolchain (pinned)
         run: rustup show active-toolchain || rustup toolchain install 1.97.1 --profile minimal --component rustfmt,clippy
@@ -163,23 +252,8 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Install Linux system dependencies (mold linker + Dioxus desktop / webkit2gtk)
-        # On Linux the app-desktop crate (Dioxus desktop via wry/webkit2gtk) needs
-        # the GTK/WebKit development headers to compile (gdk-sys/gtk-sys link
-        # against gdk-3.0 etc.). Without them, clippy/build fail with
-        # "system library `gdk-3.0` required by crate `gdk-sys` was not found".
-        # Keep this list in sync with release.yml's Linux deps step. macOS/Windows
-        # use native system toolchains and need none of these.
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libssl-dev \
-            libxdo-dev \
-            mold
+        uses: ./.github/actions/linux-deps
 
       - name: Install cargo tools
         uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
@@ -205,8 +279,95 @@ jobs:
         # are blocked by a separate cargo-deny step (advisories).
         run: cargo clippy --workspace --all-targets --all-features --target ${{ matrix.target }} -- -D warnings -A clippy::multiple_crate_versions
 
-      - name: SemVer checks (public API of internal crates)
-        run: cargo semver-checks --workspace
+      # SemVer gate against a REAL git baseline revision.
+      #
+      # The previous form (`cargo semver-checks --workspace`) was DECORATIVE:
+      # without --baseline-rev it compares against crates.io, where none of
+      # these crates exist ("not found in registry" → skip); and with a
+      # --baseline-rev it STILL skips them, because every workspace crate is
+      # publish=false and semver-checks skips *implied* publish=false members
+      # of a multi-crate workspace (verified 2026-08-16: all five crates
+      # "Skipping … (current)", exit 0 after 4 s — nothing was checked).
+      #
+      # The documented way to check internal (never-published) crates is
+      # EXPLICIT -p selection — cargo-semver-checks 0.50.0, src/lib.rs:
+      #   "If the manifest points to a specific crate, then check the crate
+      #    even if `publish = false` is set."
+      # The -p list is generated from `cargo metadata` so a newly added crate
+      # can never silently fall outside the gate (a hardcoded list would).
+      #
+      # Baseline choice: the PR's base head (pull_request) or the commit the
+      # push replaced (push). Both must exist locally — hence fetch-depth: 0
+      # on the checkout above. A zero/absent revision (e.g. the first push of
+      # a branch, or a force-push aftermath) is a LOUD failure, not a skip:
+      # a semver gate that cannot run must not pass.
+      # The baseline SHA reaches the shell only through env (repo convention:
+      # no ${{ }} interpolation inside run:, even for API-provided values).
+      # shell: bash (not the Windows-default pwsh): the script uses POSIX-ish
+      # bash constructs; all three runner images ship bash and jq.
+      - name: SemVer checks (public API of internal crates vs the real git baseline)
+        shell: bash
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "::error::semver baseline commit unavailable: '${BASE_SHA}' — the revision must exist locally (checkout uses fetch-depth: 0). A zero SHA means there is no meaningful baseline for this event; the gate refuses to run blind."
+            exit 1
+          fi
+          # Git Bash on Windows runners truncates process-substitution feeds
+          # (<(...)) after the first line — observed 2026-08-16: that loop ran
+          # exactly once and semver-checks received a single -p. Command
+          # substitution $(...) is reliable on all three runner images, so the
+          # names are collected into a string first. Crate names cannot contain
+          # whitespace, so the unquoted for-split is safe by construction.
+          names="$(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].name')"
+          if [ -z "${names//[[:space:]]/}" ]; then
+            echo "::error::cargo metadata produced no package names — the semver gate refuses to run blind."
+            exit 1
+          fi
+          args=()
+          for name in ${names}; do
+            args+=("-p" "${name}")
+          done
+          echo "SemVer baseline: ${BASE_SHA}; crates: ${args[*]}"
+          # MAX_PATH: cargo-semver-checks builds every crate (current AND
+          # baseline) in a sandbox workspace under <target-dir>/semver-checks.
+          # With the default target dir inside the checkout on GitHub's
+          # Windows runners (D:\a\MailGrit\MailGrit\...) the deepest
+          # build-script output path (proc-macro2-diagnostics) lands at
+          # exactly 260 characters, where link.exe DETERMINISTICALLY fails
+          # with LNK1104 "cannot open file" (observed 2026-08-16: the
+          # identical path failed 3/3 retries in one run and again in the
+          # next run; a shorter local checkout root and the Linux/macOS jobs
+          # passed). Building this step's artifacts under the short
+          # RUNNER_TEMP root keeps the worst path at ~244 chars on every OS
+          # (verified locally: the sandbox follows CARGO_TARGET_DIR).
+          export CARGO_TARGET_DIR="${RUNNER_TEMP:-${TMPDIR:-/tmp}}/sv-tgt"
+          mkdir -p "${CARGO_TARGET_DIR}"
+          # Bounded transparent retry for genuinely TRANSIENT failures only
+          # (the AV-lock flake class seen on a local Windows box during
+          # mutation testing). A real semver violation fails deterministically
+          # on every attempt; each retry re-runs the full check and emits a
+          # ::warning annotation into the run log.
+          n=1
+          max_attempts=3
+          set +e
+          while true; do
+            cargo semver-checks "${args[@]}" --baseline-rev "${BASE_SHA}"
+            status=$?
+            if [ "${status}" -eq 0 ]; then
+              break
+            fi
+            if [ "${n}" -ge "${max_attempts}" ]; then
+              echo "::error::cargo semver-checks failed with exit ${status} after ${n} attempts — not a transient failure."
+              exit "${status}"
+            fi
+            echo "::warning::cargo semver-checks attempt ${n}/${max_attempts} failed (exit ${status}); retrying in 30s (transient toolchain flake class)."
+            n=$((n + 1))
+            sleep 30
+          done
+          set -e
 
       # Verify the declared MSRV (rust-version = "1.97.1") is actually the
       # minimum: cargo-msrv probes the lowest toolchain that still compiles.
@@ -271,17 +432,37 @@ jobs:
         working-directory: e2e
         run: npm ci
 
+      # Playwright transpiles TypeScript via esbuild and IGNORES type errors —
+      # without this gate a type-broken suite still "passes" transpilation and
+      # only fails at runtime with confusing errors (or worse: dead code like
+      # unused imports/locators accumulates silently).
+      - name: Type-check the e2e suite (tsc --noEmit)
+        working-directory: e2e
+        run: npm run typecheck
+
       # The runner image does NOT ship the WebView2 Evergreen Runtime (verified
       # 2026-08-16: the EdgeUpdate registry key is absent), and without it the
       # app cannot create a WebView2 window at all — every test then times out
       # waiting for the CDP endpoint. Install the Evergreen bootstrapper
       # silently (~40s); the preflight step below verifies it took effect.
+      # The bootstrapper link is deliberately NOT version-pinned: it is
+      # Microsoft's Evergreen redirect, which always resolves to the current
+      # runtime — the runtime is auto-updating by design, and pinning a cached
+      # installer would test an artificially old WebView2. The trade-off is a
+      # nondeterministic runtime version in CI (a runtime update CAN change
+      # behavior — it already forced fixes 7e906d3 and bb75224).
       # Runtime 150+ also ignores WEBVIEW2_* environment variables when the
       # host process is elevated (High Integrity) — which a GitHub Actions
       # runner always is — so the debug-port arguments are additionally set
       # via the HKLM policy, the one channel honored from elevated processes
       # (MicrosoftEdge/WebView2Feedback#5645). The env vars stay for local,
       # non-elevated runs.
+      #
+      # WARNING (do NOT copy this policy to a dev machine): the
+      # AdditionalBrowserArguments\* value applies to EVERY WebView2
+      # application on the host and opens a remote-debugging (CDP) port in
+      # all of them — any local process can then drive those browsers. It is
+      # only acceptable on an ephemeral, single-purpose CI runner.
       - name: Install WebView2 Runtime and set the CDP policy
         shell: pwsh
         run: |
@@ -294,14 +475,16 @@ jobs:
           # -EnvironmentWithOptions): AdditionalBrowserArguments is a KEY with
           # one REG_SZ value per app exe name ('*' = every app) — a string
           # directly under ...\WebView2 is silently ignored.
+          # The port comes from the workflow-level CDP_PORT env (single source
+          # of truth, shared with playwright.config.ts and the preflight below).
           $policyRoot = 'HKLM:\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments'
           New-Item -Path $policyRoot -Force | Out-Null
-          Set-ItemProperty -Path $policyRoot -Name '*' -Value '--remote-debugging-port=9333 --disable-gpu' -Type String
-          'HKLM WebView2 AdditionalBrowserArguments\* policy set'
+          Set-ItemProperty -Path $policyRoot -Name '*' -Value "--remote-debugging-port=$env:CDP_PORT --disable-gpu" -Type String
+          "HKLM WebView2 AdditionalBrowserArguments\* policy set (port $env:CDP_PORT)"
 
       # Evidence-first gate: if WebView2 cannot bring up the DevTools endpoint
       # on this runner, fail HERE in under a minute with the app's own logs —
-      # instead of every one of the 74 tests burning its 30s CDP wait until the
+      # instead of every test burning its 30s CDP wait until the
       # 40-minute job timeout cancels the run (the pre-fix failure mode:
       # cancelled mid-suite with no diagnostics, 2026-08-16).
       - name: Preflight — launch the app once and probe the CDP endpoint
@@ -311,7 +494,7 @@ jobs:
           $tmp = Join-Path $env:TEMP ("mailgrit-preflight-" + [guid]::NewGuid().ToString('N').Substring(0,8))
           New-Item -ItemType Directory -Path $tmp | Out-Null
           Copy-Item $exe (Join-Path $tmp 'mailgrit-app-desktop.exe')
-          $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = '--remote-debugging-port=9333 --disable-gpu'
+          $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=$env:CDP_PORT --disable-gpu"
           $env:WEBVIEW2_USER_DATA_FOLDER = (Join-Path $tmp 'webview2-profile')
           $env:RUST_LOG = 'info'
           $out = Join-Path $tmp 'out.log'
@@ -324,7 +507,7 @@ jobs:
           while ((Get-Date) -lt $deadline -and -not $p.HasExited) {
             Start-Sleep -Milliseconds 500
             try {
-              $r = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:9333/json/version' -TimeoutSec 2
+              $r = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:$env:CDP_PORT/json/version" -TimeoutSec 2
               if ($r.StatusCode -eq 200) { $ok = $true; break }
             } catch { }
           }
@@ -339,8 +522,8 @@ jobs:
           Write-Output "--- app process command line ---"
           Get-CimInstance Win32_Process -Filter "name = 'mailgrit-app-desktop.exe'" -ErrorAction SilentlyContinue |
             ForEach-Object { Write-Output ("pid {0}: {1}" -f $_.ProcessId, $_.CommandLine) }
-          Write-Output "--- port 9333 ---"
-          netstat -ano | Select-String ':9333' | ForEach-Object { Write-Output $_.Line }
+          Write-Output "--- port $env:CDP_PORT ---"
+          netstat -ano | Select-String ":$env:CDP_PORT" | ForEach-Object { Write-Output $_.Line }
           Write-Output "--- app stdout ---"
           if (Test-Path $out) { Get-Content $out | ForEach-Object { Write-Output $_ } }
           Write-Output "--- app stderr ---"
@@ -350,6 +533,12 @@ jobs:
           # instance keeps the profile and defeats the next launch's arguments.
           Stop-Process -Name msedgewebview2 -Force -ErrorAction SilentlyContinue
           if (-not $ok) { throw 'CDP endpoint did not come up — see the diagnostics above' }
+
+      # Type-check the e2e suite BEFORE running it (see the typecheck step) —
+      # the smoke harness needs the same --features e2e build.
+      - name: Batch-JS smoke harness (execute the real generated webview JS)
+        working-directory: e2e
+        run: npm run test:jsmoke
 
       - name: Run Playwright suite
         working-directory: e2e
@@ -393,20 +582,11 @@ jobs:
         run: rustup toolchain install 1.97.1 --profile minimal
       - name: Add target
         run: rustup target add ${{ matrix.target }}
-      # Same Linux GTK/webkit deps as the quality job: app-desktop (Dioxus
-      # desktop / webkit2gtk) needs gdk-3.0 & friends to compile on Linux.
+      # Same Linux GTK/webkit deps as the quality job (composite action — the
+      # list lives in one place, .github/actions/linux-deps).
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
         if: runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libssl-dev \
-            libxdo-dev \
-            mold
+        uses: ./.github/actions/linux-deps
       # Default features: `e2e` is test-only and must not be compiled into
       # release binaries (the quality job still lints/tests --all-features).
       - name: Build release (default features, warnings-as-errors)
@@ -429,75 +609,110 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Install nightly Rust
         run: rustup toolchain install nightly
-      - name: Install cargo-fuzz
-        run: cargo +nightly install cargo-fuzz
+      # cargo-fuzz is NOT in taiki-e/install-action's manifest (checked:
+      # TOOLS.md has no cargo-fuzz), so it must be built from source — but
+      # VERSION-PINNED and --locked. The previous `cargo +nightly install
+      # cargo-fuzz` compiled whatever was latest on crates.io against a
+      # floating nightly: non-reproducible fuzz results, wasted CI minutes,
+      # crates.io supply-chain exposure. The nightly toolchain itself stays
+      # floating (fuzz targets fundamentally require it).
+      - name: Install cargo-fuzz (pinned, --locked)
+        run: cargo +nightly install cargo-fuzz --version 0.13.2 --locked
       - name: Replay seed corpus against every fuzz target
         working-directory: fuzz
         run: |
           set -e
-          # For each target with a committed seed dir, run the fuzzer over those
-          # exact inputs (-runs=0 means "only the corpus, no random mutation").
+          # For each target, replay its committed seed dir (-runs=0 means
+          # "only the corpus, no random mutation"). A target WITHOUT committed
+          # seeds is an ERROR, not a skip: every target listed above ships
+          # seeds today, so the "no seeds" branch is dead code that must never
+          # come alive silently — a newly added fuzz target must bring its
+          # seeds (previously this degraded to a ::notice and the target's
+          # regressions rode through CI un-replayed).
           for tgt in parse_csv_bytes parse_domain parse_username parse_quota url_parse; do
             seed_dir="seeds/$tgt"
-            if [ -d "$seed_dir" ] && [ -n "$(ls -A "$seed_dir" 2>/dev/null)" ]; then
-              echo "::group::Replaying $tgt"
-              cargo +nightly fuzz run "fuzz_$tgt" "$seed_dir" -- -runs=0
-              echo "::endgroup::"
-            else
-              echo "::notice::No committed seeds for $tgt — skipped (exploratory fuzz job still covers it)."
+            if [ ! -d "$seed_dir" ] || [ -z "$(ls -A "$seed_dir" 2>/dev/null)" ]; then
+              echo "::error::No committed seeds for $tgt — seed corpus is mandatory for regression replay (add inputs under fuzz/seeds/$tgt/)."
+              exit 1
             fi
+            echo "::group::Replaying $tgt"
+            cargo +nightly fuzz run "fuzz_$tgt" "$seed_dir" -- -runs=0
+            echo "::endgroup::"
           done
 
   # ==========================================================================
   # Formal verification (nightly-only, BLOCKING) — cargo-mutants + Miri.
-  # - cargo-mutants: runs on the core crates only (app-desktop excluded via
-  #   .cargo/mutants.toml). Green: 212 mutants, 0 missed (boundary-value tests
-  #   cover every MAX_*_LEN parser guard; intrinsically-untestable mutants are
-  #   excluded in .cargo/mutants.toml with justification).
+  # - cargo-mutants: PER-CRATE matrix jobs (one job per core crate; app-desktop
+  #   is excluded via .cargo/mutants.toml with pilot-data justification).
+  #   Per-crate jobs are the project's mutation-testing policy (isolation: one
+  #   crate's timeout/failure does not burn the whole run) AND a capacity
+  #   requirement: the 2026-08-16 hardening grew the workload to 269 mutants
+  #   and enabled cap_lints=true (mutants previously killed by workspace
+  #   deny-lints before their tests now execute the test suite), which made a
+  #   single --workspace job outgrow BOTH the 30- and 60-minute budgets
+  #   (runs 31964918991, 31967344001 — cancelled by timeout mid-run). The
+  #   largest single crate (core-domain, 132 mutants) fits comfortably in 45.
+  #   Green: 269 mutants, 0 missed (boundary-value tests cover every
+  #   MAX_*_LEN parser guard; intrinsically-untestable mutants are excluded
+  #   in .cargo/mutants.toml with justification).
   # - Miri (UB detection): interprets the four core crates (~1 min total). The
   #   two expensive cases (proptest, password_gen) are compiled out under Miri
   #   via #[cfg(not(miri))]; KDF/storage-audit already use cfg_attr(miri,ignore).
   #   What remains is the real UB-relevant surface: parsers, AEAD, hash chain.
   # ==========================================================================
-  formal-verification:
-    name: Formal verification (Miri + cargo-mutants)
+  mutation-testing:
+    name: Mutation testing (${{ matrix.crate }})
     runs-on: ubuntu-latest
     needs: quality
-    timeout-minutes: 30
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        crate: [mailgrit-core-storage, mailgrit-core-security, mailgrit-core-domain, mailgrit-core-csv]
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
-      # cargo-mutants --workspace compiles app-desktop (Dioxus desktop), which
-      # needs the GTK/webkit headers on Linux (same as quality/build-release).
+      # core crates are pure library code (no dioxus/GTK), but libsqlite3-sys
+      # and the cc builds still want the toolchain headers; linux-deps is
+      # cheap insurance against environment drift.
       - name: Install Linux system dependencies (mold + Dioxus desktop / webkit2gtk)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libssl-dev \
-            libxdo-dev \
-            mold
-      - name: Install nightly Rust (with Miri)
-        run: rustup toolchain install nightly --component miri
+        uses: ./.github/actions/linux-deps
+      - name: Install nightly Rust
+        run: rustup toolchain install nightly
       - name: Install cargo-mutants
         uses: taiki-e/install-action@0b63bc859f7224657cf7e39426848cabaa36f456 # v2.49.9
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           tool: cargo-mutants
-      - name: Mutation testing (unit-test effectiveness)
-        run: cargo +nightly mutants --workspace --in-place
-      # Miri (UB detection) over the four core crates. Runs in ~1 min total now:
-      # the two expensive cases are compiled out under Miri —
-      #   - core-csv proptest (thousands of proptest iterations under the
-      #     interpreter → #![cfg(not(miri))] in proptest_csv.rs),
-      #   - core-domain password_gen tests (100-500 OsRng generations per case,
-      #     pure safe Rust, no UB signal → #[cfg(not(miri))] on the test module).
-      # KDF (Argon2) and storage-audit tests already carry cfg_attr(miri, ignore).
-      # What remains is the real UB-relevant surface: parsers, AEAD glue, the
-      # hash chain, CSV mapping — all interpreted by Miri here.
+      - name: Mutation testing — ${{ matrix.crate }}
+        run: cargo +nightly mutants --in-place -p ${{ matrix.crate }}
+
+  # Miri (UB detection) over the four core crates. Runs in ~1 min total now:
+  # the two expensive cases are compiled out under Miri —
+  #   - core-csv proptest (thousands of proptest iterations under the
+  #     interpreter → #![cfg(not(miri))] in proptest_csv.rs),
+  #   - core-domain password_gen tests (100-500 OsRng generations per case,
+  #     pure safe Rust, no UB signal → #[cfg(not(miri))] on the test module).
+  # KDF (Argon2) and storage-audit tests already carry cfg_attr(miri, ignore).
+  # What remains is the real UB-relevant surface: parsers, AEAD glue, the
+  # hash chain, CSV mapping — all interpreted by Miri here.
+  miri:
+    name: Miri (UB detection — core crates)
+    runs-on: ubuntu-latest
+    needs: quality
+    # 60 min: measured breakdown on a hosted runner (2026-08-17): nightly+Miri
+    # install and the miri sysroot bootstrap take ~2 min, the four interpreted
+    # crates run in minutes. The job previously LOOKED bootstrap-bound because
+    # a 50k-row boundary test ground for hours under the interpreter (it is
+    # now cfg_attr(miri, ignore), see mapping_tests.rs) — that ate the 30-,
+    # 60- and 120-minute budgets in turn (runs 31993316181, 31995993576,
+    # 32004782004). 60 min leaves generous headroom for slow runners without
+    # hiding a genuine hang.
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - name: Install nightly Rust (with Miri)
+        run: rustup toolchain install nightly --component miri
       - name: Miri (UB detection — storage, csv, domain, security)
         env:
           MIRIFLAGS: "-Zmiri-disable-isolation"
@@ -513,9 +728,8 @@ jobs:
   # hits the job timeout, and a job timeout CANCELS THE ENTIRE RUN (GitHub
   # Actions cancels in-flight jobs when one is cancelled by timeout — neither
   # continue-on-error nor a large timeout avoids the run-level cancellation).
-  # The core-domain parser harnesses DO verify under Kani (0 of 358 checks
-  # failed in a prior run); the limitation is bootstrap time, not proof
-  # complexity. Kani runs weekly via its own workflow so it can take its time.
+  # The limitation is bootstrap time; Kani runs weekly via its own workflow
+  # so it can take its time.
 
   fuzz:
     name: Continuous fuzzing
@@ -526,8 +740,9 @@ jobs:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Install nightly Rust
         run: rustup toolchain install nightly
-      - name: Install cargo-fuzz
-        run: cargo +nightly install cargo-fuzz
+      # Pinned + --locked, same rationale as the fuzz-regression job.
+      - name: Install cargo-fuzz (pinned, --locked)
+        run: cargo +nightly install cargo-fuzz --version 0.13.2 --locked
       # Exploratory fuzzing: a newly-found crash FAILS the PR (no
       # continue-on-error). 60s budget per target.
       - name: Run fuzz targets (limited duration in CI)

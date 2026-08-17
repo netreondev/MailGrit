@@ -1,10 +1,10 @@
 # Kani formal verification (scheduled).
 #
-# Kani's bounded model checker verifies the core-domain parser harnesses (no
-# panic, determinism, invariants on arbitrary input). The harnesses DO verify
-# (0 of 358 checks failed in a prior run), but kani-github-action's bootstrap —
-# installing Kani, its pinned nightly toolchain, and compiling core-domain with
-# dependencies — takes ~30 min, which does not fit a per-push CI budget.
+# Kani's bounded model checker covers the core-domain parser harnesses (no
+# panic, determinism, invariants on bounded input). kani-github-action's
+# bootstrap — installing Kani, its pinned nightly toolchain, and compiling
+# core-domain with dependencies — takes ~30 min, which does not fit a per-push
+# CI budget.
 #
 # Worse: a job cancelled by timeout cancels the ENTIRE GitHub Actions run (it
 # cancels in-flight sibling jobs), so Kani cannot live in the per-push ci.yml
@@ -39,21 +39,35 @@ jobs:
       # rustc 1.93.0) which is OLDER than this workspace's MSRV (1.97.1).
       # Cargo's rust-version gate rejects the build. Temporarily lower the
       # declared rust-version so Kani's bundled toolchain can compile the crates.
-      # The real MSRV (1.97.1) is enforced by ci.yml's quality job (cargo-msrv)
-      # and restored here after verification.
+      # The real MSRV (1.97.1) is enforced by ci.yml's quality job (cargo-msrv);
+      # the sed here touches only the EPHEMERAL runner's checkout — nothing is
+      # restored because nothing was changed in the repository.
       - name: Temporarily lower rust-version for Kani's pinned nightly
         run: |
+          # Fail loudly if the line format ever changes: a sed that silently
+          # matches nothing would let the rust-version gate fail the build with
+          # a confusing error instead. No `$` anchor: the line carries a
+          # trailing inline comment.
+          grep -q '^rust-version = "1.97.1"' Cargo.toml
           sed -i 's/^rust-version = "1.97.1"/rust-version = "1.93.0"/' Cargo.toml
 
       # --solver kissat: faster SAT solver. --default-unwind 20 bounds the
       # from_utf8_lossy / Utf8Chunks::next loop (8-byte input buffer → ≤8
       # iterations + slack) that Kani would otherwise unroll indefinitely.
+      #
+      # kani-version pinned to 0.67.0: the action's default (crates.io-latest
+      # at action-pinning time) shipped a CBMC whose SAT solving on the
+      # display_name no-panic harness diverged — every run since 2026-08-09
+      # ground ~60 s per str::count unwinding step and was cancelled by the
+      # 90-minute job timeout (runs 31294142192, 31299647997, 31924909000,
+      # 31962413897), i.e. the weekly gate was silently red for 2+ weeks.
+      # 0.67.0 is materially faster on the remaining symbolic harnesses; the
+      # display_name harness itself is now concrete-string (see the coverage
+      # NOTE in kani_harnesses.rs — no symbolic model converged on 2-vCPU
+      # runners under any bound/solver tried). Keep the version pinned so the
+      # gate never silently regresses with an action-side default bump.
       - name: "Kani (core-domain — parsers: no-panic, determinism, invariants)"
         uses: model-checking/kani-github-action@f838096619a707b0f6b2118cf435eaccfa33e51f # v1.1
         with:
+          kani-version: 0.67.0
           args: "-p mailgrit-core-domain -Z unstable-options --solver kissat --default-unwind 20"
-
-      - name: Restore MSRV
-        if: always()
-        run: |
-          sed -i 's/^rust-version = "1.93.0"/rust-version = "1.97.1"/' Cargo.toml

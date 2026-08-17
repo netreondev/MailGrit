@@ -25,8 +25,14 @@ description = "MailGrit allowlist (documented false positives only)"
 # Test fixtures contain deliberately-looking-secret placeholders that are NOT
 # credentials (random opaque strings in CSV/parser test data). Scoped by path.
 paths = [
-    # Playwright e2e fixture: synthetic login URL / test markers, not real.
-    '''e2e/.*''',
+    # Generated Playwright output (reports/traces may embed captured app
+    # content). The e2e TS SOURCES themselves are NOT excluded: the suite
+    # spawns processes and sets env vars — it must stay within secret-scan
+    # scope (previously the whole e2e/ dir was allowlisted). node_modules/
+    # test-results are gitignored and thus never scanned; the explicit entries
+    # below guard against an accidental commit of generated output.
+    '''e2e/playwright-report/.*''',
+    '''e2e/test-results/.*''',
     # Fuzz corpus / seeds: arbitrary byte inputs for the fuzzer.
     '''fuzz/seeds/.*''',
     # This very supply-chain config references URLs that gitleaks may flag.

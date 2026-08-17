@@ -7,7 +7,7 @@ artifacts. It is not deployed to GitHub Pages (only `docs/` is).
 
 `og-render.html` is a self-contained 1200×630 HTML canvas that renders the
 Open Graph / Twitter Card preview image for the landing site. It uses the
-app's premium dark palette and inline CSS, so it renders identically anywhere.
+app's dark palette and inline CSS, so it renders identically anywhere.
 
 ### Regenerating `og.png`
 

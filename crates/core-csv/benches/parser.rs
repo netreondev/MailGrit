@@ -6,7 +6,7 @@
 //! .github/workflows/ci.yml.)
 //!
 //! These benchmarks guard against performance regressions on the primary hot
-//! path: parsing a large bulk-import CSV (up to MAX_CSV_ROWS). A regression here
+//! path: parsing a large bulk-import CSV (up to `MAX_CSV_ROWS`). A regression here
 //! would make a real 50k-row import noticeably slower for the user.
 //!
 //! Benchmark harness code is non-production: an `expect` failure here is a

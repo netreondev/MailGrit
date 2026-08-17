@@ -35,7 +35,7 @@ use std::sync::Arc;
 /// Typed: the KDF/AEAD and I/O failure kinds stay distinguishable at the UI
 /// boundary (they used to collapse into a formatted `String`).
 enum ExportError {
-    /// Argon2id / AEAD failure (build_encrypted_bytes).
+    /// Argon2id / AEAD failure (`build_encrypted_bytes`).
     Crypto(mailgrit_core_security::SecurityError),
     /// Writing the target file.
     Io(std::io::Error),
@@ -110,7 +110,7 @@ pub fn do_export(state: &mut Signal<AppState>, encrypt: bool) {
     // the user the export "did not work".
     if encrypt && master_password.is_none() {
         state.write().export.pending_export_after_unlock = true;
-        state.write().modals.pending_master_password = true;
+        state.write().open_master_password_modal();
         state.write().error_msg = Some(t!("master_password.export_no_audit").to_string());
         return;
     }
@@ -294,7 +294,7 @@ fn build_encrypted_bytes(
 /// Records a successful export in the audit log and updates the UI state.
 ///
 /// Takes an already-cloned `Arc<AuditWriter>` (rather than borrowing the signal):
-/// a SQLite write under a live `&state.read().audit` was a reentrant
+/// a `SQLite` write under a live `&state.read().audit` was a reentrant
 /// anti-pattern. Now the signal borrow is held only for a short write-scope at
 /// the very end.
 fn record_export_success(

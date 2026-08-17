@@ -65,6 +65,38 @@ fn domain_rejects_trailing_dot() {
     assert!(ValidatedDomain::parse("example.com.").is_err());
 }
 
+// The InvalidChar arm of the domain parser is guarded by is_valid_domain_char
+// ([a-zA-Z0-9-] only). A mutant replacing the predicate (or its match guard)
+// with `true` accepts hostnames with underscores, spaces, or non-ASCII
+// letters — hostnames a mail server would reject. Each input below contains
+// exactly one character that is valid in usernames/Windows names but NOT in
+// domains, so the expected error variant and position are unambiguous.
+#[test]
+fn domain_rejects_invalid_char() {
+    // Underscore (legal in usernames, illegal in domain labels).
+    assert!(matches!(
+        ValidatedDomain::parse("bad_domain.com"),
+        Err(DomainError::InvalidChar { char: '_', pos: 3 })
+    ));
+    // Space.
+    assert!(matches!(
+        ValidatedDomain::parse("exa mple.com"),
+        Err(DomainError::InvalidChar { char: ' ', .. })
+    ));
+    // Non-ASCII letter (Cyrillic 'д').
+    assert!(matches!(
+        ValidatedDomain::parse("домен.com"),
+        Err(DomainError::InvalidChar { .. })
+    ));
+    // Control characters are not domain characters either.
+    assert!(matches!(
+        ValidatedDomain::parse("example\t.com"),
+        Err(DomainError::InvalidChar { .. })
+    ));
+    // Hyphen and digits ARE valid (positive control for the same predicate).
+    assert!(ValidatedDomain::parse("my-site1.example").is_ok());
+}
+
 // Regression: the length of the LAST label was not checked (the check only
 // existed in the '.' branch). A final label without a trailing dot bypassed the 63 limit.
 #[test]

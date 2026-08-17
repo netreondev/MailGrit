@@ -12,7 +12,7 @@ pub struct CookieInfo {
     pub domain: Option<String>,
     /// Path.
     pub path: Option<String>,
-    /// HttpOnly flag.
+    /// `HttpOnly` flag.
     pub http_only: bool,
     /// Value length (the value itself is not shown — it is a secret).
     pub value_len: usize,
@@ -43,23 +43,23 @@ pub struct DiagRequest {
     pub tx: tokio::sync::oneshot::Sender<String>,
 }
 
-/// Request to open the login window (iRedAdmin base_url).
+/// Request to open the login window (iRedAdmin `base_url`).
 #[derive(Debug, Clone)]
 pub struct LoginRequest {
-    /// Full iRedAdmin URL (https://host/iredadmin).
+    /// Full iRedAdmin URL (<https://host/iredadmin>).
     pub base_url: String,
 }
 
 /// Login-webview load event — the trigger for data-driven auto-auth.
 ///
 /// Login predicate: the URL contains `/dashboard` (the canonical post-login
-/// redirect of iRedAdmin; more reliable behind FortiWeb — the WAF hides the
-/// backend cookie) OR the webpy_session_id cookie is present (for environments
+/// redirect of iRedAdmin; more reliable behind `FortiWeb` — the WAF hides the
+/// backend cookie) OR the `webpy_session_id` cookie is present (for environments
 /// without a WAF).
 #[derive(Debug, Clone)]
 pub struct AuthEvent {
     /// iRedAdmin Base URL (origin for reading the domain cookie).
     pub base_url: String,
-    /// Final URL after loading and redirects (from page_load Finished).
+    /// Final URL after loading and redirects (from `page_load` Finished).
     pub final_url: String,
 }

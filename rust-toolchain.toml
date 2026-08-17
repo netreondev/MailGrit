@@ -1,4 +1,4 @@
-# Pinned toolchain version (not stable) — guarantees a reproducible build
+# Pinned toolchain version (not stable) — the same compiler is used
 # across all three target platforms (Windows/Linux/macOS).
 # Bumping the version is a separate, documented change.
 [toolchain]

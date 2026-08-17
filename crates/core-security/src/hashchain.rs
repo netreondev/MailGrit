@@ -20,7 +20,7 @@ use sha2::Sha256;
 /// Length of HMAC-SHA256 in bytes (32).
 pub const HMAC_LEN: usize = 32;
 
-/// Initial value of the hash chain (H_0): zeros.
+/// Initial value of the hash chain (`H_0)`: zeros.
 pub const GENESIS_HASH: [u8; HMAC_LEN] = [0u8; HMAC_LEN];
 
 /// Type alias for HMAC-SHA256.

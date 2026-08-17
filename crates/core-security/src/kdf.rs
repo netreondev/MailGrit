@@ -19,7 +19,7 @@ use zeroize::Zeroizing;
 /// KDF salt length in bytes (16 is the RFC 9106 recommendation).
 pub const SALT_LEN: usize = 16;
 
-/// Length of the derived key in bytes (32 — for XChaCha20 / HMAC-SHA256).
+/// Length of the derived key in bytes (32 — for `XChaCha20` / HMAC-SHA256).
 pub const DERIVED_KEY_LEN: usize = 32;
 
 /// Argon2id parameters: 64 MiB memory, 3 iterations, parallelism degree 4.

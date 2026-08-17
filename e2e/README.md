@@ -30,6 +30,8 @@ The suite runs in CI on every push (the `e2e` job in `.github/workflows/ci.yml`,
 cargo build -p mailgrit-app-desktop --features e2e   # from the repo root
 cd e2e
 npm ci
+npm run typecheck                 # tsc --noEmit (Playwright ignores type errors)
+npm run test:jsmoke               # executes the real generated batch JS (mocked fetch)
 npm test                          # all tests (connects to the app's own WebView2)
 npm run test:headed               # with a visible window (handy for debugging)
 npm run report                    # HTML report of the last run
@@ -39,18 +41,32 @@ No Playwright browser download is needed: `chromium.connectOverCDP` connects to
 the application's own WebView2 instance — do NOT run
 `npx playwright install chromium` (it downloads a browser this suite never uses).
 The application's stdout/stderr of every run are captured into
-`app-stdio.log` inside the per-run temp directory.
+`app-stdio.log` inside the per-run temp directory; on a failed test the
+fixture copies it into the Playwright output (`test-results/…/app-stdio.log`)
+before cleanup — the app's own diagnostics survive the failure.
 
 ## How it works
 
 1. `fixtures/app.ts` finds the `.exe` and **copies it to a temporary directory**
    (isolating `mailgrit-data/` — every run starts with a clean config/cookie store).
-2. Before spawn, `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9333`
-   is injected.
+   Before spawn it also verifies the CDP port is FREE — a leftover
+   `msedgewebview2.exe` holding the port fails fast with a named cause
+   instead of misleading page errors.
+2. Before spawn, `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<CDP_PORT>`
+   is injected (the default port is defined once in `playwright.config.ts`;
+   CI injects the same value via the `CDP_PORT` env var).
 3. After the process starts, we wait for the CDP endpoint ->
    `chromium.connectOverCDP(...)` -> take the MailGrit window page -> pass it to
    the test as `{ page }`.
-4. Teardown kills the process and deletes the temporary directory.
+4. Teardown kills the process tree (awaited `taskkill /T /F`) and deletes the
+   temporary directory.
+
+> **Do NOT copy the CI HKLM policy to a dev machine.** CI sets
+> `HKLM\Software\Policies\Microsoft\Edge\WebView2\AdditionalBrowserArguments\*`
+> because elevated runners ignore the `WEBVIEW2_*` env vars (Runtime 150+).
+> That policy applies to **every WebView2 application on the host** and opens
+> a remote-debugging (CDP) port in all of them — any local process can then
+> drive those browsers. It is only acceptable on an ephemeral runner.
 
 `workers: 1` (one `.exe` + one CDP port at a time).
 
@@ -119,5 +135,9 @@ The `testDashboard` fixture in `fixtures/app.ts` sets this env before spawn.
   unit/property/fuzz tests.
 - The network round-trip of bulk operations (create/edit/delete against
   iRedAdmin). Operations run as JS `fetch` inside a separate login-webview; the
-  success/error-marker contract is covered by Rust tests
-  (`webview_markers_tests.rs`).
+  JS control flow itself IS now executed by the Node smoke harness
+  (`npm run test:jsmoke`: mocked `fetch`, real generated IIFE — happy path,
+  server-error framing, verify-window session expiry, missing CSRF), but the
+  real wire behavior against a live iRedAdmin/FortiWeb remains untested, as do
+  the marker tables' exhaustiveness against real responses
+  (`webview_markers_tests.rs` covers the Rust side).

@@ -33,9 +33,9 @@ pub enum EditableField {
     Username,
     /// The password field.
     Password,
-    /// The display_name field.
+    /// The `display_name` field.
     DisplayName,
-    /// The quota_mb field.
+    /// The `quota_mb` field.
     Quota,
 }
 
@@ -69,7 +69,7 @@ pub struct EditableUserRow {
 
 impl EditableUserRow {
     /// Empty row for the "Add row" button in the UI. Domain/username/password
-    /// are empty, display_name is empty, quota is the default string (valid).
+    /// are empty, `display_name` is empty, quota is the default string (valid).
     #[must_use]
     pub fn empty_with_default_quota() -> Self {
         Self {

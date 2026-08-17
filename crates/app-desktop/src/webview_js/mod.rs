@@ -4,7 +4,7 @@
 //! See the rationale for the webview approach (FortiWeb/WAF) at the root of
 //! [`crate::webview_ops`].
 //!
-//! MailGrit works only with open-source iRedAdmin (OSE, HTML forms). The main
+//! `MailGrit` works only with open-source iRedAdmin (OSE, HTML forms). The main
 //! entry point [`build_batch_js`] dispatches by
 //! [`mailgrit_core_domain::OperationTarget`]:
 //! - `User` → [`user::build_user_batch_js`] (CSRF + create/edit/delete user form);
@@ -15,7 +15,7 @@
 //! its own module. The diagnostics builder is in [`crate::webview_js_extra`].
 //!
 //! # Operation success verdict
-//! iRedAdmin returns HTTP 200 even on error (ALREADY_EXISTS, etc.), so the status
+//! iRedAdmin returns HTTP 200 even on error (`ALREADY_EXISTS`, etc.), so the status
 //! code alone is insufficient. See the target modules ([`user`], [`domain`],
 //! [`admin`]) for verdict details.
 // SPDX-License-Identifier: MIT OR Apache-2.0

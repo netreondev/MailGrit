@@ -247,7 +247,7 @@ mod tests {
         rust_i18n::set_locale("en");
     }
 
-    /// CsvRowError with ColumnCount interpolates its values.
+    /// `CsvRowError` with `ColumnCount` interpolates its values.
     #[test]
     fn csv_row_column_count_en() {
         let _guard = LOCALE_TEST_LOCK
@@ -266,7 +266,7 @@ mod tests {
         rust_i18n::set_locale("en");
     }
 
-    /// PasswordWarning is translated for the current locale.
+    /// `PasswordWarning` is translated for the current locale.
     #[test]
     fn password_warning_uk() {
         let _guard = LOCALE_TEST_LOCK
@@ -278,7 +278,7 @@ mod tests {
         rust_i18n::set_locale("en");
     }
 
-    /// CsvParseError::Io wraps an io::Error.
+    /// `CsvParseError::Io` wraps an `io::Error`.
     #[test]
     fn csv_parse_io_error_en() {
         let _guard = LOCALE_TEST_LOCK

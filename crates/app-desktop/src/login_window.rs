@@ -17,6 +17,7 @@ use tao::window::WindowBuilder;
 use wry::WebViewBuilder;
 
 // Re-export of the public API (the `crate::login_window::*` paths are stable after the split).
+use crate::login_state::lock;
 pub use crate::login_state::{LoginWindowState, login_state};
 pub use crate::login_types::{CookieInfo, LoginRequest};
 
@@ -56,14 +57,14 @@ fn handle_open_request<T: 'static>(
 }
 
 /// 2. Data-driven auto-auth: on a login-webview load event, check the login
-///    predicate and, on success, invoke on_login.
+///    predicate and, on success, invoke `on_login`.
 ///
 ///    The PREDICATE is hybrid (FortiWeb-proof):
-///    - URL contains "/dashboard" (the canonical post-login redirect of
-///      iRedAdmin) — the PRIMARY signal, because behind FortiWeb/WAF the real
-///      webpy_session_id cookie is invisible (only the WAF cookiesession1 cookie
-///      is visible, and it is ALWAYS present).
-///    - OR the webpy_session_id cookie is present — a fallback signal for
+///    - the final URL's PATH has the segment `dashboard` (the canonical
+///      post-login redirect of iRedAdmin) — the PRIMARY signal, because behind
+///      FortiWeb/WAF the real `webpy_session_id` cookie is invisible (only the
+///      WAF cookiesession1 cookie is visible, and it is ALWAYS present);
+///    - OR the `webpy_session_id` cookie is present — a fallback signal for
 ///      environments without a WAF.
 fn handle_auth_event(state: &Arc<LoginWindowState>) {
     let Some(ev) = take_optional(&state.auth_event) else {
@@ -77,18 +78,16 @@ fn handle_auth_event(state: &Arc<LoginWindowState>) {
             Vec::new()
         }
     };
-    // Session cookie name (from config).
-    let cookie_name = state
-        .session_cookie_name
-        .lock()
-        .ok()
-        .and_then(|n| n.clone());
+    // Session cookie name (from config). Poison recovery: see login_state.rs.
+    let cookie_name = lock(&state.session_cookie_name).clone();
     // Fallback signal: a session cookie with a non-empty value (for environments without a WAF).
     let has_session_cookie = cookie_name
         .as_deref()
         .is_some_and(|name| cookies.iter().any(|c| c.name == name && c.value_len > 0));
-    // Primary signal: the final URL contains /dashboard.
-    let is_dashboard = ev.final_url.contains("/dashboard");
+    // Primary signal: the final URL's path has the `dashboard` segment (whole
+    // segment — `contains("/dashboard")` would also fire on a
+    // dashboard.example.com HOST, confirming login on the login page itself).
+    let is_dashboard = crate::util::url_path_has_segment(&ev.final_url, "dashboard");
     let is_logged_in = is_dashboard || has_session_cookie;
     let cookie_names: Vec<&str> = cookies.iter().map(|c| c.name.as_str()).collect();
     tracing::info!(
@@ -105,11 +104,11 @@ fn handle_auth_event(state: &Arc<LoginWindowState>) {
     );
     if is_logged_in {
         // Invoke the callback → it mutates Signal<AppState> via spawn_forever.
-        let invoked = state.on_login.lock().is_ok_and(|slot| {
-            slot.as_ref().is_some_and(|cb| {
-                cb();
-                true
-            })
+        // Poison recovery as everywhere (login_state.rs): a dropped login
+        // confirmation is worse than acting on possibly-stale state.
+        let invoked = lock(&state.on_login).as_ref().is_some_and(|cb| {
+            cb();
+            true
         });
         if !invoked {
             tracing::warn!("on_login callback is not registered — login not handled");
@@ -123,8 +122,7 @@ fn handle_op_request(state: &Arc<LoginWindowState>) {
         return;
     };
     tracing::info!("executing batch of operations via the login-webview (JS fetch)");
-    let webview_closed = state.webview.lock().map_or(true, |w| w.is_none());
-    if webview_closed {
+    if lock(&state.webview).is_none() {
         tracing::warn!("login-webview is closed — batch of operations not executed");
         let _ = oreq.tx.send(Vec::new());
         return;
@@ -139,11 +137,8 @@ fn handle_op_request(state: &Arc<LoginWindowState>) {
         true,
     );
     tracing::info!("batch: evaluate_script id={id}, {} rows", oreq.rows.len());
-    let eval_ok = state
-        .with_webview_cookies(|wv| wv.evaluate_script(&js).is_ok())
-        .unwrap_or(false);
-    if !eval_ok {
-        tracing::warn!("batch: evaluate_script failed id={id}");
+    if let Err(e) = state.evaluate_script(&js) {
+        tracing::warn!("batch: evaluate_script failed id={id}: {e}");
         let _ = oreq.tx.send(Vec::new());
         return;
     }
@@ -175,8 +170,7 @@ fn handle_diag_request(state: &Arc<LoginWindowState>) {
         return;
     };
     tracing::info!("form diagnostics for domain {}", dreq.domain);
-    let webview_closed = state.webview.lock().map_or(true, |w| w.is_none());
-    if webview_closed {
+    if lock(&state.webview).is_none() {
         tracing::warn!("login-webview is closed — diagnostics not executed");
         let _ = dreq.tx.send(r#"{"error":"webview closed"}"#.to_string());
         return;
@@ -184,11 +178,8 @@ fn handle_diag_request(state: &Arc<LoginWindowState>) {
     let (id, rx) = crate::ipc::register(&state.pending, &state.next_ipc_id);
     let js = crate::webview_ops::build_diag_js(id, &dreq.domain);
     tracing::info!("diag: evaluate_script id={id}");
-    let eval_ok = state
-        .with_webview_cookies(|wv| wv.evaluate_script(&js).is_ok())
-        .unwrap_or(false);
-    if !eval_ok {
-        tracing::warn!("diag: evaluate_script failed id={id}");
+    if let Err(e) = state.evaluate_script(&js) {
+        tracing::warn!("diag: evaluate_script failed id={id}: {e}");
         let _ = dreq.tx.send(r#"{"error":"eval failed"}"#.to_string());
         return;
     }
@@ -218,42 +209,33 @@ fn handle_close_event<T: 'static>(state: &Arc<LoginWindowState>, event: &Event<'
     else {
         return;
     };
-    let mine = state
-        .window
-        .lock()
-        .ok()
-        .and_then(|win| win.as_ref().map(|w| w.id() == *window_id))
-        .unwrap_or(false);
+    let mine = lock(&state.window)
+        .as_ref()
+        .is_some_and(|w| w.id() == *window_id);
     if !mine {
         return;
     }
     tracing::info!("login window closed by the user");
-    if let Ok(mut wv) = state.webview.lock() {
-        *wv = None;
-    }
-    if let Ok(mut win) = state.window.lock() {
-        *win = None;
-    }
-    if let Ok(mut ctx) = state.web_ctx.lock() {
-        *ctx = None;
-    }
-    if let Ok(mut pending) = state.pending.lock() {
+    // Poison recovery everywhere (login_state.rs): cleanup must run even after
+    // a panic elsewhere — otherwise the webview/window leak while appearing closed.
+    *lock(&state.webview) = None;
+    *lock(&state.window) = None;
+    *lock(&state.web_ctx) = None;
+    let leaked = {
+        let mut pending = lock(&state.pending);
         let leaked = pending.len();
         pending.clear();
-        if leaked > 0 {
-            tracing::warn!("webview close: cleared {leaked} stuck IPC requests");
-        }
+        leaked
+    };
+    if leaked > 0 {
+        tracing::warn!("webview close: cleared {leaked} stuck IPC requests");
     }
 }
 
 /// Extracts the `Option` from a `Mutex<Option<T>>`, recovering from a poisoned
-/// state (`into_inner`), as everywhere else in this module. Removes 4 copies of
-/// the same match.
+/// state (see [`lock`]). Removes 4 copies of the same match.
 fn take_optional<T>(slot: &Mutex<Option<T>>) -> Option<T> {
-    match slot.lock() {
-        Ok(mut r) => r.take(),
-        Err(poisoned) => poisoned.into_inner().take(),
-    }
+    lock(slot).take()
 }
 
 /// Base component of the adaptive operation-batch timeout (seconds).
@@ -337,9 +319,7 @@ fn build_login_window<T: 'static>(
             if matches!(event, wry::PageLoadEvent::Finished) {
                 tracing::debug!("login webview page loaded: {loaded_url}");
                 page_load_state.report_page_load(nav_base_url.clone(), loaded_url);
-                if let Ok(win) = page_load_state.window.lock()
-                    && let Some(w) = win.as_ref()
-                {
+                if let Some(w) = lock(&page_load_state.window).as_ref() {
                     w.request_redraw();
                 }
             }
@@ -354,15 +334,12 @@ fn build_login_window<T: 'static>(
     tracing::info!("login webview created, navigating to {url}");
 
     // 4. Store the webview/window/context (order matters for lifetimes).
-    if let Ok(mut wv) = state.webview.lock() {
-        *wv = Some(webview);
-    }
-    if let Ok(mut win) = state.window.lock() {
-        *win = Some(window);
-    }
-    if let Ok(mut ctx) = state.web_ctx.lock() {
-        *ctx = Some(web_ctx);
-    }
+    // Poison recovery (login_state.rs): without it a poisoned lock would
+    // silently DROP the freshly built window — the user's click would do
+    // nothing, with no log line.
+    *lock(&state.webview) = Some(webview);
+    *lock(&state.window) = Some(window);
+    *lock(&state.web_ctx) = Some(web_ctx);
 
     Ok(())
 }

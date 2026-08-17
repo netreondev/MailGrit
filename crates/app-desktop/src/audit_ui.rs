@@ -1,6 +1,6 @@
 //! Wiring of the hash-chained audit log (`core-storage`) to the UI.
 //!
-//! The audit log lives in a SQLite file in the application's data directory. The
+//! The audit log lives in a `SQLite` file in the application's data directory. The
 //! HMAC key is generated in memory at startup (for chain verification within a
 //! session). Each bulk operation is recorded via
 //! [`AuditWriter::append_op`].
@@ -28,7 +28,7 @@ pub enum AuditError {
     Crypto(String),
     /// A hash-chain integrity violation (the log was tampered with). Distinct
     /// from [`Storage`](Self::Storage) so the UI does not falsely report
-    /// "tampering" on any SQLite error.
+    /// "tampering" on any `SQLite` error.
     #[error("audit log integrity violation: {0}")]
     Tampered(String),
     /// The audit-log mutex is poisoned (a panic while locked).
@@ -128,7 +128,7 @@ impl AuditWriter {
     }
 
     /// Common helper: locks the mutex, appends a record, maps the error.
-    /// The guard is released inside the block-scope (before map_err) so the lock
+    /// The guard is released inside the block-scope (before `map_err`) so the lock
     /// is not held longer than necessary.
     fn append_payload(
         &self,
@@ -166,7 +166,7 @@ impl AuditWriter {
     ///
     /// Distinguishes genuine tampering ([`AuditError::Tampered`]) from transient
     /// DB read errors ([`AuditError::Storage`]), so the UI does not falsely
-    /// report "tampering" on any SQLite error.
+    /// report "tampering" on any `SQLite` error.
     ///
     /// # Errors
     ///

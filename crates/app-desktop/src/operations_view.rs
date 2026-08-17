@@ -58,7 +58,7 @@ pub fn operations_section(state: Signal<AppState>) -> Element {
             {ops_card(state)}
 
             // Card 3: Result of the last operation (full width).
-            Card { class: "span-all".to_string(),
+            Card { class: "span-all".to_string(), data_card: "result".to_string(),
                 h2 { IconView { icon: Icon::Check } {tr!("result.card_title")} }
                 batch_result_view {}
             }
@@ -77,7 +77,7 @@ pub fn ops_card(mut state: Signal<AppState>) -> Element {
     crate::i18n::subscribe_to_language(state);
     let can_op = has_session && has_csv && op_status != OpStatus::Running;
     rsx! {
-        Card {
+        Card { data_card: "ops".to_string(),
             h2 { IconView { icon: Icon::Wrench } {tr!("ops.card_title")} }
             p {
                 class: "muted",
@@ -121,7 +121,7 @@ pub fn ops_card(mut state: Signal<AppState>) -> Element {
 
 /// Bulk-operation buttons (Create/Edit/Delete/export/diagnostics) + the Modal.
 /// Extracted from `ops_card` to comply with the clippy line limit
-/// (too_many_lines).
+/// (`too_many_lines`).
 fn ops_buttons(
     mut state: Signal<AppState>,
     op_status: OpStatus,

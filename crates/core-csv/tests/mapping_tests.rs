@@ -104,7 +104,7 @@ fn auto_positional_without_header_matches_classic() -> Result<(), Box<dyn std::e
     Ok(())
 }
 
-/// detect_mapping on a canonical header → 5 bindings.
+/// `detect_mapping` on a canonical header → 5 bindings.
 #[test]
 fn detect_mapping_canonical_header_five_bindings() {
     let header: Vec<String> = mailgrit_core_csv::CSV_HEADER
@@ -118,7 +118,7 @@ fn detect_mapping_canonical_header_five_bindings() {
     assert!(m.binds_all_profile_fields());
 }
 
-/// detect_mapping case-insensitive/trimmed: "Domain", " UserName ".
+/// `detect_mapping` case-insensitive/trimmed: "Domain", " `UserName` ".
 #[test]
 fn detect_mapping_case_insensitive_and_trimmed() -> Result<(), Box<dyn std::error::Error>> {
     let header: Vec<String> = [
@@ -264,7 +264,7 @@ fn auto_strips_utf8_bom() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// ColumnMapping clones and holds the profile (basic type contract).
+/// `ColumnMapping` clones and holds the profile (basic type contract).
 #[test]
 fn column_mapping_is_clone_and_holds_profile() {
     let header: Vec<String> = mailgrit_core_csv::CSV_HEADER
@@ -279,10 +279,10 @@ fn column_mapping_is_clone_and_holds_profile() {
     assert_eq!(cloned.profile.fields.len(), profile.fields.len());
 }
 
-/// process_row_mapped substitutes the *correct* profile default for an unmapped
+/// `process_row_mapped` substitutes the *correct* profile default for an unmapped
 /// canonical field. The default lookup (`f.name == canonical`) is mutation-killed
-/// by checking that an unmapped `quota_mb` becomes DEFAULT_QUOTA_MB (1024), not
-/// some other field's default (e.g. display_name's "").
+/// by checking that an unmapped `quota_mb` becomes `DEFAULT_QUOTA_MB` (1024), not
+/// some other field's default (e.g. `display_name`'s "").
 #[test]
 fn unmapped_optional_field_uses_its_own_profile_default() -> Result<(), Box<dyn std::error::Error>>
 {
@@ -337,5 +337,68 @@ fn unmapped_empty_default_field_parses() -> Result<(), Box<dyn std::error::Error
         "",
         "unmapped display_name defaults to empty"
     );
+    Ok(())
+}
+
+/// The mapping/auto paths enforce the `MAX_CSV_ROWS` budget via
+/// `check_row_budget` with the FIXED constant (unlike the classic parser,
+/// which takes a configurable limit — that path is boundary-tested in
+/// `parser_tests::rejects_too_many_rows`). A mutant replacing the guard with
+/// `Ok(())` removes the `DoS` protection from these paths and is invisible to
+/// every small-fixture test. Drive the real boundary: exactly `MAX_CSV_ROWS`
+/// positional rows parse fine; one more is a fatal `TooManyRows` (rows are
+/// counted, not lines: all rows here are valid).
+// Under Miri this test is ignored for the same reason as the proptest suite
+// (proptest_csv.rs): the interpreter runs ~1000× slower than native code, and
+// parsing 50 001 CSV rows takes hours instead of 0.5 s (measured 2026-08-17:
+// the CI Miri job ground on this binary for its whole 120-minute budget,
+// runs 31993316181/31995993576/32004782004). The row-budget guard itself is
+// exercised natively here (nextest) and the parser loop it protects is
+// interpreted by Miri through the small-fixture mapping tests above.
+#[test]
+#[cfg_attr(
+    miri,
+    ignore = "50k-row boundary budget test: hours under the interpreter, 0.5s natively"
+)]
+fn auto_enforces_max_csv_rows_budget() -> Result<(), Box<dyn std::error::Error>> {
+    use mailgrit_core_csv::CsvParseError;
+    use mailgrit_core_domain::MAX_CSV_ROWS;
+
+    // No header: the first record does not bind all profile fields, so the
+    // auto parser stays in positional mode and every record is a data row.
+    let mut data = String::with_capacity((MAX_CSV_ROWS + 1) * 21);
+    for i in 0..=MAX_CSV_ROWS {
+        // Distinct usernames keep every row valid (a duplicate would still
+        // parse — rows are not deduplicated — but this mirrors real input).
+        data.push_str("good.com,u");
+        data.push_str(&i.to_string());
+        data.push_str(",p,n,200\n");
+    }
+
+    let profile = OperationProfile::for_user_create();
+    match parse_csv_bytes_auto(data.as_bytes(), &profile) {
+        Ok(_) => return Err("expected TooManyRows error, got Ok".into()),
+        Err(CsvParseError::TooManyRows { actual, max }) => {
+            assert_eq!(max, MAX_CSV_ROWS);
+            assert_eq!(actual, MAX_CSV_ROWS + 1);
+        }
+        Err(other) => return Err(format!("expected TooManyRows, got {other:?}").into()),
+    }
+
+    // Exact boundary: MAX_CSV_ROWS rows fit (the guard is `processed >= max`,
+    // so the row that would exceed the budget is the one that errors).
+    let mut exact = String::with_capacity(MAX_CSV_ROWS * 21);
+    for i in 0..MAX_CSV_ROWS {
+        exact.push_str("good.com,u");
+        exact.push_str(&i.to_string());
+        exact.push_str(",p,n,200\n");
+    }
+    let parsed = parse_csv_bytes_auto(exact.as_bytes(), &profile)?;
+    assert_eq!(
+        parsed.rows.len(),
+        MAX_CSV_ROWS,
+        "exactly MAX_CSV_ROWS rows must parse"
+    );
+    assert!(parsed.failed.is_empty());
     Ok(())
 }

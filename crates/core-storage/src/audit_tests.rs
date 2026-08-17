@@ -3,13 +3,13 @@
 //! Factored into a separate file (via `#[path]`) to keep the main module within
 //! the ≤400-line file-size limit. Included as the body of `mod tests`.
 //!
-//! Every test below drives a real in-memory SQLite database via `rusqlite`,
+//! Every test below drives a real in-memory `SQLite` database via `rusqlite`,
 //! which calls into libsqlite3 through C FFI. Miri cannot interpret foreign
 //! functions, so these tests are skipped under `cfg(miri)` (Miri reports
 //! "unsupported operation: can't call foreign function `sqlite3_threadsafe`").
 //! The audit-log *logic* — the hash-chain (HMAC-SHA256) computation, tamper
 //! detection, and entry framing — lives in `core-security::hashchain` and is
-//! fully covered by Miri there (no FFI); `core-storage` is the SQLite
+//! fully covered by Miri there (no FFI); `core-storage` is the `SQLite`
 //! persistence layer on top.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors

@@ -1,7 +1,7 @@
 //! Operations panel: context-bar, top-level navigation (Operations/Audit),
 //! and section dispatcher.
 //!
-//! MailGrit is focused: the "Operations" section is CSV load → editable table
+//! `MailGrit` is focused: the "Operations" section is CSV load → editable table
 //! → password generation → target → execution → result; the "Audit" section is
 //! the hash-chained operations log. Default section is `Operations`.
 // SPDX-License-Identifier: MIT OR Apache-2.0
@@ -19,7 +19,6 @@ use crate::language::Language;
 use crate::nav::DashboardSection;
 use crate::operations_view::operations_section;
 use crate::state::AppState;
-use crate::theme::Theme;
 use crate::views::audit_view;
 use dioxus::prelude::*;
 
@@ -29,7 +28,6 @@ pub fn dashboard_screen() -> Element {
     let mut state = use_context::<Signal<AppState>>();
     let has_session = state.read().session_ok;
     let base_url = state.read().base_url.clone();
-    let theme = state.read().theme;
     // Read the language — to re-render localized strings when the language changes.
     let language = state.read().language;
     let error_msg = state.read().error_msg.clone();
@@ -37,8 +35,10 @@ pub fn dashboard_screen() -> Element {
 
     rsx! {
         div { class: "dashboard",
-            // Contextual header below the titlebar.
-            {context_bar(state, has_session, &base_url, theme, language)}
+            // Contextual header below the titlebar. Passing `language` (not the
+            // whole state) re-renders the bar when the language flips; the
+            // theme is read inside ThemeToggle itself.
+            {context_bar(state, has_session, &base_url, language)}
 
             div { class: "dashboard-body",
                 // Top-level navigation.
@@ -79,7 +79,6 @@ fn context_bar(
     mut state: Signal<AppState>,
     has_session: bool,
     base_url: &str,
-    _theme: Theme,
     language: Language,
 ) -> Element {
     rsx! {
@@ -126,7 +125,7 @@ fn section_body(state: Signal<AppState>, section: DashboardSection) -> Element {
         DashboardSection::Operations => rsx! { {operations_section(state)} },
         DashboardSection::Audit => rsx! {
             div { class: "dash-grid",
-                Card { class: "span-all".to_string(),
+                Card { class: "span-all".to_string(), data_card: "audit".to_string(),
                     h2 { IconView { icon: Icon::Shield } {tr!("nav.audit")} }
                     audit_view {}
                 }

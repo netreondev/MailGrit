@@ -79,14 +79,6 @@ pedantic = { level = "deny", priority = -1 }
 nursery = { level = "deny", priority = -1 }
 cargo = { level = "deny", priority = -1 }
 
-# Targeted, documented exception: doc_markdown is designed for Latin abbreviations
-# but systematically false-positives on technical terms and acronyms (HttpOnly,
-# XChaCha20-Poly1305, DashMap, OOM, TOCTOU, RCU, etc.), creating noise without
-# improving real quality. Lifting the exception is a separate task (see
-# .github/workflows/ci.yml) once a custom term allowlist is introduced instead of
-# the lint. Revisit when the project glossary of technical terms is filled in.
-doc_markdown = "allow"
-
 # Lints that may not be silenced without exceptions.
 unwrap_used = "deny"
 expect_used = "deny"      # production code; tests override locally

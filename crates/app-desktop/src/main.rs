@@ -1,4 +1,4 @@
-//! `app-desktop` — MailGrit entry point (Dioxus 0.7 desktop).
+//! `app-desktop` — `MailGrit` entry point (Dioxus 0.7 desktop).
 //!
 //! Integration point that wires the core-* crates to the UI. Login is detected
 //! in a data-driven way by observing the webview navigating to `/dashboard`;
@@ -101,6 +101,19 @@ const APP_STYLES: &str = concat!(
 
 /// Main function launching the Dioxus application.
 fn main() {
+    // Test-only JS emission mode (compiled only with the `e2e` feature):
+    // `mailgrit-app-desktop --emit-batch-js <rows.json>` prints the generated
+    // batch IIFE to stdout and exits — no window, no webview. Consumed by the
+    // Node smoke harness (e2e/js-smoke), which EXECUTES the IIFE against a
+    // mocked fetch to test the JS control flow end-to-end (the Rust-side
+    // string-presence tests cannot catch a logically broken builder).
+    #[cfg(feature = "e2e")]
+    if std::env::args().nth(1).as_deref() == Some("--emit-batch-js") {
+        let rows_path = std::env::args().nth(2).unwrap_or_default();
+        emit_batch_js_main(&rows_path);
+        return;
+    }
+
     let _log_guard = logging::init();
 
     // Login window state is thread_local (WebView is !Send).
@@ -137,7 +150,7 @@ fn main() {
         .launch(app);
 }
 
-/// Sets `document.title` (the document title inside the WebView) via evaluate_script.
+/// Sets `document.title` (the document title inside the `WebView`) via `evaluate_script`.
 ///
 /// Mirror of [`theme::apply_theme`]: same mechanism (`use_window().webview`).
 /// Needed because Dioxus 0.7 hardcodes `<title>Dioxus app</title>` in index.html
@@ -254,4 +267,67 @@ fn app() -> Element {
             }
         }
     }
+}
+
+/// E2E-only helper for the Node smoke harness (e2e/js-smoke): reads the rows
+/// JSON, builds the batch JS via the REAL production builder, prints it to
+/// stdout. The rows JSON is an array of 5-string arrays in CSV column order
+/// (domain, username, password, `display_name`, quota) — it goes through the
+/// canonical typestate parser, exactly like a loaded CSV.
+///
+/// No `println!`/`eprintln!` (denied workspace-wide) and no `panic!`: errors
+/// go to stderr via `Write` and the process exits with code 2.
+#[cfg(feature = "e2e")]
+fn emit_batch_js_main(rows_path: &str) {
+    use std::io::Write as _;
+    fn bail(msg: &str) -> ! {
+        let mut err = std::io::stderr();
+        let _ = writeln!(err, "emit-batch-js: {msg}");
+        let _ = err.flush();
+        std::process::exit(2);
+    }
+
+    let usage =
+        "usage: --emit-batch-js <rows.json> [user|domain|admin] [create|edit|delete] [verify 0|1]";
+    if rows_path.is_empty() {
+        bail(&format!("rows file missing — {usage}"));
+    }
+    let target = match std::env::args().nth(3).as_deref() {
+        None | Some("user") => mailgrit_core_domain::OperationTarget::User,
+        Some("domain") => mailgrit_core_domain::OperationTarget::Domain,
+        Some("admin") => mailgrit_core_domain::OperationTarget::Admin,
+        Some(other) => bail(&format!("unknown target {other:?} — {usage}")),
+    };
+    let kind = match std::env::args().nth(4).as_deref() {
+        None | Some("create") => mailgrit_core_domain::BulkOperationKind::Create,
+        Some("edit") => mailgrit_core_domain::BulkOperationKind::Edit,
+        Some("delete") => mailgrit_core_domain::BulkOperationKind::Delete,
+        Some(other) => bail(&format!("unknown kind {other:?} — {usage}")),
+    };
+    let verify = std::env::args().nth(5).as_deref() != Some("0");
+
+    let rows_json = std::fs::read_to_string(rows_path)
+        .unwrap_or_else(|e| bail(&format!("reading {rows_path}: {e}")));
+    let parsed: Vec<Vec<String>> = serde_json::from_str(&rows_json)
+        .unwrap_or_else(|e| bail(&format!("parsing {rows_path} (expected [[domain, username, password, display_name, quota], ...]): {e}")));
+    let mut rows = Vec::with_capacity(parsed.len());
+    for (i, cols) in parsed.into_iter().enumerate() {
+        let row = mailgrit_core_domain::RawCsvRow::new(cols)
+            .parse()
+            .unwrap_or_else(|e| bail(&format!("row #{i} failed the canonical parser: {e}")));
+        rows.push(row);
+    }
+
+    let js = webview_ops::build_batch_js(
+        1,
+        target,
+        kind,
+        "https://mail.example.com/iredadmin",
+        &rows,
+        verify,
+    );
+    let mut out = std::io::stdout();
+    let _ = out.write_all(js.as_bytes());
+    let _ = out.write_all(b"\n");
+    let _ = out.flush();
 }

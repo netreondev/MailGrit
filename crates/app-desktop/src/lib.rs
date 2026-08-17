@@ -1,7 +1,7 @@
 //! Library part of app-desktop.
 //!
-//! Previously this exported the reqwest operation implementations (iredadmin_ops,
-//! iredadmin_api) and endpoint configuration, but that path was unreachable behind
+//! Previously this exported the reqwest operation implementations (`iredadmin_ops`,
+//! `iredadmin_api`) and endpoint configuration, but that path was unreachable behind
 //! FortiWeb/WAF and was never invoked from the UI — the real engine works through
 //! the login webview (JS fetch). Those modules and their integration tests were
 //! removed; the endpoint configuration was removed as unused. The library part is

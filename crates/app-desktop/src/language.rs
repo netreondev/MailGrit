@@ -88,17 +88,11 @@ impl Language {
         ]
     }
 
-    /// Emoji flag of the language (regional-indicator symbols). Kept as a stable
-    /// Unicode label; note that on Windows/WebView2 these emoji do not render as
-    /// flag glyphs (Segoe UI Emoji lacks them) and fall back to letters. For the
-    /// visual flag in the UI selector use [`country_code`](Self::country_code)
-    /// with the `.flag` CSS class family, which renders an inline SVG flag that
-    /// is identical on every platform.
-    /// ISO-3166-1 alpha-2 country code used to render the language's flag in the
-    /// UI selector. The code becomes the CSS modifier `flag-<country_code>`
+    /// ISO-3166-1 alpha-2 country code used to render the language's flag in
+    /// the UI selector. The code becomes the CSS modifier `flag-<country_code>`
     /// (e.g. `flag-gb`, `flag-ua`), which the stylesheet maps to an inline SVG
-    /// flag. Unlike the emoji [`flag`](Self::flag), the SVG renders identically
-    /// on Windows, Linux, and macOS (WebView2 has no flag-glyph font support).
+    /// flag — the SVG renders identically on Windows, Linux, and macOS (an
+    /// emoji flag would NOT: WebView2/Segoe UI Emoji lacks flag glyphs).
     /// English → gb; português → pt (European, not BR).
     #[must_use]
     pub const fn country_code(self) -> &'static str {
@@ -151,7 +145,7 @@ mod tests {
         assert_eq!(sorted.len(), codes.len(), "duplicate language code");
     }
 
-    /// Round-trip: from_config(as_str) recovers the language.
+    /// Round-trip: `from_config(as_str)` recovers the language.
     #[test]
     fn from_config_roundtrip() {
         for lang in Language::all() {
@@ -175,7 +169,7 @@ mod tests {
         assert_eq!(Language::default(), Language::En);
     }
 
-    /// label() returns the endonym (not the literal key, not empty) for every
+    /// `label()` returns the endonym (not the literal key, not empty) for every
     /// language. Regression: previously `tr!("lang.{code}")` looked up the literal
     /// key with the braces and fell back to the key itself.
     #[test]
@@ -194,8 +188,7 @@ mod tests {
         assert_eq!(Language::De.label(), "Deutsch");
     }
 
-    /// flag() returns a non-empty emoji flag for every language.
-    /// country_code() returns a non-empty, distinct, lowercase ISO-2 code for
+    /// `country_code()` returns a non-empty, distinct, lowercase ISO-2 code for
     /// every language (the CSS modifier for the inline SVG flag).
     #[test]
     fn country_code_nonempty_distinct_lowercase() {

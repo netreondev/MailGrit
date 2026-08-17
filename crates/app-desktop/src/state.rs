@@ -12,6 +12,22 @@ use mailgrit_core_domain::{EditableUserRow, OperationTarget, PasswordGenerator};
 use std::sync::Arc;
 use zeroize::{Zeroize, Zeroizing};
 
+/// Audit entries kept in the UI list (the full chain stays in `SQLite`).
+const AUDIT_ENTRIES_SHOWN: usize = 10;
+
+/// Mode of the master-password modal. An enum rather than a bool: `AppState`'s
+/// `struct_excessive_bools` budget is spent, and a named mode reads better
+/// than an inverted `!key_exists` flag.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum MasterPasswordMode {
+    /// The audit key file exists — verify the password against the token.
+    /// Default: the value before the modal opens is never read.
+    #[default]
+    Unlock,
+    /// No audit key file yet (first run) — create the key from the password.
+    Create,
+}
+
 /// Application state (which screen to show + data).
 #[derive(Clone)]
 pub struct AppState {
@@ -31,11 +47,11 @@ pub struct AppState {
     pub language: Language,
     /// Session is active (confirmed by the webview navigating to `/dashboard`).
     pub session_ok: bool,
-    /// Session cookie name (from config.toml; default webpy_session_id). Informational.
+    /// Session cookie name (from config.toml; default `webpy_session_id`). Informational.
     pub session_cookie_name: String,
     /// Everything CSV/bulk-operation related (the loaded data, the target and
     /// profile it is parsed against, the editable layer, and the last result).
-    /// Grouped into a sub-state: AppState used to be a flat bag of 27 pub
+    /// Grouped into a sub-state: `AppState` used to be a flat bag of 27 pub
     /// fields mixing routing, auth, CSV, audit, and modals.
     pub csv: CsvState,
     /// Audit log (hash-chained).
@@ -58,6 +74,11 @@ pub struct AppState {
     /// `None` until the user enters it via the modal; stored only in memory,
     /// wrapped in [`Zeroizing`] so it is wiped when replaced/cleared.
     pub master_password: Option<Zeroizing<String>>,
+    /// Mode of the master-password modal, snapshotted at OPEN time by
+    /// [`Self::open_master_password_modal`] (key-file existence). The modal
+    /// reads this instead of hitting the filesystem on every render (each
+    /// keystroke re-renders it). Meaningful only while the modal is open.
+    pub master_password_mode: MasterPasswordMode,
     /// An unlock attempt (Argon2id in a background task) is in flight. Blocks
     /// repeated submissions from the modal and disables its buttons.
     pub unlock_pending: bool,
@@ -203,6 +224,20 @@ impl Default for AppState {
 }
 
 impl AppState {
+    /// Opens the master-password modal (the single way), snapshotting the
+    /// create-vs-unlock mode into [`Self::master_password_mode`] (audit-key
+    /// file existence at open time). The modal reads the flag instead of
+    /// hitting the filesystem on every render — each keystroke in the password
+    /// field re-renders it.
+    pub fn open_master_password_modal(&mut self) {
+        self.modals.pending_master_password = true;
+        self.master_password_mode = if crate::audit_ui::audit_key_file_is_valid() {
+            MasterPasswordMode::Unlock
+        } else {
+            MasterPasswordMode::Create
+        };
+    }
+
     /// Creates the initial state on the login screen.
     ///
     /// The audit log is NOT opened here: the audit key is protected by the master
@@ -248,6 +283,7 @@ impl AppState {
             audit: None,
             op_status: OpStatus::Idle,
             modals: ModalState::default(),
+            master_password_mode: MasterPasswordMode::default(),
             audit_entries: Vec::new(),
             last_cookies: Vec::new(),
             error_msg: None,
@@ -304,7 +340,7 @@ impl AppState {
     /// Refreshes the list of audit entries from the writer.
     pub fn refresh_audit(&mut self) {
         if let Some(audit) = &self.audit {
-            match audit.recent(10) {
+            match audit.recent(AUDIT_ENTRIES_SHOWN) {
                 Ok(entries) => {
                     self.audit_entries = entries
                         .into_iter()

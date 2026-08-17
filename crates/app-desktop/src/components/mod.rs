@@ -1,4 +1,4 @@
-//! Reusable UI components of the MailGrit design system.
+//! Reusable UI components of the `MailGrit` design system.
 //!
 //! All components are built on design tokens (`assets/tokens.css`) and styles
 //! from `assets/components.css`. Used by the login/dashboard screens.

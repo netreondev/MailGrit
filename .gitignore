@@ -48,3 +48,11 @@ CODEX.md
 .cursorrules
 .cursorignore
 .windsurfrules
+
+# QA hardening run artifacts
+qa-logs/
+qa-reports/
+
+# Python bytecode (py_compile side-effect of qa checks — never committed)
+__pycache__/
+*.pyc

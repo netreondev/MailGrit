@@ -6,7 +6,7 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors
 
-/// Characters that make spreadsheet apps (Excel, LibreOffice, Google Sheets)
+/// Characters that make spreadsheet apps (Excel, `LibreOffice`, Google Sheets)
 /// evaluate a cell as a FORMULA when they start the cell value.
 const FORMULA_PREFIXES: [char; 6] = ['=', '+', '-', '@', '\t', '\r'];
 
@@ -14,7 +14,7 @@ const FORMULA_PREFIXES: [char; 6] = ['=', '+', '-', '@', '\t', '\r'];
 ///
 /// 1. **Formula neutralization (OWASP):** a field starting with `=`, `+`, `-`,
 ///    `@`, tab, or CR is prefixed with `'`. RFC-4180 quoting alone does NOT
-///    prevent evaluation — Excel and LibreOffice still evaluate quoted cells
+///    prevent evaluation — Excel and `LibreOffice` still evaluate quoted cells
 ///    (`=HYPERLINK(...)`, `@SUM(...)` were passing through the old escaper).
 /// 2. **RFC 4180 quoting:** a field containing a comma, quote, or newline is
 ///    wrapped in quotes with inner quotes doubled.

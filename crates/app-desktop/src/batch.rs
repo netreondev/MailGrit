@@ -31,6 +31,14 @@ pub struct BatchResult {
 /// The values are taken from a valid `SanitizedUserRow` (typestate pipeline)
 /// only for successfully executed operations, so the password is guaranteed to
 /// match what was sent to the server.
+///
+/// SECURITY TRADE-OFF (deliberate): the password lives here as a plain
+/// `String`, unlike the master password / generated passwords, which are
+/// `Zeroizing`. This snapshot must survive for the whole session (the export
+/// needs it after `editable_rows` is reset), and wrapping the whole
+/// export/report pipeline in `Zeroizing` copies would multiply the secret's
+/// footprint rather than shrink it. The snapshot IS wiped by
+/// `reset_session()` (logout), which clears `batch_result`.
 #[derive(Debug, Clone)]
 pub struct CredentialRow {
     /// Domain.

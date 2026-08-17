@@ -130,7 +130,7 @@ pub(super) fn build_target_batch_js(
 /// Parameterization of the unified `doOp` JS pipeline for a specific operation
 /// target (User/Domain/Admin). The target passes its differences — endpoints, the
 /// JS expression of the post-verification target, and the log tag/identifier; the
-/// rest of the pipeline (CSRF-fetch → URLSearchParams → POST → dump → verdict →
+/// rest of the pipeline (CSRF-fetch → `URLSearchParams` → POST → dump → verdict →
 /// post-verification) is identical for all iRedAdmin OSE forms and lives in
 /// [`build_do_op_js`].
 #[must_use]
@@ -151,17 +151,25 @@ pub(super) struct DoOpSpec {
     pub log_id_js: &'static str,
 }
 
+/// Max characters of a response HEADER VALUE kept in the dump (a header value
+/// is diagnostic metadata; the rest is truncated).
+const RESP_HEADER_VALUE_MAX: usize = 200;
+/// Max characters of the response BODY kept in the dump (`responseBodyFull`) —
+/// the "full operation dump" contract: enough HTML for debugging an iRedAdmin
+/// verdict, bounded so a huge error page does not balloon the IPC message.
+const RESP_BODY_MAX: usize = 5000;
+
 /// Builds the unified JS function `doOp(base, row)` — the pipeline of a single
 /// request to an iRedAdmin OSE form for any operation target.
 ///
-/// Skeleton: GET form → CSRF → URLSearchParams → POST → full dump → verdict by
+/// Skeleton: GET form → CSRF → `URLSearchParams` → POST → full dump → verdict by
 /// markers → create/delete post-verification. All differences between
 /// User/Domain/Admin are parameterized via [`DoOpSpec`]; structurally and
 /// semantically it is a single pipeline.
 ///
 /// The response dump is uniform across all targets: it includes `csrfInputs` and
-/// `responseBodyFull` (up to 5000 characters) — matching the "Full operation
-/// dump" contract (README).
+/// `responseBodyFull` (up to [`RESP_BODY_MAX`] characters) — matching the "Full
+/// operation dump" contract (README).
 //
 // A single doOp JS pipeline whose fragments are interpolated into each other.
 // Further splitting would break the pipeline's locality.
@@ -203,7 +211,7 @@ pub(super) fn build_do_op_js(spec: &DoOpSpec) -> String {
         // 4. Full response dump.
         const respBody = await r.text().catch(() => '');
         const respHeaders = {{}};
-        r.headers.forEach((val, key) => {{ respHeaders[key] = val.slice(0, 200); }});
+        r.headers.forEach((val, key) => {{ respHeaders[key] = val.slice(0, {RESP_HEADER_VALUE_MAX}); }});
         // r.ok is sufficient: fetch uses redirect:'follow' (by default), so
         // r.status is the final code after the redirect (never 302/303). Earlier
         // there were dead `r.status === 302/303` checks here, unreachable under follow.
@@ -256,7 +264,7 @@ pub(super) fn build_do_op_js(spec: &DoOpSpec) -> String {
                 responseUrl: r.url,
                 responseHeaders: respHeaders,
                 responseBodyLen: respBody.length,
-                responseBodyFull: respBody.slice(0, 5000),
+                responseBodyFull: respBody.slice(0, {RESP_BODY_MAX}),
                 successMarker: hasSuccess,
                 errorMsg: isErrorMsg,
                 verified: verified,
@@ -286,8 +294,8 @@ pub(super) struct BatchFragments<'a> {
     pub do_op: &'a str,
 }
 
-/// Final IIFE wrapper of the operation batch: marker_js + base_js + error_map_js
-/// + MF_VERIFY + helpers + buildFields + doOp + the rows loop + IPC postMessage.
+/// Final IIFE wrapper of the operation batch: `marker_js` + `base_js` + `error_map_js`
+/// + `MF_VERIFY` + helpers + buildFields + doOp + the rows loop + IPC postMessage.
 ///
 /// Identical for all targets; the target module passes its fragments in
 /// `fragments`. `id` is the correlation-id for the IPC response

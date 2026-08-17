@@ -1,7 +1,7 @@
 //! The CSV card of the Operations section: file choosing, summary, mapping,
 //! the editable table, and password controls.
 //!
-//! Extracted from operations_view.rs to keep each file under the 400-line spec.
+//! Extracted from `operations_view.rs` to keep each file under the 400-line spec.
 // SPDX-License-Identifier: MIT OR Apache-2.0
 // Copyright (c) 2026 Netreon™ and contributors
 
@@ -36,7 +36,7 @@ pub fn csv_card(state: Signal<AppState>) -> Element {
         (summary.failed > 0).then(|| format!("{} {}", summary.failed, tr!("csv.rejected")))
     });
     rsx! {
-        Card {
+        Card { data_card: "csv".to_string(),
             h2 { IconView { icon: Icon::Upload } {tr!("csv.card_title")} }
             p { class: "muted", {tr!("csv.format_hint")} }
 

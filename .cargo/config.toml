@@ -23,10 +23,11 @@ rustflags = ["-C", "link-arg=-fuse-ld=mold"]
 # sccache is NOT used in CI. It was tried as RUSTC_WRAPPER=sccache (routing
 # through GitHub's Actions Cache backend), but the backend proved persistently
 # unstable for this repo and a failed cache read aborted the build. A resilience
-# wrapper (.github/sccache-wrapper.sh) was attempted too, but it broke on cargo's
-# startup compiler version-probe. CI now compiles uncached. sccache remains
-# usable locally (set RUSTC_WRAPPER=sccache + SCCACHE_GHA_ENABLED=false) but is
-# intentionally not wired into the workflows.
+# wrapper (.github/sccache-wrapper.sh, since removed from the tree) was
+# attempted too, but it broke on cargo's startup compiler version-probe. CI now
+# compiles uncached. sccache remains usable locally (set RUSTC_WRAPPER=sccache
+# + SCCACHE_GHA_ENABLED=false) but is intentionally not wired into the
+# workflows.
 
 # Profile settings: dev — fast iteration, release — deterministic build.
 [profile.dev]

@@ -1,11 +1,11 @@
 //! iRedAdmin bulk operations executed THROUGH the login-WebView2 (JS fetch).
 //!
-//! WHY: your iRedAdmin server sits behind a FortiWeb WAF, which sets its own
+//! WHY: your iRedAdmin server sits behind a `FortiWeb` WAF, which sets its own
 //! session cookie (`cookiesession1`) and holds the iRedAdmin backend session at
 //! its end. Replaying the cookie in `reqwest` does NOT authenticate against the
-//! backend. Therefore the requests are executed INSIDE WebView2 via JS
+//! backend. Therefore the requests are executed INSIDE `WebView2` via JS
 //! `fetch(...)` — it automatically uses the browser cookies (the legitimate
-//! FortiWeb session), and the backend sees the real session.
+//! `FortiWeb` session), and the backend sees the real session.
 //!
 //! Flow:
 //!   1. A panel button submits a request for an operation batch into
@@ -14,7 +14,7 @@
 //!      processing the queue — one operation at a time via
 //!      `evaluate_script_with_callback` (JS `fetch`); the result returns in the
 //!      callback → next.
-//!   3. The outcome (BatchResult) is sent to the UI thread via oneshot → `spawn`
+//!   3. The outcome (`BatchResult`) is sent to the UI thread via oneshot → `spawn`
 //!      → `Signal`.
 //!
 //! Submodules (to comply with the spec's file-size limit of ≤400 lines):
@@ -48,14 +48,14 @@ pub struct OpResult {
     /// "401/403", as the old detector expected).
     pub status: i64,
     /// The final response URL (after redirects), from `dump.responseUrl`.
-    /// Contains `/login` on session expiry → the detector (P0). `None` if JS did
-    /// not pass dump (network failure).
+    /// Its path has the `login` segment on session expiry → the detector (P0).
+    /// `None` if JS did not pass dump (network failure).
     pub resp_url: Option<String>,
     /// The final post-verification URL (profile GET), from `dump.verifyUrl`.
     /// The session may expire between a successful POST and the verify-GET: then
-    /// this URL contains `/login`, while `resp_url` (the POST-url) does not.
-    /// Without this field, the detector missed session expiry in the verify
-    /// window (P0).
+    /// this URL's path has the `login` segment, while `resp_url` (the POST-url)
+    /// does not. Without this field, the detector missed session expiry in the
+    /// verify window (P0).
     pub verify_url: Option<String>,
 }
 

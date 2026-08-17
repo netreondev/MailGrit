@@ -165,7 +165,7 @@ pub fn IconView(
     }
 }
 
-/// The MailGrit "Forged M" logo: a monogram letter M (Mail) rendered as
+/// The `MailGrit` "Forged M" logo: a monogram letter M (Mail) rendered as
 /// forged/laminated metal (Grit — tempering/power/mass-production). A single
 /// polyline stroke (left stem → V valley → right stem) sits on top of the
 /// brand pillow-gradient, with a white-hot underlay and forge-seam notches on

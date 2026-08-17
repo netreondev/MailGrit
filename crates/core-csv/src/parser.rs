@@ -6,7 +6,7 @@
 //! record cap — the real protection against OOM on hostile input). Strict
 //! limits ([`MAX_CSV_ROWS`],
 //! [`MAX_CSV_FIELD_BYTES`](mailgrit_core_domain::MAX_CSV_FIELD_BYTES), record
-//! bytes) protect against DoS. Returns a
+//! bytes) protect against `DoS`. Returns a
 //! [`RawCsvRow`](mailgrit_core_domain::RawCsvRow) (Unverified); field validation
 //! happens in `core-domain` via the typestate.
 // SPDX-License-Identifier: MIT OR Apache-2.0
@@ -185,7 +185,7 @@ fn is_blank_record(fields: &[String]) -> bool {
 /// Checks whether the split fields form the CSV header.
 ///
 /// Case-insensitive and whitespace-trimming, so a header exported by Excel/
-/// LibreOffice with different casing (e.g. `Domain,Username,...`) — including
+/// `LibreOffice` with different casing (e.g. `Domain,Username,...`) — including
 /// a quoted one — is still recognized and skipped.
 fn is_header(fields: &[String]) -> bool {
     if fields.len() != EXPECTED_CSV_COLUMNS {

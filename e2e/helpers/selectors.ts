@@ -81,19 +81,16 @@ export const DASH = {
   sectionRadio: '.section-nav [role="radio"]',
   sectionActive: '.section-nav .segmented-active',
 
-  // Card grid.
+  // Card grid. Cards are addressed by their stable `data-card` semantic id
+  // (rendered in Rust): positional `:nth-child` selectors silently retarget
+  // onto the WRONG card when the grid is reordered — a missing data-card
+  // fails loudly instead.
   dashGrid: '.dash-grid',
   cards: '.dash-grid .card',
   spanAll: '.dash-grid .span-all',
 
-  // CSV card (upload + table) — the first card of the grid (direct child).
-  csvCard: '.dash-grid > .card:nth-child(1)',
+  // CSV card (upload + table).
   chooseFileButton: '.dash-grid .btn-secondary',
-  dashStat: '.dash-stat',
-  dashStatLabel: '.dash-stat-label',
-
-  // Column mapping (op-row with a profile + auto-detect button).
-  mappingRow: '.dash-grid > .card:nth-child(1) .op-row',
 
   // Password generation controls.
   pwControls: '.pw-controls',
@@ -126,12 +123,11 @@ export const DASH = {
   // Password strength indicator (warning icon with a tooltip).
   pwStrengthWarn: '.pw-strength-warn',
 
-  // Operations card (target, Create/Edit/Delete/export/diagnostics buttons) —
-  // the second direct child of the grid.
-  opsCard: '.dash-grid > .card:nth-child(2)',
+  // Operations card (target, Create/Edit/Delete/export/diagnostics buttons).
+  opsCard: '.dash-grid > [data-card="ops"]',
   // Target switcher — the second segmented control on the dashboard (in the ops card).
-  targetRadio: '.dash-grid > .card:nth-child(2) [role="radio"]',
-  targetActive: '.dash-grid > .card:nth-child(2) .segmented-active',
+  targetRadio: '.dash-grid > [data-card="ops"] [role="radio"]',
+  targetActive: '.dash-grid > [data-card="ops"] .segmented-active',
   opRunning: '.op-running',
   spinner: '.spinner',
   progressbar: '[role="progressbar"]',
@@ -146,10 +142,7 @@ export const DASH = {
   modalIconInfo: '.modal-icon-info',
 
   // "Audit" section.
-  auditCard: '.dash-grid .card',
   auditLocked: '.audit-locked',
-  auditTable: '.audit .table, .dash-grid .table',
-  auditVerifyButton: '.btn-secondary',
 } as const;
 
 /**

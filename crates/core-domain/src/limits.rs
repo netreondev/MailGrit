@@ -6,7 +6,7 @@
 pub const MAX_CSV_ROWS: usize = 50_000;
 
 /// Maximum length of an individual CSV field, measured in **bytes** (after UTF-8
-/// decoding). This is a coarse DoS guard applied at the CSV layer, BEFORE any
+/// decoding). This is a coarse `DoS` guard applied at the CSV layer, BEFORE any
 /// semantic validation.
 ///
 /// Note the deliberate two-regime design: this limit counts **bytes**, whereas
@@ -31,7 +31,7 @@ pub const MAX_USERNAME_LEN: usize = 64;
 /// Maximum domain length (RFC 1035 recommends ≤253).
 pub const MAX_DOMAIN_LEN: usize = 253;
 
-/// Maximum display_name length.
+/// Maximum `display_name` length.
 pub const MAX_DISPLAY_NAME_LEN: usize = 256;
 
 /// Maximum password length (upper bound to guard against anomalous input).
@@ -52,7 +52,7 @@ mod tests {
         const { assert!(MAX_PASSWORD_LEN > 0) };
     }
 
-    /// The byte-budget DoS guard (`MAX_CSV_FIELD_BYTES`) must be large enough
+    /// The byte-budget `DoS` guard (`MAX_CSV_FIELD_BYTES`) must be large enough
     /// that any semantically-valid field (worst case: `len` chars × 4 bytes/char
     /// for a maximally multibyte UTF-8 string) fits within it. This guarantees
     /// the byte limit never pre-empts a semantically-valid value — i.e. the only

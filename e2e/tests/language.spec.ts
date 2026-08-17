@@ -3,6 +3,8 @@
 
 import { test, expect } from '../fixtures/app';
 import { SEL, LANGUAGES } from '../helpers/selectors';
+import { viewport } from '../helpers/layout';
+import { selectLanguage } from '../helpers/language';
 
 /**
  * REGRESSION: the language selector did not drop down — the dropdown rendered
@@ -30,7 +32,10 @@ test.describe('Language selector', () => {
     await expect(dropdown).toBeVisible();
     const box = await dropdown.boundingBox();
     expect(box, 'dropdown must have a boundingBox').not.toBeNull();
-    const vp = page.viewportSize() ?? { width: 1120, height: 780 };
+    // Real window metrics (NOT the hardcoded viewport fallback — that is the
+    // exact bug class this regression test guards against: runners clamp the
+    // window and a stale fallback silently skews the bounds check).
+    const vp = await viewport(page);
     expect(box!.x, 'dropdown within the screen on X').toBeGreaterThanOrEqual(0);
     expect(box!.y, 'dropdown within the screen on Y (not pushed below)').toBeLessThan(vp.height - 20);
     expect(box!.x + box!.width, 'right edge within the screen').toBeLessThanOrEqual(vp.width);
@@ -47,10 +52,8 @@ test.describe('Language selector', () => {
   test('selecting a language closes the menu and changes the UI locale', async ({ app }) => {
     const { page } = app;
 
-    // Open and select Deutsch.
-    await page.locator(SEL.langTrigger).click();
-    await expect(page.locator(SEL.langDropdown)).toBeVisible();
-    await page.locator(SEL.langDropdown).getByText('Deutsch', { exact: true }).click();
+    // Open and select Deutsch (the helper also waits for the applied switch).
+    await selectLanguage(page, 'Deutsch');
 
     // The menu closed.
     await expect(page.locator(SEL.langDropdown)).toHaveCount(0);
@@ -60,8 +63,7 @@ test.describe('Language selector', () => {
     await expect(page.locator(SEL.langTrigger)).toContainText('DE');
 
     // Back to English — verify the reverse path.
-    await page.locator(SEL.langTrigger).click();
-    await page.locator(SEL.langDropdown).getByText('English', { exact: true }).click();
+    await selectLanguage(page, 'English');
     await expect(page.locator(SEL.langTrigger)).toContainText('EN');
   });
 
