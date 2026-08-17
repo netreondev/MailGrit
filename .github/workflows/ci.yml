@@ -700,16 +700,15 @@ jobs:
     name: Miri (UB detection — core crates)
     runs-on: ubuntu-latest
     needs: quality
-    # 120 min: the cold-start dominates — installing nightly+Miri and building
-    # the miri sysroot (std recompiled for the interpreter) takes the bulk of
-    # the budget on a 2-vCPU runner; the four interpreted crates themselves
-    # run in minutes (measured locally with a warm sysroot). The initial
-    # 30-minute budget was exhausted during bootstrap (run 31993316181) and
-    # so was the 60-minute follow-up (run 31995993576) — Miri had never
-    # actually executed in CI before: inside the old combined
-    # formal-verification job the mutation-testing step always consumed the
-    # budget first. 120 reflects the first true measurement with headroom.
-    timeout-minutes: 120
+    # 60 min: measured breakdown on a hosted runner (2026-08-17): nightly+Miri
+    # install and the miri sysroot bootstrap take ~2 min, the four interpreted
+    # crates run in minutes. The job previously LOOKED bootstrap-bound because
+    # a 50k-row boundary test ground for hours under the interpreter (it is
+    # now cfg_attr(miri, ignore), see mapping_tests.rs) — that ate the 30-,
+    # 60- and 120-minute budgets in turn (runs 31993316181, 31995993576,
+    # 32004782004). 60 min leaves generous headroom for slow runners without
+    # hiding a genuine hang.
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
       - name: Install nightly Rust (with Miri)

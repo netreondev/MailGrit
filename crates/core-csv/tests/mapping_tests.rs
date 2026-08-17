@@ -348,7 +348,15 @@ fn unmapped_empty_default_field_parses() -> Result<(), Box<dyn std::error::Error
 /// every small-fixture test. Drive the real boundary: exactly `MAX_CSV_ROWS`
 /// positional rows parse fine; one more is a fatal `TooManyRows` (rows are
 /// counted, not lines: all rows here are valid).
+// Under Miri this test is ignored for the same reason as the proptest suite
+// (proptest_csv.rs): the interpreter runs ~1000× slower than native code, and
+// parsing 50 001 CSV rows takes hours instead of 0.5 s (measured 2026-08-17:
+// the CI Miri job ground on this binary for its whole 120-minute budget,
+// runs 31993316181/31995993576/32004782004). The row-budget guard itself is
+// exercised natively here (nextest) and the parser loop it protects is
+// interpreted by Miri through the small-fixture mapping tests above.
 #[test]
+#[cfg_attr(miri, ignore = "50k-row boundary budget test: hours under the interpreter, 0.5s natively")]
 fn auto_enforces_max_csv_rows_budget() -> Result<(), Box<dyn std::error::Error>> {
     use mailgrit_core_csv::CsvParseError;
     use mailgrit_core_domain::MAX_CSV_ROWS;
