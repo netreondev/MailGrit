@@ -61,9 +61,11 @@ jobs:
       # ground ~60 s per str::count unwinding step and was cancelled by the
       # 90-minute job timeout (runs 31294142192, 31299647997, 31924909000,
       # 31962413897), i.e. the weekly gate was silently red for 2+ weeks.
-      # Kani 0.67.0 verifies the same harness (with the convergent input
-      # model from kani_harnesses.rs) in minutes. Keep the pin explicit so
-      # the gate never silently regresses with an action-side default bump.
+      # 0.67.0 is materially faster on the remaining symbolic harnesses; the
+      # display_name harness itself is now concrete-string (see the coverage
+      # NOTE in kani_harnesses.rs — no symbolic model converged on 2-vCPU
+      # runners under any bound/solver tried). Keep the version pinned so the
+      # gate never silently regresses with an action-side default bump.
       - name: "Kani (core-domain — parsers: no-panic, determinism, invariants)"
         uses: model-checking/kani-github-action@f838096619a707b0f6b2118cf435eaccfa33e51f # v1.1
         with:
