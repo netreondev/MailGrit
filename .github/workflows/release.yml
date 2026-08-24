@@ -60,7 +60,7 @@ jobs:
         uses: ./.github/actions/linux-deps
 
       - name: Install cargo tools (nextest, semver-checks, msrv)
-        uses: taiki-e/install-action@7f4eb899022d8fe70b20c4f3de697aa85c309026 # v2.85.11
+        uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -183,7 +183,7 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Install cargo tools (cargo-auditable, cargo-cyclonedx, cargo-bloat)
-        uses: taiki-e/install-action@7f4eb899022d8fe70b20c4f3de697aa85c309026 # v2.85.11
+        uses: taiki-e/install-action@b6b84cf49ebfe0176417bdce007c624f0db37f20 # v2.86.2
         # GITHUB_TOKEN authenticates api.github.com version resolution —
         # anonymous calls from shared runner IPs 403 under the 60/hr quota.
         env:
