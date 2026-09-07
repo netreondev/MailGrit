@@ -60,7 +60,7 @@ jobs:
         uses: ./.github/actions/linux-deps
 
       - name: Install cargo tools (nextest, semver-checks, msrv)
-        uses: taiki-e/install-action@7f4eb899022d8fe70b20c4f3de697aa85c309026 # v2.85.11
+        uses: taiki-e/install-action@1ed6d7be6168f6c9046541087ff549b6bc581fdf # v2.87.2
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -183,7 +183,7 @@ jobs:
         run: rustup target add ${{ matrix.target }}
 
       - name: Install cargo tools (cargo-auditable, cargo-cyclonedx, cargo-bloat)
-        uses: taiki-e/install-action@7f4eb899022d8fe70b20c4f3de697aa85c309026 # v2.85.11
+        uses: taiki-e/install-action@1ed6d7be6168f6c9046541087ff549b6bc581fdf # v2.87.2
         # GITHUB_TOKEN authenticates api.github.com version resolution —
         # anonymous calls from shared runner IPs 403 under the 60/hr quota.
         env:
@@ -437,7 +437,7 @@ jobs:
           fi
 
       - name: Create / update release with binaries, SBOMs and signatures
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
           name: MailGrit ${{ steps.tag.outputs.tag }}
